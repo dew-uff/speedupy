@@ -49,7 +49,7 @@ Once the program is already adapted, just run it.
 ```bash
 $ python <filename>.py program_params [-h, --help] [-g, --glossary] [-m memory|help, --memory memory|help] [-0, --no-cache] [- H type|help, --hash type|help] [-M method|help, --marshalling method|help] [-s form|help, --storage form|help]
 ```
-to get a better idea, just use the "-h" or "--help" argument, you will have all the valid arguments and their entries.
+To get an overview, just use the "-h" or "--help" argument and you will have all the valid arguments and their entries.
 ```bash
 python fibonacci.py -h
 ```
@@ -69,6 +69,6 @@ Finally, if you want to know more about a specific argument, use the "help" afte
 
 ![screen5_speedupy](https://github.com/dew-uff/speedupy/assets/18330758/be602515-fb86-4191-8f9c-bdca80405348)
 
-Figure 5: Use of the argument help.
+Figure 5: Use of the arguments's help.
 
 
