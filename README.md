@@ -26,12 +26,12 @@ For the tool to be able to interpret the experiment code, denote it with the fol
 
 In addition, it is necessary to have the following structure to call the main function:
 * if __name__ =="\_\_main\_\_":
-     n = int(sys.argv[1])
-     start = time.perf_counter()
-     main(n)
-     print(time.perf_counter()-start)
+     </br>n = int(sys.argv[1])
+     </br>start = time.perf_counter()
+     </br>main(n)
+     </br>print(time.perf_counter()-start)
 
-* subject to adaptation in arguments passed as parameters in the main
+* Adaptation may be necessary due to arguments passed as parameters in the main.
 
 Example:
 
