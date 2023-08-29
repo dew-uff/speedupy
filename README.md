@@ -20,11 +20,12 @@ $ cd Downloads/speedupy_experiments-main/01pilots/01pilots_exp01_fibonacci
 
 ### Prepare the files
 For the tool to be able to interpret the experiment code, denote it with the following decorators:
-@deterministic - for each pure function that will be accelerated
-@initialize_intpy(\_\_file\_\_) - to the main function
+
+* @deterministic - for each pure function that will be accelerated
+* @initialize_intpy(\_\_file\_\_) - to the main function
 
 In addition, it is necessary to have the following structure to call the main function:
-if __name__ =="\_\_main\_\_":
+* if __name__ =="\_\_main\_\_":
      n = int(sys.argv[1])
      start = time.perf_counter()
      main(n)
