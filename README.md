@@ -11,7 +11,7 @@ $ cd </program_folders_path>
 
 </program_folders_path>$ git clone https://github.com/dew-uff/speedupy.git
 ```
-In our case, the [speedupy_experiments-main](https://github.com/dew-uff/speedupy_experiments) folder was used, which can be obtained to test the tool by clicking on the link, after that, just unzip it.
+To exemplify, we use [the speedup experiments repository](https://github.com/dew-uff/speedupy_experiments), which can be obtained to test the tool by clicking on the link. After that, just unzip it and enjoy :-)
 ```bash
 $ cd Downloads/speedupy_experiments-main/01pilots/01pilots_exp01_fibonacci
 
