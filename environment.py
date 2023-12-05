@@ -11,11 +11,9 @@ def _create_table_FUNCTION_PARAMS(banco: Banco):
     
     stmt = "CREATE TABLE IF NOT FUNCTION_PARAMS (\
     id INTEGER PRIMARY KEY AUTOINCREMENT,\
-    function_call_id INTEGER NOT NULL,\
     function_hash TEXT NOT NULL,\
     parameter_value BLOB NOT NULL,\
-    parameter_name TEXT NOT NULL,\
-    is_keyword_param BOOLEAN NOT NULL,\
+    parameter_name TEXT,\
     parameter_position INTEGER NOT NULL,\
     FOREIGN KEY (function_hash) REFERENCES METADATA(function_hash)\
     );"
