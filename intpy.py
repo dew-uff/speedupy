@@ -54,7 +54,7 @@ if g_argsp_no_cache:
 else:
     init_env()
     from data_access import get_cache_data, create_entry, salvarNovosDadosBanco
-    from function_graph.function_graph import create_experiment_function_graph, get_source_code_executed
+    from services.experiment_service import create_experiment, create_experiment_function_graph
     from function_inference_service import decorate_experiment_functions
 
     g_user_script_graph = None
@@ -71,7 +71,8 @@ else:
 
 
     def _initialize_cache(user_script_path):
-        global g_user_script_graph
+        global g_experiment, g_user_script_graph
+        g_experiment = create_experiment(user_script_path)
         g_user_script_graph = create_experiment_function_graph(user_script_path)
 
     
@@ -121,7 +122,7 @@ else:
 
 
     def _get_cache(func, args):
-        fun_source = get_source_code_executed(func, g_user_script_graph)
+        fun_source = g_user_script_graph.get_source_code_executed(func)
         return get_cache_data(func.__name__, args, fun_source, g_argsp_m)
     
 
@@ -141,7 +142,7 @@ else:
     def _cache_data(func, fun_args, fun_return, elapsed_time):
         debug("starting caching data for {0}({1})".format(func.__name__, fun_args))
         start = time.perf_counter()
-        fun_source = get_source_code_executed(func, g_user_script_graph)
+        fun_source = g_user_script_graph.get_source_code_executed(func)
         create_entry(func.__name__, fun_args, fun_return, fun_source, g_argsp_m)
         end = time.perf_counter()
         debug("caching {0} took {1}".format(func.__name__, end - start))
