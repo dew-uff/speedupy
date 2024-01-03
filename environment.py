@@ -9,7 +9,7 @@ CACHE_FOLDER_NAME = FOLDER_NAME + "/cache"
 def _create_table_FUNCTION_PARAMS(banco: Banco):
     debug("creating table FUNCTION_PARAMS")
     
-    stmt = "CREATE TABLE IF NOT FUNCTION_PARAMS (\
+    stmt = "CREATE TABLE IF NOT EXISTS FUNCTION_PARAMS (\
     id INTEGER PRIMARY KEY AUTOINCREMENT,\
     function_call_id INTEGER NOT NULL,\
     function_hash TEXT NOT NULL,\
@@ -30,7 +30,7 @@ def _create_table_METADATA(banco: Banco):
     id INTEGER PRIMARY KEY AUTOINCREMENT,\
     function_hash TEXT NOT NULL,\
     return_value BLOB NOT NULL,\
-    execution_time REAL NOT NULL,\
+    execution_time REAL NOT NULL\
     );"
 
     banco.executarComandoSQLSemRetorno(stmt)
@@ -53,7 +53,7 @@ def _create_database():
     if _db_exists():
         debug("database already exists")
         return
-    conexaoBanco = Banco('.intpy/intpy.db')
+    conexaoBanco = Banco(FOLDER_NAME + '/intpy.db')
     _create_table_CACHE(conexaoBanco)
     _create_table_METADATA(conexaoBanco)
     _create_table_FUNCTION_PARAMS(conexaoBanco)
@@ -83,7 +83,7 @@ def _cache_folder_exists():
 
 
 def _db_exists():
-    return os.path.isfile('.intpy/intpy.db')
+    return os.path.isfile(FOLDER_NAME + '/intpy.db')
 
 
 def _folder_exists():
