@@ -8,6 +8,25 @@ from parser_params import get_params
 from environment import init_env
 from logger.log import debug
 
+###############IMPLEMENTANDO !!!!!!!!!!!! #########################
+def collect_metadata():
+    @wraps(f)
+    def wrapper(self, *method_args, **method_kwargs):
+        get_id_function()
+        return_value, elapsed_time = _execute_func(f, self, *method_args, **method_kwargs)
+        store(func_hash, elapsed_time, )
+        debug("calling {0}".format(f.__name__))
+        c = _get_cache(f, method_args)
+        if not _cache_exists(c):
+            debug("cache miss for {0}({1})".format(f.__name__, *method_args))
+            _cache_data(f, method_args, return_value, elapsed_time)
+            return return_value
+        else:
+            debug("cache hit for {0}({1})".format(f.__name__, *method_args))
+            return c
+
+    return wrapper
+
 g_argsp_m, g_argsp_M, g_argsp_s, g_argsp_no_cache, g_argsp_hash = get_params()
 
 print(g_argsp_m)
