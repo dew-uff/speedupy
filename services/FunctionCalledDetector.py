@@ -56,7 +56,7 @@ class FunctionCalledDetector():
         original_imported_script_name = self.__script.get_original_name_of_script_imported_with_import(import_command, self.__function_called_name)
         
         imported_script_name = self.__script.script_name_to_script_path(original_imported_script_name)
-        if(not is_an_user_defined_script(imported_script_name, self.__experiment.experiment_base_dir)):
+        if(not is_an_user_defined_script(imported_script_name, self.__experiment.base_dir)):
             #Script imported is not defined by the user, so function will never be cached
             return
         

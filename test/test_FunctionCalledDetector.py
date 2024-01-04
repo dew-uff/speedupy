@@ -12,15 +12,64 @@ from services.FunctionCalledDetector import FunctionCalledDetector
 class TestFunctionCalledDetector(unittest.TestCase):
     def test_calling_non_user_defined_functions(self):
         with open('script_test.py', 'wt') as f:
-            f.write()
+            f.write('import random\nfrom os.path import exists\n')
+            f.write('random.randint()\nrandom.random()\nexists("/")\n')
+            f.write('print(1 + 5)\nresp = input("...")')
+        fileAST = self.getAST('script_test.py')
+        imports = [fileAST.body[0], fileAST.body[1]]
+        script = Script('__main__', fileAST, imports, {})
+        experiment = Experiment(os.path.dirname(__file__))
+        experiment.add_script(script)
+
+        self.functionCalledDetector = FunctionCalledDetector(script, experiment)
+        self.assertIsNone(self.functionCalledDetector.find_function_called('random.randint'))
+        self.assertIsNone(self.functionCalledDetector.find_function_called('random.random'))
+        self.assertIsNone(self.functionCalledDetector.find_function_called('exists'))
+        self.assertIsNone(self.functionCalledDetector.find_function_called('print'))
+        self.assertIsNone(self.functionCalledDetector.find_function_called('input'))
+
+        os.system('rm script_test.py')
+        
+    def test_calling_user_defined_functions(self):
+        with open('script_test.py', 'wt') as f:
+            f.write('def func1():\n\tprint("func1")\n')
+            f.write('def func2(a, b=3):\n\tdef func21(c):\n\t\tdef func211():\n\t\t\tprint("func211")\n\t\tfunc211()\n\t\treturn c ** 2\n\tfunc21(b)\n\treturn 10\n')
+            f.write('func1()\nfunc2(1)\nfunc2(1, b=10)\n')
         fileAST = self.getAST('script_test.py')
         script = Script('__main__', fileAST, [], {})
         experiment = Experiment(os.path.dirname(__file__))
         experiment.add_script(script)
+
         self.functionCalledDetector = FunctionCalledDetector(script, experiment)
-        
-    def test_calling_user_defined_functions(self): pass
-    def test_calling_user_defined_functions_explicitly_imported_with_ast_Import_using_as_alias(self): pass
+        self.assertIsNone(self.functionCalledDetector.find_function_called('func1'))
+        self.assertIsNone(self.functionCalledDetector.find_function_called('func2'))
+        self.assertIsNone(self.functionCalledDetector.find_function_called('func21'))
+        self.assertIsNone(self.functionCalledDetector.find_function_called('func211'))
+
+        os.system('rm script_test.py')
+
+    def test_calling_user_defined_functions_explicitly_imported_with_ast_Import_using_as_alias(self):
+        #####TODO
+        os.makedirs('folder3.subfolder3')
+        with open('script_test.py', 'wt') as f:
+            f.write('import script_test_2 as st2\nimport folder3.subfolder3.script_test_3 as st3')
+            f.write('def func1():\n\tprint("func1")\n')
+            f.write('func1()\nfunc2(1)\nfunc2(1, b=10)\n')        
+        with open('script_test.py', 'wt') as f:
+            f.write('def func2(a, b=3):\n\tdef func21(c):\n\t\tdef func211():\n\t\t\tprint("func211")\n\t\tfunc211()\n\t\treturn c ** 2\n\tfunc21(b)\n\treturn 10\n')
+        fileAST = self.getAST('script_test.py')
+        script = Script('__main__', fileAST, [], {})
+        experiment = Experiment(os.path.dirname(__file__))
+        experiment.add_script(script)
+
+        self.functionCalledDetector = FunctionCalledDetector(script, experiment)
+        self.assertIsNone(self.functionCalledDetector.find_function_called('func1'))
+        self.assertIsNone(self.functionCalledDetector.find_function_called('func2'))
+        self.assertIsNone(self.functionCalledDetector.find_function_called('func21'))
+        self.assertIsNone(self.functionCalledDetector.find_function_called('func211'))
+
+        os.system('rm script_test.py')
+
     def test_calling_user_defined_functions_explicitly_imported_with_ast_ImportFrom_using_as_alias(self): pass
     def test_calling_user_defined_functions_explicitly_imported_with_ast_Import(self): pass
     def test_calling_user_defined_functions_explicitly_imported_with_ast_ImportFrom(self): pass
