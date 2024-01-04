@@ -38,10 +38,10 @@ def __script_needs_to_be_analyzed(script:str, experiment_base_dir:str, scripts_a
     return is_an_user_defined_script(script, experiment_base_dir) and \
             not __script_already_analized(script, scripts_analized)
 
-def __script_already_analized(script_name:str, scripts_analized:List[:str]) -> bool:
+def __script_already_analized(script_name:str, scripts_analized:List[str]) -> bool:
     return script_name in scripts_analized
     
 def create_experiment_function_graph(experiment:Experiment) -> FunctionGraph:
-    create_script_function_graph("__main__")
+    create_script_function_graph("__main__", experiment)
     script = experiment.scripts["__main__"]
     return script.function_graph

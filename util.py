@@ -1,3 +1,4 @@
+from typing import Set
 import os, ast
 
 def python_code_to_AST(file_name):
@@ -28,7 +29,7 @@ def get_script_path(script_name, experiment_base_dir):
 def is_an_user_defined_script(imported_script, experiment_base_dir):
     return os.path.exists(get_script_path(imported_script, experiment_base_dir)) and imported_script.find("intpy") == -1
 
-def get_all_init_scripts_implicitly_imported(imported_script:str, experiment_base_dir:str) -> Set(str):
+def get_all_init_scripts_implicitly_imported(imported_script:str, experiment_base_dir:str) -> Set[str]:
     init_scripts_implicitly_imported = set()
     if(imported_script.rfind(os.sep) != -1):
         current_init_script_path = imported_script[0:imported_script.rfind(os.sep) + 1] + "__init__.py"

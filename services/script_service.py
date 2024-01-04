@@ -2,7 +2,7 @@ from typing import List
 from util import python_code_to_AST, get_script_path
 from entities.Script import Script
 from entities.Experiment import Experiment
-from ASTSearcher import ASTSearcher
+from services.ASTSearcher import ASTSearcher
 from services.ScriptFunctionGraphCreator import ScriptFunctionGraphCreator
 
 def create_script(script_name:str, experiment_base_dir:str) -> Script:
@@ -22,7 +22,7 @@ def create_script(script_name:str, experiment_base_dir:str) -> Script:
 def create_script_function_graph(script_name:str, experiment:Experiment) -> None:
     main_script = experiment.scripts[script_name]
     u_def_imported_scripts = main_script.get_user_defined_imported_scripts(experiment.base_dir)
-    __create_user_defined_imported_scripts_function_graphs(u_def_imported_scripts)
+    __create_user_defined_imported_scripts_function_graphs(u_def_imported_scripts, experiment)
     script_function_graph = ScriptFunctionGraphCreator(main_script, u_def_imported_scripts, experiment).create_function_graph()
     main_script.function_graph = script_function_graph
 
