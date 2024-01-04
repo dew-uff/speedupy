@@ -9,7 +9,7 @@ from banco import Banco
 
 from logger.log import debug
 from environment import _create_database, _create_cache_folder, _create_folder, _cache_folder_exists, _db_exists, _folder_exists, _env_exists, init_env
-class TestTelaAtualizacaoEstoque(unittest.TestCase):
+class TestEnvironment(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.FOLDER_NAME = ".intpy"
