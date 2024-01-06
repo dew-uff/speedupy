@@ -10,6 +10,14 @@ from entities.Experiment import Experiment
 from services.FunctionCalledDetector import FunctionCalledDetector
 
 class TestFunctionCalledDetector(unittest.TestCase):
+    def tearDown(self):
+        files_and_folders = ['script_test.py', 
+                             'script_test_2.py',
+                             'folder3']
+        for f in files_and_folders:
+            if os.path.exists(f):
+                os.system(f'rm -rf {f}')
+
     def test_calling_non_user_defined_functions(self):
         with open('script_test.py', 'wt') as f:
             f.write('import random\nfrom os.path import exists\n')
@@ -27,8 +35,6 @@ class TestFunctionCalledDetector(unittest.TestCase):
         self.assertIsNone(self.functionCalledDetector.find_function_called('exists'))
         self.assertIsNone(self.functionCalledDetector.find_function_called('print'))
         self.assertIsNone(self.functionCalledDetector.find_function_called('input'))
-
-        os.system('rm script_test.py')
         
     def test_calling_user_defined_functions(self):
         with open('script_test.py', 'wt') as f:
@@ -45,35 +51,200 @@ class TestFunctionCalledDetector(unittest.TestCase):
         self.assertIsNone(self.functionCalledDetector.find_function_called('func2'))
         self.assertIsNone(self.functionCalledDetector.find_function_called('func21'))
         self.assertIsNone(self.functionCalledDetector.find_function_called('func211'))
-
-        os.system('rm script_test.py')
-
-    def test_calling_user_defined_functions_explicitly_imported_with_ast_Import_using_as_alias(self):
-        #####TODO
-        os.makedirs('folder3.subfolder3')
+    
+    def test_calling_user_defined_functions_explicitly_imported_with_ast_Import(self):
+        os.makedirs('folder3/subfolder3')
         with open('script_test.py', 'wt') as f:
-            f.write('import script_test_2 as st2\nimport folder3.subfolder3.script_test_3 as st3')
+            f.write('import script_test_2\nimport folder3.subfolder3.script_test_3\n')
             f.write('def func1():\n\tprint("func1")\n')
-            f.write('func1()\nfunc2(1)\nfunc2(1, b=10)\n')        
-        with open('script_test.py', 'wt') as f:
+            f.write('func1()\nscript_test_2.func2(1)\nscript_test_2.func2(1, b=10)\nfolder3.subfolder3.script_test_3.func3(10)')        
+        with open('script_test_2.py', 'wt') as f:
             f.write('def func2(a, b=3):\n\tdef func21(c):\n\t\tdef func211():\n\t\t\tprint("func211")\n\t\tfunc211()\n\t\treturn c ** 2\n\tfunc21(b)\n\treturn 10\n')
+        with open('folder3/subfolder3/script_test_3.py', 'wt') as f:
+            f.write('def func3(x):\n\tdef func31():\n\t\tprint("func31")\n\tfunc31()\n\treturn x ** 2\n')
+        
         fileAST = self.getAST('script_test.py')
-        script = Script('__main__', fileAST, [], {})
+        imports = [fileAST.body[0], fileAST.body[1]]
+        functions = {'func1':fileAST.body[2]}
+        script1 = Script('__main__', fileAST, imports, functions)
+
+        fileAST = self.getAST('script_test_2.py')
+        functions = {'func2':fileAST.body[0],
+                     'func2.<locals>.func21':fileAST.body[0].body[0],
+                     'func2.<locals>.func21.<locals>.func211':fileAST.body[0].body[0].body[0]}
+        script2 = Script('script_test_2.py', fileAST, [], functions)
+
+        fileAST = self.getAST('folder3/subfolder3/script_test_3.py')
+        functions = {'func3':fileAST.body[0],
+                     'func3.<locals>.func31':fileAST.body[0].body[0]}
+        script3 = Script('folder3/subfolder3/script_test_3.py', fileAST, [], functions)
+
         experiment = Experiment(os.path.dirname(__file__))
-        experiment.add_script(script)
+        experiment.add_script(script1)
+        experiment.add_script(script2)
+        experiment.add_script(script3)
 
-        self.functionCalledDetector = FunctionCalledDetector(script, experiment)
-        self.assertIsNone(self.functionCalledDetector.find_function_called('func1'))
-        self.assertIsNone(self.functionCalledDetector.find_function_called('func2'))
-        self.assertIsNone(self.functionCalledDetector.find_function_called('func21'))
-        self.assertIsNone(self.functionCalledDetector.find_function_called('func211'))
+        self.functionCalledDetector = FunctionCalledDetector(script1, experiment)
+        self.assertEqual(self.functionCalledDetector.find_function_called('func1'), script1.AST.body[2])
+        self.assertEqual(self.functionCalledDetector.find_function_called('script_test_2.func2'), script2.AST.body[0])
+        self.assertEqual(self.functionCalledDetector.find_function_called('folder3.subfolder3.script_test_3.func3'), script3.AST.body[0])
 
-        os.system('rm script_test.py')
+    ###TODO FIX GRAPH IMPLEMENTATION
+    def test_calling_user_defined_functions_explicitly_imported_with_ast_ImportFrom(self):
+        os.makedirs('folder3/subfolder3')
+        with open('script_test.py', 'wt') as f:
+            f.write('from script_test_2 import func2\nfrom folder3.subfolder3 import script_test_3\n')
+            f.write('def func1():\n\tprint("func1")\n')
+            f.write('func1()\nfunc2(1)\nfunc2(1, b=10)\nscript_test_3.func3(10)')
+        with open('script_test_2.py', 'wt') as f:
+            f.write('def func2(a, b=3):\n\tdef func21(c):\n\t\tdef func211():\n\t\t\tprint("func211")\n\t\tfunc211()\n\t\treturn c ** 2\n\tfunc21(b)\n\treturn 10\n')
+        with open('folder3/subfolder3/script_test_3.py', 'wt') as f:
+            f.write('def func3(x):\n\tdef func31():\n\t\tprint("func31")\n\tfunc31()\n\treturn x ** 2\n')
+        
+        fileAST = self.getAST('script_test.py')
+        imports = [fileAST.body[0], fileAST.body[1]]
+        functions = {'func1':fileAST.body[2]}
+        script1 = Script('__main__', fileAST, imports, functions)
 
-    def test_calling_user_defined_functions_explicitly_imported_with_ast_ImportFrom_using_as_alias(self): pass
-    def test_calling_user_defined_functions_explicitly_imported_with_ast_Import(self): pass
-    def test_calling_user_defined_functions_explicitly_imported_with_ast_ImportFrom(self): pass
-    def test_calling_user_defined_functions_explicitly_imported_with_ast_ImportFrom_with_relative_path(self): pass
+        fileAST = self.getAST('script_test_2.py')
+        functions = {'func2':fileAST.body[0],
+                     'func2.<locals>.func21':fileAST.body[0].body[0],
+                     'func2.<locals>.func21.<locals>.func211':fileAST.body[0].body[0].body[0]}
+        script2 = Script('script_test_2.py', fileAST, [], functions)
+
+        fileAST = self.getAST('folder3/subfolder3/script_test_3.py')
+        functions = {'func3':fileAST.body[0],
+                     'func3.<locals>.func31':fileAST.body[0].body[0]}
+        script3 = Script('folder3/subfolder3/script_test_3.py', fileAST, [], functions)
+
+        experiment = Experiment(os.path.dirname(__file__))
+        experiment.add_script(script1)
+        experiment.add_script(script2)
+        experiment.add_script(script3)
+
+        self.functionCalledDetector = FunctionCalledDetector(script1, experiment)
+        self.assertEqual(self.functionCalledDetector.find_function_called('func1'), script1.AST.body[2])
+        self.assertEqual(self.functionCalledDetector.find_function_called('func2'), script2.AST.body[0])
+        self.assertEqual(self.functionCalledDetector.find_function_called('script_test_3.func3'), script3.AST.body[0])
+    
+    def test_calling_user_defined_functions_explicitly_imported_with_ast_Import_using_as_alias(self):
+        os.makedirs('folder3/subfolder3')
+        with open('script_test.py', 'wt') as f:
+            f.write('import script_test_2 as st2\nimport folder3.subfolder3.script_test_3 as st3\n')
+            f.write('def func1():\n\tprint("func1")\n')
+            f.write('func1()\nst2.func2(1)\nst2.func2(1, b=10)\nst3.func3(10)')        
+        with open('script_test_2.py', 'wt') as f:
+            f.write('def func2(a, b=3):\n\tdef func21(c):\n\t\tdef func211():\n\t\t\tprint("func211")\n\t\tfunc211()\n\t\treturn c ** 2\n\tfunc21(b)\n\treturn 10\n')
+        with open('folder3/subfolder3/script_test_3.py', 'wt') as f:
+            f.write('def func3(x):\n\tdef func31():\n\t\tprint("func31")\n\tfunc31()\n\treturn x ** 2\n')
+        
+        fileAST = self.getAST('script_test.py')
+        imports = [fileAST.body[0], fileAST.body[1]]
+        functions = {'func1':fileAST.body[2]}
+        script1 = Script('__main__', fileAST, imports, functions)
+
+        fileAST = self.getAST('script_test_2.py')
+        functions = {'func2':fileAST.body[0],
+                     'func2.<locals>.func21':fileAST.body[0].body[0],
+                     'func2.<locals>.func21.<locals>.func211':fileAST.body[0].body[0].body[0]}
+        script2 = Script('script_test_2.py', fileAST, [], functions)
+
+        fileAST = self.getAST('folder3/subfolder3/script_test_3.py')
+        functions = {'func3':fileAST.body[0],
+                     'func3.<locals>.func31':fileAST.body[0].body[0]}
+        script3 = Script('folder3/subfolder3/script_test_3.py', fileAST, [], functions)
+
+        experiment = Experiment(os.path.dirname(__file__))
+        experiment.add_script(script1)
+        experiment.add_script(script2)
+        experiment.add_script(script3)
+
+        self.functionCalledDetector = FunctionCalledDetector(script1, experiment)
+        self.assertEqual(self.functionCalledDetector.find_function_called('func1'), script1.AST.body[2])
+        self.assertEqual(self.functionCalledDetector.find_function_called('st2.func2'), script2.AST.body[0])
+        self.assertEqual(self.functionCalledDetector.find_function_called('st3.func3'), script3.AST.body[0])
+    
+    ###TODO FIX GRAPH IMPLEMENTATION
+    def test_calling_user_defined_functions_explicitly_imported_with_ast_ImportFrom_using_as_alias(self):
+        os.makedirs('folder3/subfolder3')
+        with open('script_test.py', 'wt') as f:
+            f.write('from script_test_2 import func2 as f2\nfrom folder3.subfolder3 import script_test_3 as st3\n')
+            f.write('def func1():\n\tprint("func1")\n')
+            f.write('func1()\nf2(1)\nf2(1, b=10)\nst3.func3(10)')
+        with open('script_test_2.py', 'wt') as f:
+            f.write('def func2(a, b=3):\n\tdef func21(c):\n\t\tdef func211():\n\t\t\tprint("func211")\n\t\tfunc211()\n\t\treturn c ** 2\n\tfunc21(b)\n\treturn 10\n')
+        with open('folder3/subfolder3/script_test_3.py', 'wt') as f:
+            f.write('def func3(x):\n\tdef func31():\n\t\tprint("func31")\n\tfunc31()\n\treturn x ** 2\n')
+        
+        fileAST = self.getAST('script_test.py')
+        imports = [fileAST.body[0], fileAST.body[1]]
+        functions = {'func1':fileAST.body[2]}
+        script1 = Script('__main__', fileAST, imports, functions)
+
+        fileAST = self.getAST('script_test_2.py')
+        functions = {'func2':fileAST.body[0],
+                     'func2.<locals>.func21':fileAST.body[0].body[0],
+                     'func2.<locals>.func21.<locals>.func211':fileAST.body[0].body[0].body[0]}
+        script2 = Script('script_test_2.py', fileAST, [], functions)
+
+        fileAST = self.getAST('folder3/subfolder3/script_test_3.py')
+        functions = {'func3':fileAST.body[0],
+                     'func3.<locals>.func31':fileAST.body[0].body[0]}
+        script3 = Script('folder3/subfolder3/script_test_3.py', fileAST, [], functions)
+
+        experiment = Experiment(os.path.dirname(__file__))
+        experiment.add_script(script1)
+        experiment.add_script(script2)
+        experiment.add_script(script3)
+
+        self.functionCalledDetector = FunctionCalledDetector(script1, experiment)
+        self.assertEqual(self.functionCalledDetector.find_function_called('func1'), script1.AST.body[2])
+        self.assertEqual(self.functionCalledDetector.find_function_called('f2'), script2.AST.body[0])
+        self.assertEqual(self.functionCalledDetector.find_function_called('st3.func3'), script3.AST.body[0])
+
+    #TODO CONTINUAR IMPLEMENTAÇÃO
+    def test_calling_user_defined_functions_explicitly_imported_with_ast_ImportFrom_with_relative_path(self):
+        os.makedirs('folder3/subfolder3')
+        with open('script_test.py', 'wt') as f:
+            f.write('from .script_test_2 import func2 as f2\nfrom .folder3.subfolder3 import script_test_3 as st3\n')
+            f.write('def func1():\n\tprint("func1")\n')
+            f.write('func1()\nf2(1)\nf2(1, b=10)\nst3.func3(10)')
+        with open('script_test_2.py', 'wt') as f:
+            f.write('from ..folder3.subfolder3.script_test_3 import func3 as f3\n')
+            f.write('def func2(a, b=3):\n\tdef func21(c):\n\t\tdef func211():\n\t\t\tprint("func211")\n\t\tfunc211()\n\t\treturn c ** 2\n\tfunc21(b)\n\treturn 10\n')
+            f.write('f3("teste1")\nf3("teste2")\n')
+        with open('folder3/subfolder3/script_test_3.py', 'wt') as f:
+            f.write('def func3(x):\n\tdef func31():\n\t\tprint("func31")\n\tfunc31()\n\treturn x ** 2\n')
+        
+        fileAST = self.getAST('script_test.py')
+        imports = [fileAST.body[0], fileAST.body[1]]
+        functions = {'func1':fileAST.body[2]}
+        script1 = Script('__main__', fileAST, imports, functions)
+
+        fileAST = self.getAST('script_test_2.py')
+        imports = [fileAST.body[0]]
+        functions = {'func2':fileAST.body[1],
+                     'func2.<locals>.func21':fileAST.body[1].body[0],
+                     'func2.<locals>.func21.<locals>.func211':fileAST.body[1].body[0].body[0]}
+        script2 = Script('script_test_2.py', fileAST, imports, functions)
+
+        fileAST = self.getAST('folder3/subfolder3/script_test_3.py')
+        functions = {'func3':fileAST.body[0],
+                     'func3.<locals>.func31':fileAST.body[0].body[0]}
+        script3 = Script('folder3/subfolder3/script_test_3.py', fileAST, [], functions)
+
+        experiment = Experiment(os.path.dirname(__file__))
+        experiment.add_script(script1)
+        experiment.add_script(script2)
+        experiment.add_script(script3)
+
+        self.functionCalledDetector = FunctionCalledDetector(script1, experiment)
+        self.assertEqual(self.functionCalledDetector.find_function_called('func1'), script1.AST.body[2])
+        self.assertEqual(self.functionCalledDetector.find_function_called('f2'), script2.AST.body[1])
+        self.assertEqual(self.functionCalledDetector.find_function_called('st3.func3'), script3.AST.body[0])
+        self.functionCalledDetector = FunctionCalledDetector(script2, experiment)
+        self.assertEqual(self.functionCalledDetector.find_function_called('f3'), script3.AST.body[0])
+
     def test_calling_user_defined_functions_implicitly_imported_with_ast_Import(self): pass
     def test_calling_user_defined_functions_implicitly_imported_with_ast_ImportFrom(self): pass
     def test_calling_user_defined_functions_implicitly_imported_with_ast_ImportFrom_with_relative_path(self): pass
