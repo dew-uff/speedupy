@@ -1,7 +1,7 @@
 import os.path
 
 from entities.Experiment import Experiment
-from util import is_an_user_defined_script, script_name_to_script_path, import_command_to_imported_scripts_names, get_original_name_of_function_imported_with_import_from, get_original_name_of_script_imported_with_import, get_import_command_of_function
+from util import is_an_user_defined_script, script_name_to_script_path, import_command_to_imported_scripts_names, get_original_name_of_function_imported_with_import_from, get_original_name_of_script_imported, get_import_command_of_function
 from entities.Script import Script
 
 class FunctionCalledDetector():
@@ -55,7 +55,7 @@ class FunctionCalledDetector():
             #No import command could have imported this function
             return
 
-        original_imported_script_name = get_original_name_of_script_imported_with_import(import_command, self.__function_called_name)
+        original_imported_script_name = get_original_name_of_script_imported(import_command, self.__function_called_name)
         
         imported_script_name = script_name_to_script_path(original_imported_script_name, os.path.dirname(self.__script.name))
         if(not is_an_user_defined_script(imported_script_name, self.__experiment.base_dir)):
