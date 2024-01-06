@@ -200,8 +200,7 @@ class TestFunctionCalledDetector(unittest.TestCase):
         self.assertEqual(self.functionCalledDetector.find_function_called('func1'), script1.AST.body[2])
         self.assertEqual(self.functionCalledDetector.find_function_called('f2'), script2.AST.body[0])
         self.assertEqual(self.functionCalledDetector.find_function_called('st3.func3'), script3.AST.body[0])
-    """
-    #TODO FIX GRAPH IMPLEMENTATION: RELATIVE IMPORT
+
     def test_calling_user_defined_functions_explicitly_imported_with_ast_ImportFrom_with_relative_path(self):
         os.makedirs('folder2/subfolder2')
         os.makedirs('folder3/subfolder3')
@@ -244,7 +243,7 @@ class TestFunctionCalledDetector(unittest.TestCase):
         self.assertEqual(self.functionCalledDetector.find_function_called('st3.func3'), script3.AST.body[0])
         self.functionCalledDetector = FunctionCalledDetector(script2, experiment)
         self.assertEqual(self.functionCalledDetector.find_function_called('f3'), script3.AST.body[0])
-    
+    """
     #TODO CONTINUAR IMPLEMENTAÇÃO !!!!!!!!!
     def test_calling_user_defined_functions_implicitly_imported_with_ast_Import(self):
         os.makedirs('folder2/subfolder2')

@@ -59,7 +59,8 @@ def script_name_to_script_path(imported_script_name:str, main_script_dir:str) ->
     for i in range(1, len(imported_script_name), 1):
         letter = imported_script_name[i]
         if((letter == "." and script_path[-1] != ".") or
-        (letter != "." and script_path[-1] == ".")):
+           (letter != "." and script_path[-1] == ".") or
+           (script_path[-2:] == "..")):
             script_path += os.sep + letter
         else:
             script_path += letter
@@ -105,7 +106,6 @@ def get_import_command_of_function(function_name:str, import_commands:Union[ast.
     else:
         script_name_for_ast_import = function_name[:function_name.rfind(".")]
         script_name_for_ast_importFrom = function_name[:function_name.find(".")]
-        print(f"script_name2:{script_name_for_ast_importFrom}")
         for import_command in import_commands:
             if(isinstance(import_command, ast.Import)): #Using "import ..." to import a module
                 script_name = script_name_for_ast_import
