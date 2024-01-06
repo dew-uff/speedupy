@@ -1,5 +1,7 @@
+import os.path
+
 from entities.Experiment import Experiment
-from util import is_an_user_defined_script
+from util import is_an_user_defined_script, script_name_to_script_path, import_command_to_imported_scripts_names, get_original_name_of_function_imported_with_import_from, get_original_name_of_script_imported_with_import, get_import_command_of_function
 from entities.Script import Script
 
 class FunctionCalledDetector():
@@ -30,17 +32,17 @@ class FunctionCalledDetector():
                 self.__possible_functions_called[function_name] = self.__script.functions[function_name]
     
     def __find_possible_simple_name_functions_imported_by_script(self):
-        import_command = self.__script.get_import_command_of_function(self.__function_called_name)
+        import_command = get_import_command_of_function(self.__function_called_name, self.__script.import_commands)
         if(import_command is None):
             #No import command could have imported this function
             return
 
-        imported_script_name = self.__script.import_command_to_imported_scripts_names(import_command)[0]
+        imported_script_name = import_command_to_imported_scripts_names(import_command, os.path.dirname(self.__script.name))[0]
         if(not is_an_user_defined_script(imported_script_name, self.__experiment.base_dir)):
             #Script imported is not defined by the user, so function will never be cached
             return
         
-        original_imported_function_name = self.__script.get_original_name_of_function_imported_with_import_from(import_command, self.__function_called_name)
+        original_imported_function_name = get_original_name_of_function_imported_with_import_from(import_command, self.__function_called_name)
         try:
             self.__possible_functions_called[original_imported_function_name] = self.__experiment.scripts[imported_script_name].functions[original_imported_function_name]
         except:
@@ -48,14 +50,14 @@ class FunctionCalledDetector():
             pass
     
     def __find_possible_compose_name_functions_imported_by_script(self):
-        import_command = self.__script.get_import_command_of_function(self.__function_called_name)
+        import_command = get_import_command_of_function(self.__function_called_name, self.__script.import_commands)
         if(import_command is None):
             #No import command could have imported this function
             return
 
-        original_imported_script_name = self.__script.get_original_name_of_script_imported_with_import(import_command, self.__function_called_name)
+        original_imported_script_name = get_original_name_of_script_imported_with_import(import_command, self.__function_called_name)
         
-        imported_script_name = self.__script.script_name_to_script_path(original_imported_script_name)
+        imported_script_name = script_name_to_script_path(original_imported_script_name, os.path.dirname(self.__script.name))
         if(not is_an_user_defined_script(imported_script_name, self.__experiment.base_dir)):
             #Script imported is not defined by the user, so function will never be cached
             return
