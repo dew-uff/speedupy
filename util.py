@@ -1,5 +1,6 @@
 from typing import Set, Union, List, Optional
 import os, ast
+from copy import deepcopy
 
 def python_code_to_AST(file_name:str) -> ast.Module:
     try:
@@ -59,14 +60,28 @@ def script_name_to_script_path(imported_script_name:str, main_script_dir:str) ->
     for i in range(1, len(imported_script_name), 1):
         letter = imported_script_name[i]
         if((letter == "." and script_path[-1] != ".") or
-           (letter != "." and script_path[-1] == ".") or
-           (script_path[-2:] == "..")):
+           (letter != "." and script_path[-1] == ".")):
             script_path += os.sep + letter
         else:
             script_path += letter
+    script_path = __convert_relative_importFrom_dots_to_valid_path(script_path)
     script_path += ".py" if script_path[-1] != "." else os.sep + "__init__.py"
     return os.path.normpath(os.path.join(main_script_dir, script_path))
 
+def __convert_relative_importFrom_dots_to_valid_path(script_path):
+    new_script_path = deepcopy(script_path)
+    start = -1
+    for i in range(len(script_path)):
+        letter = script_path[i]
+        if letter == '.' and start == -1:
+            start = i
+        if letter != '.' and start != -1:
+            end = i
+            num_points = end - start
+            if num_points > 1:
+                new_script_path = new_script_path.replace(num_points*'.', '.' + (num_points-1)*'/..', 1)
+            start = -1
+    return new_script_path
 
 #MAYBE IN THE FUTURE "get_original_name_of_script_imported_with_import" AND 
 #"get_original_name_of_function_imported_with_import_from" CAN BE COLLAPSED
