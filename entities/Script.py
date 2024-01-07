@@ -10,7 +10,6 @@ class Script():
         self.__functions = functions
         self.__function_graph = function_graph
 
-    """
     def get_user_defined_imported_scripts(self, experiment_base_dir:str):
         imported_scripts = self.get_imported_scripts()
         user_defined_imported_scripts = []
@@ -18,7 +17,6 @@ class Script():
             if is_an_user_defined_script(imported_script, experiment_base_dir):
                 user_defined_imported_scripts.append(imported_script)
         return user_defined_imported_scripts
-    """
     
     def get_imported_scripts(self) -> List[str]:
         imported_scripts = []

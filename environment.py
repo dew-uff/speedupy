@@ -6,6 +6,17 @@ from logger.log import debug
 FOLDER_NAME = ".intpy"
 CACHE_FOLDER_NAME = FOLDER_NAME + "/cache"
 
+def _create_table_CLASSIFIED_FUNCTIONS(banco: Banco):
+    debug("creating table CLASSIFIED_FUNCTIONS")
+    
+    stmt = "CREATE TABLE IF NOT EXISTS CLASSIFIED_FUNCTIONS (\
+    id INTEGER PRIMARY KEY AUTOINCREMENT,\
+    function_hash TEXT NOT NULL,\
+    classification TEXT NOT NULL\
+    );"
+
+    banco.executarComandoSQLSemRetorno(stmt)
+
 def _create_table_FUNCTION_PARAMS(banco: Banco):
     debug("creating table FUNCTION_PARAMS")
     
@@ -55,6 +66,7 @@ def _create_database():
     _create_table_CACHE(conexaoBanco)
     _create_table_METADATA(conexaoBanco)
     _create_table_FUNCTION_PARAMS(conexaoBanco)
+    _create_table_CLASSIFIED_FUNCTIONS(conexaoBanco)
     conexaoBanco.fecharConexao()
 
 

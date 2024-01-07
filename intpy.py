@@ -60,9 +60,10 @@ else:
     init_env()
     from data_access import get_cache_data, create_entry, salvarNovosDadosBanco
     from services.experiment_service import create_experiment, create_experiment_function_graph
-    ###from function_inference_service import decorate_experiment_functions
+    from services.function_inference_service import decorate_experiment_functions
 
     g_user_script_graph = None
+    g_experiment = None
 
     def initialize_intpy(user_script_path):
         def decorator(f):
@@ -79,6 +80,7 @@ else:
         global g_experiment, g_user_script_graph
         g_experiment = create_experiment(user_script_path)
         g_user_script_graph = create_experiment_function_graph(g_experiment)
+        decorate_experiment_functions(g_experiment)
 
     
     def _salvarCache():
