@@ -1,4 +1,4 @@
-import ast
+import ast, os
 
 from typing import List, Dict
 from util import python_code_to_AST, get_script_path
@@ -40,8 +40,28 @@ def decorate_script_functions(script:Script, classified_functions:Dict[str, Func
 
 def copy_script(script:Script):
     for imp in script.import_commands:
+        #if isinstance(imp, ast.Import)
         pass
 
-    script.name = '__main__temp.py' if script.name == '__main__' else script.name.replace(".py", "_temp.py")
+    script.name = __get_script_temp_path(script.name)
+    if __script_is_inside_folder(script.name):
+        __create_script_path(script.name)
+        
     with open(script.name, "wt") as f:
         f.write(ast.unparse(script.AST))
+
+def __script_is_inside_folder(script_path:str) -> bool:
+    return script_path.find(os.sep) != -1
+
+def __get_script_temp_path(script_path:str) -> str:
+    folders, script_name = os.path.split(script_path)
+    script_name = script_name.replace(".py", "_temp.py")
+    if __script_is_inside_folder(script_path):
+        temp_path = (os.sep).join([f"{fol}_temp" for fol in folders.split(os.sep)])
+        return os.path.join(temp_path, script_name)
+    else:
+        return script_name
+
+def __create_script_path(script_path:str) -> None:
+    script_folder = os.path.dirname(script_path)
+    os.makedirs(script_folder)

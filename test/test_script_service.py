@@ -18,6 +18,7 @@ class TestScriptService(unittest.TestCase):
     def tearDown(self):
         files_and_folders = ['script_test.py', 
                              'script_test_2.py',
+                             'folder',
                              'folder2',
                              'folder3',
                              'folder4']
@@ -81,15 +82,39 @@ class TestScriptService(unittest.TestCase):
                 code2 = self.normalize_string(f2.read())
                 self.assertEqual(code1, code2)
         os.system('rm script_test_temp.py')
-   
-    # def copy_script(script:Script):
+    
+    def test_copy_script_which_is_inside_a_folder(self):
+        os.makedirs('folder/subfolder')
+        with open('folder/subfolder/script_test.py', 'wt') as f:
+            f.write('import random, os, sys\nfrom matplotlib.pyplot import *\n')
+            f.write('@deterministic\ndef f1(a, b, c=10):\n\ta * b / c\n')
+            f.write('@collect_metadata\ndef f2():\n\tdef f21(x, y=3):\n\t\tdef f211(a):\n\t\t\treturn "f211"\n\t\treturn "f21"\n\treturn "f2"\n')
+            f.write('@initialize_intpy(__file__)\ndef main():\n\tf1(1, 2, 3)\n\tf2()\n')
+            f.write('main()')
+        fileAST = self.getAST('folder/subfolder/script_test.py')
+        imports = [fileAST.body[0], fileAST.body[1]]
+        functions = {'f1':fileAST.body[2],
+                     'f2':fileAST.body[3],
+                     'f2.<locals>.f21':fileAST.body[3].body[0],
+                     'f2.<locals>.f21.<locals>.f211':fileAST.body[3].body[0].body[0],
+                     'main':fileAST.body[4]}
+        script = Script('folder/subfolder/script_test.py', fileAST, imports, functions)
+                
+        copy_script(script)
+        self.assertTrue(os.path.exists('folder_temp/subfolder_temp/script_test_temp.py'))
+        with open('folder/subfolder/script_test.py') as f1:
+            with open('folder_temp/subfolder_temp/script_test_temp.py') as f2:
+                code1 = self.normalize_string(f1.read())
+                code2 = self.normalize_string(f2.read())
+                self.assertEqual(code1, code2)
+        os.system('rm -rf folder_temp')
+   # def copy_script(script:Script):
     #     for imp in script.import_commands:
     #         pass
     #     script.name = script.name + "_temp.py"
     #     with open(script.name, "wt") as f:
     #         f.write(ast.unparse(script.AST))
     #TODO CONTINUAR IMPLEMENTAÇÃO
-    
     def test_copy_script_with_ast_Import_commands_to_user_defined_scripts(self):
         with open('script_test.py', 'wt') as f:
             f.write('import random, os, sys\nfrom matplotlib.pyplot import *\n')
@@ -114,6 +139,7 @@ class TestScriptService(unittest.TestCase):
                 code2 = self.normalize_string(f2.read())
                 self.assertEqual(code1, code2)
         os.system('rm script_test_temp.py')
+        
         
     def test_copy_script_with_ast_ImportFrom_commands_to_user_defined_functions(self): pass
     def test_copy_script_with_ast_ImportFrom_commands_to_user_defined_scripts(self): pass
