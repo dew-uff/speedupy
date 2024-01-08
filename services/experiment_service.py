@@ -4,8 +4,8 @@ from typing import List
 from entities.Script import Script
 from entities.Experiment import Experiment
 from entities.FunctionGraph import FunctionGraph
-
-from services.script_service import create_script, create_script_function_graph
+from data_access import get_already_classified_functions
+from services.script_service import create_script, create_script_function_graph, copy_script, decorate_script_functions
 from util import get_all_init_scripts_implicitly_imported, is_an_user_defined_script
 
 def create_experiment(user_script_path:str) -> Experiment:
@@ -45,3 +45,12 @@ def create_experiment_function_graph(experiment:Experiment) -> FunctionGraph:
     create_script_function_graph("__main__", experiment)
     script = experiment.scripts["__main__"]
     return script.function_graph
+
+def decorate_experiment_functions(experiment:Experiment) -> None:
+    classified_functions = get_already_classified_functions()
+    for script in experiment.scripts.values():
+        decorate_script_functions(script, classified_functions)
+
+# def copy_experiment(experiment:Experiment):
+#     for script in experiment.scripts.values():
+#         copy_script(script)

@@ -1,6 +1,6 @@
 import ast
 from util import *
-from typing import List
+from typing import Union, List, Callable
 from entities.Script import Script
 from entities.Experiment import Experiment
 
@@ -16,12 +16,13 @@ class FunctionGraph():
     def add(self, caller_function, function_called):
         self.__graph[caller_function].add(function_called)
     
-    def get_source_code_executed(self, function:ast.FunctionDef) -> str:
+    def get_source_code_executed(self, function:Union[Callable, ast.FunctionDef]) -> str:
         list_of_graph_vertices_not_yet_processed = []
         list_of_graph_vertices_already_processed = []
         source_codes_executed = []
         for current_function_def_node in self.__graph:
-            if(current_function_def_node.qualname == function.__qualname__):
+            if(isinstance(function, Callable) and current_function_def_node.qualname == function.__qualname__) or \
+              (isinstance(function, ast.FunctionDef) and current_function_def_node == function):
                 list_of_graph_vertices_not_yet_processed.append(current_function_def_node)
                 break
 

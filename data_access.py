@@ -5,6 +5,7 @@ import threading
 import mmh3
 import xxhash
 
+from typing import Dict
 from parser_params import get_params
 from banco import Banco
 from logger.log import debug, warn
@@ -46,7 +47,7 @@ def _remove(id):
     CONEXAO_BANCO.executarComandoSQLSemRetorno("DELETE FROM CACHE WHERE cache_file = ?;", (id,))
 
 
-def _get_id(fun_args, fun_source):
+def _get_id(fun_source, fun_args=None):
     if g_argsp_hash[0] == 'md5':
         return hashlib.md5((str(fun_args) + fun_source).encode('utf')).hexdigest()
     elif g_argsp_hash[0] == 'murmur':
@@ -191,7 +192,7 @@ def _get_cache_data_v027x(id):
 
 # Aqui misturam as versões v0.2.1.x a v0.2.7.x e v01x
 def get_cache_data(fun_name, fun_args, fun_source, argsp_v):
-    id = _get_id(fun_args, fun_source)
+    id = _get_id(fun_source, fun_args)
 
     if(argsp_v == ['v01x']):
         ret_get_cache_data_v01x = _get_cache_data_v01x(id)
@@ -233,7 +234,7 @@ def add_new_data_to_CACHED_DATA_DICTIONARY(list_file_names):
 
 # Aqui misturam as versões v0.2.1.x a v0.2.7.x e v01x
 def create_entry(fun_name, fun_args, fun_return, fun_source, argsp_v):
-    id = _get_id(fun_args, fun_source)
+    id = _get_id(fun_source, fun_args)
     if argsp_v == ['v01x']:
         global CONEXAO_BANCO
         CONEXAO_BANCO = Banco(os.path.join(".intpy", "intpy.db"))
@@ -315,3 +316,10 @@ elif(g_argsp_m == ['2d-ad-t'] or g_argsp_m == ['v024x']):
         db_connection.fecharConexao()
     load_cached_data_dictionary_thread = threading.Thread(target=_populate_cached_data_dictionary)
     load_cached_data_dictionary_thread.start()
+
+# def get_already_classified_functions() -> Dict[str, str]:
+#     resp = CONEXAO_BANCO.executarComandoSQLSelect(f"SELECT function_hash, classification FROM CLASSIFIED_FUNCTIONS")
+#     classified_functions = {}
+#     for reg in resp:
+#         classified_functions[reg[0]] = reg[1]
+#     return classified_functions
