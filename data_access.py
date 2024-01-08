@@ -15,8 +15,43 @@ from logger.log import debug, warn
 # Opening database connection and creating select query to the database
 # to populate DATA_DICTIONARY
 g_argsp_m, g_argsp_M, g_argsp_s, g_argsp_no_cache, g_argsp_hash = get_params()
+
+from threading import Lock, Thread
+
+
+class SingletonMeta(type):
+    """
+    Classe thread-safe para implementar Singleton.
+    """
+    _instances = {}
+    _lock: Lock = Lock()
+    def __call__(cls, *args, **kwargs):
+        with cls._lock:
+            if cls not in cls._instances:
+                instance = super().__call__(*args, **kwargs)
+                cls._instances[cls] = instance
+        return cls._instances[cls]
+
+
+class Constantes(metaclass=SingletonMeta):
+    def __init__(self):
+        self.CONEXAO_BANCO = None
+        if g_argsp_m != ['v01x']:
+            self.CONEXAO_BANCO = Banco(os.path.join(".intpy", "intpy.db"))
+        
+        self.DATA_DICTIONARY = {}
+        self.NEW_DATA_DICTIONARY = {}
+        self.FUNCTIONS_ALREADY_SELECTED_FROM_DB = []
+        self.CACHED_DATA_DICTIONARY_SEMAPHORE = threading.Semaphore()
+
+
+def test_singleton(value: str) -> None:
+    singleton = Singleton(value)
+    print(singleton.value)
+
+
 CONEXAO_BANCO = None
-if(g_argsp_m != ['v01x']):
+if 'TEST' not in os.environ and g_argsp_m != ['v01x']:
     CONEXAO_BANCO = Banco(os.path.join(".intpy", "intpy.db"))
 DATA_DICTIONARY = {}
 NEW_DATA_DICTIONARY = {}
@@ -317,9 +352,9 @@ elif(g_argsp_m == ['2d-ad-t'] or g_argsp_m == ['v024x']):
     load_cached_data_dictionary_thread = threading.Thread(target=_populate_cached_data_dictionary)
     load_cached_data_dictionary_thread.start()
 
-# def get_already_classified_functions() -> Dict[str, str]:
-#     resp = CONEXAO_BANCO.executarComandoSQLSelect(f"SELECT function_hash, classification FROM CLASSIFIED_FUNCTIONS")
-#     classified_functions = {}
-#     for reg in resp:
-#         classified_functions[reg[0]] = reg[1]
-#     return classified_functions
+def get_already_classified_functions() -> Dict[str, str]:
+    resp = CONEXAO_BANCO.executarComandoSQLSelect(f"SELECT function_hash, classification FROM CLASSIFIED_FUNCTIONS")
+    classified_functions = {}
+    for reg in resp:
+        classified_functions[reg[0]] = reg[1]
+    return classified_functions

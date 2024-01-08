@@ -59,7 +59,7 @@ if g_argsp_no_cache:
 else:
     init_env()
     from data_access import get_cache_data, create_entry, salvarNovosDadosBanco
-    from services.experiment_service import create_experiment, create_experiment_function_graph, copy_experiment
+    from services.experiment_service import create_experiment, create_experiment_function_graph
     from services.experiment_service import decorate_experiment_functions
 
     g_user_script_graph = None

@@ -5,7 +5,7 @@ from entities.Script import Script
 from entities.Experiment import Experiment
 from entities.FunctionGraph import FunctionGraph
 from data_access import get_already_classified_functions
-from services.script_service import create_script, create_script_function_graph, copy_script, decorate_script_functions
+from services.script_service import create_script, create_script_function_graph, decorate_script_functions
 from util import get_all_init_scripts_implicitly_imported, is_an_user_defined_script
 
 def create_experiment(user_script_path:str) -> Experiment:
