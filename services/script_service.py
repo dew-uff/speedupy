@@ -1,7 +1,7 @@
 import ast, os
 
 from typing import List, Dict
-from util import python_code_to_AST, get_script_path
+from util import python_code_to_AST, get_script_path, script_name_to_script_path, is_an_user_defined_script
 from entities.Script import Script
 from entities.Experiment import Experiment
 from services.ASTSearcher import ASTSearcher
@@ -38,10 +38,20 @@ def decorate_script_functions(script:Script, classified_functions:Dict[str, Func
     for function in script.functions.values():
         decorate_function(function, script.function_graph, classified_functions)
 
-def copy_script(script:Script):
+def copy_script(script:Script, exp_base_dir:str):
     for imp in script.import_commands:
-        #if isinstance(imp, ast.Import)
-        pass
+        if isinstance(imp, ast.Import):
+            for alias in imp.names:
+                if is_an_user_defined_script(script_name_to_script_path(alias.name, os.path.dirname(script.name)), exp_base_dir):
+                    alias.name = alias.name.replace(".", "_temp.")
+                    alias.name += "_temp"
+        elif isinstance(imp, ast.ImportFrom):
+            imported_script_name = imp.level * "." + imp.module if imp.module is not None else imp.level * "."
+            if is_an_user_defined_script(script_name_to_script_path(imported_script_name, os.path.dirname(script.name)), exp_base_dir):
+                if imp.module is not None:
+                    imp.module = imp.module.replace('.', '_temp.')
+                    imp.module += "_temp"
+
 
     script.name = __get_script_temp_path(script.name)
     if __script_is_inside_folder(script.name):

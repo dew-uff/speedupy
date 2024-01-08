@@ -35,6 +35,7 @@ class TestScriptService(unittest.TestCase):
     def normalize_string(self, string):
         return string.replace("\n\n", "\n").replace("\t", "    ").replace("\"", "'")
 
+    
     def test_copy_script_without_import_commands(self):
         with open('script_test.py', 'wt') as f:
             f.write('@deterministic\ndef f1(a, b, c=10):\n\ta * b / c\n')
@@ -49,7 +50,7 @@ class TestScriptService(unittest.TestCase):
                      'main':fileAST.body[2]}
         script = Script('script_test.py', fileAST, [], functions)
                 
-        copy_script(script)
+        copy_script(script, '')
         self.assertTrue(os.path.exists('script_test_temp.py'))
         with open('script_test.py') as f1:
             with open('script_test_temp.py') as f2:
@@ -74,7 +75,7 @@ class TestScriptService(unittest.TestCase):
                      'main':fileAST.body[4]}
         script = Script('script_test.py', fileAST, imports, functions)
                 
-        copy_script(script)
+        copy_script(script, '')
         self.assertTrue(os.path.exists('script_test_temp.py'))
         with open('script_test.py') as f1:
             with open('script_test_temp.py') as f2:
@@ -100,7 +101,7 @@ class TestScriptService(unittest.TestCase):
                      'main':fileAST.body[4]}
         script = Script('folder/subfolder/script_test.py', fileAST, imports, functions)
                 
-        copy_script(script)
+        copy_script(script, '')
         self.assertTrue(os.path.exists('folder_temp/subfolder_temp/script_test_temp.py'))
         with open('folder/subfolder/script_test.py') as f1:
             with open('folder_temp/subfolder_temp/script_test_temp.py') as f2:
@@ -108,40 +109,50 @@ class TestScriptService(unittest.TestCase):
                 code2 = self.normalize_string(f2.read())
                 self.assertEqual(code1, code2)
         os.system('rm -rf folder_temp')
-   # def copy_script(script:Script):
-    #     for imp in script.import_commands:
-    #         pass
-    #     script.name = script.name + "_temp.py"
-    #     with open(script.name, "wt") as f:
-    #         f.write(ast.unparse(script.AST))
-    #TODO CONTINUAR IMPLEMENTAÇÃO
+    
     def test_copy_script_with_ast_Import_commands_to_user_defined_scripts(self):
+        os.makedirs('folder4/subfolder4')
         with open('script_test.py', 'wt') as f:
-            f.write('import random, os, sys\nfrom matplotlib.pyplot import *\n')
-            f.write('@deterministic\ndef f1(a, b, c=10):\n\ta * b / c\n')
-            f.write('@collect_metadata\ndef f2():\n\tdef f21(x, y=3):\n\t\tdef f211(a):\n\t\t\treturn "f211"\n\t\treturn "f21"\n\treturn "f2"\n')
-            f.write('@initialize_intpy(__file__)\ndef main():\n\tf1(1, 2, 3)\n\tf2()\n')
-            f.write('main()')
+            f.write('import script_test_2, script_test_3 as st3, folder4.subfolder4.script_test_4')
+        with open('script_test_2.py', 'wt') as f:
+            f.write('@deterministic\ndef f2(a, b, c=10):\n\ta * b / c\n')
+        with open('script_test_3.py', 'wt') as f:
+            f.write('@collect_metadata\ndef f3():\n\treturn "f3"\n')
+        with open('folder4/subfolder4/script_test_4.py', 'wt') as f:
+            f.write('@collect_metadata\ndef f4():\n\tpass')
         fileAST = self.getAST('script_test.py')
-        imports = [fileAST.body[0], fileAST.body[1]]
-        functions = {'f1':fileAST.body[2],
-                     'f2':fileAST.body[3],
-                     'f2.<locals>.f21':fileAST.body[3].body[0],
-                     'f2.<locals>.f21.<locals>.f211':fileAST.body[3].body[0].body[0],
-                     'main':fileAST.body[4]}
-        script = Script('script_test.py', fileAST, imports, functions)
+        imports = [fileAST.body[0]]
+        script = Script('script_test.py', fileAST, imports, {})
                 
-        copy_script(script)
+        copy_script(script, '')
         self.assertTrue(os.path.exists('script_test_temp.py'))
-        with open('script_test.py') as f1:
-            with open('script_test_temp.py') as f2:
-                code1 = self.normalize_string(f1.read())
-                code2 = self.normalize_string(f2.read())
-                self.assertEqual(code1, code2)
+        with open('script_test_temp.py') as f:
+            code1 = self.normalize_string(f.read())
+            code2 = self.normalize_string('import script_test_2_temp, script_test_3_temp as st3, folder4_temp.subfolder4_temp.script_test_4_temp')
+            self.assertEqual(code1, code2)
         os.system('rm script_test_temp.py')
         
-        
-    def test_copy_script_with_ast_ImportFrom_commands_to_user_defined_functions(self): pass
+    def test_copy_script_with_ast_ImportFrom_commands_to_user_defined_functions(self):
+        os.makedirs('folder3/subfolder3')
+        with open('script_test.py', 'wt') as f:
+            f.write('from script_test_2 import f2\n')
+            f.write('from folder3.subfolder3.script_test_3 import f3')
+        with open('script_test_2.py', 'wt') as f:
+            f.write('@deterministic\ndef f2(a, b, c=10):\n\ta * b / c\n')
+        with open('folder3/subfolder3/script_test_3.py', 'wt') as f:
+            f.write('@collect_metadata\ndef f3():\n\treturn "f3"\n')
+        fileAST = self.getAST('script_test.py')
+        imports = [fileAST.body[0], fileAST.body[1]]
+        script = Script('script_test.py', fileAST, imports, {})
+                
+        copy_script(script, '')
+        self.assertTrue(os.path.exists('script_test_temp.py'))
+        with open('script_test_temp.py') as f:
+            code1 = self.normalize_string(f.read())
+            code2 = self.normalize_string('from script_test_2_temp import f2\nfrom folder3_temp.subfolder3_temp.script_test_3_temp import f3')
+            self.assertEqual(code1, code2)
+        os.system('rm script_test_temp.py')
+
     def test_copy_script_with_ast_ImportFrom_commands_to_user_defined_scripts(self): pass
     def test_copy_script_with_ast_Import_commands_with_relative_path(self): pass
     def test_copy_script_with_ast_ImportFrom_commands_with_relative_path(self): pass
