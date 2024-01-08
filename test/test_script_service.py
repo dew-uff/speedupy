@@ -152,8 +152,28 @@ class TestScriptService(unittest.TestCase):
             code2 = self.normalize_string('from script_test_2_temp import f2\nfrom folder3_temp.subfolder3_temp.script_test_3_temp import f3')
             self.assertEqual(code1, code2)
         os.system('rm script_test_temp.py')
+    
+    def test_copy_script_with_ast_ImportFrom_commands_to_user_defined_scripts(self):
+        os.makedirs('folder2/subfolder2/subsubfolder2')
+        with open('script_test.py', 'wt') as f:
+            f.write('from folder2.subfolder2 import script_test_21\n')
+            f.write('from folder2.subfolder2.subsubfolder2 import script_test_22')
+        with open('folder2/subfolder2/script_test_21.py', 'wt') as f:
+            f.write('@deterministic\ndef f2(a, b, c=10):\n\ta * b / c\n')
+        with open('folder2/subfolder2/subsubfolder2/script_test_22.py', 'wt') as f:
+            f.write('@collect_metadata\ndef f3():\n\treturn "f3"\n')
+        fileAST = self.getAST('script_test.py')
+        imports = [fileAST.body[0], fileAST.body[1]]
+        script = Script('script_test.py', fileAST, imports, {})
+        
+        copy_script(script, '')
+        self.assertTrue(os.path.exists('script_test_temp.py'))
+        with open('script_test_temp.py') as f:
+            code1 = self.normalize_string(f.read())
+            code2 = self.normalize_string('from folder2_temp.subfolder2_temp import script_test_21_temp\nfrom folder2_temp.subfolder2_temp.subsubfolder2_temp import script_test_22_temp')
+            self.assertEqual(code1, code2)
+        os.system('rm script_test_temp.py')
 
-    def test_copy_script_with_ast_ImportFrom_commands_to_user_defined_scripts(self): pass
     def test_copy_script_with_ast_Import_commands_with_relative_path(self): pass
     def test_copy_script_with_ast_ImportFrom_commands_with_relative_path(self): pass
     
