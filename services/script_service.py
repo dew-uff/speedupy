@@ -38,9 +38,10 @@ def decorate_script_functions(script:Script, classified_functions:Dict[str, Func
     for function in script.functions.values():
         decorate_function(function, script.function_graph, classified_functions)
 
-# def copy_script(script:Script):
-#     for imp in script.import_commands:
-#         pass
-#     script.name = script.name + "_temp.py"
-#     with open(script.name, "wt") as f:
-#         f.write(ast.unparse(script.AST))
+def copy_script(script:Script):
+    for imp in script.import_commands:
+        pass
+
+    script.name = '__main__temp.py' if script.name == '__main__' else script.name.replace(".py", "_temp.py")
+    with open(script.name, "wt") as f:
+        f.write(ast.unparse(script.AST))

@@ -29,8 +29,8 @@ def collect_metadata():
     return wrapper
 
 def check_python_version():
-    if sys.version_info[0:2] != (3, 9):
-        raise Exception('Requires python 3.9')
+    if sys.version_info[0] != 3 or sys.version_info[1] < 9:
+        raise Exception('Requires python 3.9+')
 
 check_python_version()
 if os.path.exists("constantes_test.py"):
@@ -59,8 +59,7 @@ if g_argsp_no_cache:
 else:
     init_env()
     from data_access import get_cache_data, create_entry, salvarNovosDadosBanco
-    from services.experiment_service import create_experiment, create_experiment_function_graph
-    from services.experiment_service import decorate_experiment_functions
+    from services.experiment_service import create_experiment, copy_experiment, create_experiment_function_graph, decorate_experiment_functions
 
     g_user_script_graph = None
     g_experiment = None
@@ -81,7 +80,7 @@ else:
         g_experiment = create_experiment(user_script_path)
         g_user_script_graph = create_experiment_function_graph(g_experiment)
         decorate_experiment_functions(g_experiment)
-        # copy_experiment(g_experiment)
+        copy_experiment(g_experiment)
 
     
     def _salvarCache():
