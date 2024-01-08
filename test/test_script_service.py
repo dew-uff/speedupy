@@ -18,6 +18,7 @@ class TestScriptService(unittest.TestCase):
     def tearDown(self):
         files_and_folders = ['script_test.py', 
                              'script_test_2.py',
+                             'script_test_3.py',
                              'folder',
                              'folder2',
                              'folder3',
