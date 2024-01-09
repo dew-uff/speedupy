@@ -81,6 +81,9 @@ else:
         g_user_script_graph = create_experiment_function_graph(g_experiment)
         decorate_experiment_functions(g_experiment)
         copy_experiment(g_experiment)
+        ###print(sys.argv)
+        ###os.system(f"python {' '.join(sys.argv)}")
+        ###print("done! sleeping...")
 
     
     def _salvarCache():
