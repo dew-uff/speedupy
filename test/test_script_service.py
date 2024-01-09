@@ -175,85 +175,102 @@ class TestScriptService(unittest.TestCase):
             self.assertEqual(code1, code2)
         os.system('rm script_test_temp.py')
 
-    def test_copy_script_with_ast_Import_commands_with_relative_path(self): pass
-    def test_copy_script_with_ast_ImportFrom_commands_with_relative_path(self): pass
+    def test_copy_script_with_ast_ImportFrom_commands_with_relative_path(self):
+        os.makedirs('folder2/subfolder2/subsubfolder2')
+        with open('script_test.py', 'wt') as f:
+            f.write('import folder2.subfolder2.script_test_21\n')
+        with open('folder2/subfolder2/script_test_21.py', 'wt') as f:
+            f.write('from .. import script_test_2\n')
+            f.write('from . import script_test_22\n')
+            f.write('from .subsubfolder2 import script_test_211\n')
+            f.write('@deterministic\ndef f21(a, b, c=10):\n\ta * b / c\n')
+        with open('folder2/script_test_2.py', 'wt') as f:
+            f.write('@deterministic\ndef f2(a):\n\ta ** 7\n')
+        with open('folder2/subfolder2/script_test_22.py', 'wt') as f:
+            f.write('@collect_metadata\ndef f22():\n\treturn "f22"\n')
+        with open('folder2/subfolder2/subsubfolder2/script_test_211.py', 'wt') as f:
+            f.write('@collect_metadata\ndef f211():\n\treturn "f211"\n')
+        
+        fileAST = self.getAST('folder2/subfolder2/script_test_21.py')
+        imports = [fileAST.body[0], fileAST.body[1], fileAST.body[2]]
+        functions = {"f21": fileAST.body[3]}
+        script = Script('folder2/subfolder2/script_test_21.py', fileAST, imports, functions)
+        
+        copy_script(script, '')
+        self.assertTrue(os.path.exists('folder2_temp/subfolder2_temp/script_test_21_temp.py'))
+        with open('folder2_temp/subfolder2_temp/script_test_21_temp.py') as f:
+            code1 = self.normalize_string(f.read())
+            code2 = self.normalize_string('from .. import script_test_2_temp\nfrom . import script_test_22_temp\nfrom .subsubfolder2_temp import script_test_211_temp\n@deterministic\ndef f21(a, b, c=10):\n\ta * b / c')
+            self.assertEqual(code1, code2)
+        os.system('rm -rf folder2_temp')
     
+    def test_copy_script_that_is_implicitly_imported_by_other_scripts(self):
+        os.makedirs('folder2/subfolder2/subsubfolder2')
+        with open('script_test.py', 'wt') as f:
+            f.write('import folder2.subfolder2.script_test_21\n')
+        with open('folder2/subfolder2/script_test_21.py', 'wt') as f:
+            f.write('@deterministic\ndef f21(a, b, c=10):\n\ta * b / c\n')
+        with open('folder2/subfolder2/__init__.py', 'wt') as f:
+            f.write('@deterministic\ndef finit21(a, b, c=10):\n\ta * b / c')
+        fileAST = self.getAST('folder2/subfolder2/__init__.py')
+        functions = {'finit21':fileAST.body[0]}
+        script = Script('folder2/subfolder2/__init__.py', fileAST, [], functions)
+        
+        copy_script(script, '')
+        self.assertTrue(os.path.exists('folder2_temp/subfolder2_temp/__init__.py'))
+        with open('folder2/subfolder2/__init__.py') as f1:
+            with open('folder2_temp/subfolder2_temp/__init__.py') as f2:
+                code1 = self.normalize_string(f1.read())
+                code2 = self.normalize_string(f2.read())
+                self.assertEqual(code1, code2)
+        os.system('rm -rf folder2_temp')
     """
-    def test_copy_script(self):
+    #TODO: IMPLEMENTAR!!!
+    def test_copy_script_that_imports_other_scrips_and_reference_them_on_source_code(self):
+        os.mkdir('folder3')
         with open('script_test.py', 'wt') as f:
-            f.write('def f1():\n\trandom.randint()\n')
-            f.write('def f2():\n\tdef f21():\n\t\tdef f211():\n\t\t\treturn "f211"\n\t\treturn "f21"\n\treturn "f2"\n')
+            f.write('import script_test_2\n')
+            f.write('from folder3 import script_test_3\n')
+            f.write('script_test_2.f2(10, 3)\nscript_test_3.f3(10)')
+        with open('script_test_2.py', 'wt') as f:
+            f.write('@deterministic\ndef f2(a, b, c=10):\n\ta * b / c')
+        with open('folder3/script_test_3.py', 'wt') as f:
+            f.write('@collect_metadata\ndef f3(a):\n\ta * 4')
         fileAST = self.getAST('script_test.py')
-        functions = {'f1':fileAST.body[0],
-                     'f2':fileAST.body[1],
-                     'f2.<locals>.f21':fileAST.body[1].body[0],
-                     'f2.<locals>.f21.<locals>.f211':fileAST.body[1].body[0].body[0]}
-        script = Script('__main__', fileAST, [], functions)
-        experiment = Experiment(os.path.dirname(__file__))
-        experiment.add_script(script)
+        imports = [fileAST.body[0], fileAST.body[1]]
+        script = Script('script_test.py', fileAST, imports, {})
+        
+        copy_script(script, '')
+        self.assertTrue(os.path.exists('script_test_temp.py'))
+        with open('script_test_temp.py') as f:
+            code1 = self.normalize_string(f.read())
+            code2 = self.normalize_string('import script_test_2_temp\nfrom folder3_temp import script_test_3_temp\nscript_test_2_temp.f2(10, 3)\nscript_test_3_temp.f3(10)')
+            self.assertEqual(code1, code2)
+        #os.system('rm script_test_temp.py')
 
-        functions2code = {'f1':'def f1():\n\trandom.randint()\n',
-                          'f2':'def f2():\n\tdef f21():\n\t\tdef f211():\n\t\t\treturn "f211"\n\t\treturn "f21"\n\treturn "f2"\n',
-                          'f2.<locals>.f21':'def f21():\n\t\tdef f211():\n\t\t\treturn "f211"\n\t\treturn "f21"\n',
-                          'f2.<locals>.f21.<locals>.f211':'def f211():\n\t\t\treturn "f211"\n'}
-        for func in functions:
-            self.script_graph.return_value = functions2code[func]
-            data_access._get_id.return_value = hash(functions2code[func])
-            
-            self.assertEqual(len(functions[func].decorator_list), 0)
-            decorate_function(functions[func], self.script_graph, {})
-            self.assertEqual(functions[func].decorator_list[0].id, 'collect_metadata')
-    
-    def test_decorate_global_and_inner_functions_with_collect_metadata_and_deterministic(self):
+    #TODO: IMPLEMENTAR!!!
+    def test_copy_script_that_imports_other_scrips_with_alias_and_reference_them_on_source_code(self):
+        os.mkdir('folder3')
         with open('script_test.py', 'wt') as f:
-            f.write('def f1():\n\trandom.randint()\n')
-            f.write('def f2():\n\tdef f21():\n\t\tdef f211():\n\t\t\treturn "f211"\n\t\treturn "f21"\n\treturn "f2"\n')
+            f.write('import script_test_2 as st2\n')
+            f.write('from folder3 import script_test_3 as st3\n')
+            f.write('st2.f2(10, 3)\nst3.f3(10)')
+        with open('script_test_2.py', 'wt') as f:
+            f.write('@deterministic\ndef f2(a, b, c=10):\n\ta * b / c')
+        with open('folder3/script_test_3.py', 'wt') as f:
+            f.write('@collect_metadata\ndef f3(a):\n\ta * 4')
         fileAST = self.getAST('script_test.py')
-        functions = {'f1':fileAST.body[0],
-                     'f2':fileAST.body[1],
-                     'f2.<locals>.f21':fileAST.body[1].body[0],
-                     'f2.<locals>.f21.<locals>.f211':fileAST.body[1].body[0].body[0]}
-        script = Script('__main__', fileAST, [], functions)
-        experiment = Experiment(os.path.dirname(__file__))
-        experiment.add_script(script)
-
-        getId = lambda f_name: hash(ast.unparse(functions[f_name]))
-        classifiedFunctions = {getId('f1'):FunctionClassification.DONT_CACHE,
-                               getId('f2'):FunctionClassification.CACHE,
-                               getId('f2.<locals>.f21.<locals>.f211'):FunctionClassification.DONT_CACHE}
-
-        for func in functions:            
-            self.script_graph.get_source_code_executed.return_value = ast.unparse(functions[func])
-            data_access._get_id.return_value = getId(func)
-
-            funcId = getId(func)
-            self.assertEqual(len(functions[func].decorator_list), 0)
-            decorate_function(functions[func], self.script_graph, classifiedFunctions)
-            if funcId not in classifiedFunctions:
-                self.assertEqual(functions[func].decorator_list[0].id, 'collect_metadata')
-            elif classifiedFunctions[funcId] == FunctionClassification.CACHE:
-                self.assertEqual(functions[func].decorator_list[0].id, 'deterministic')
-            else:
-                self.assertEqual(len(functions[func].decorator_list), 0)
-    
-    def test_dont_decorate_experiment_main_function(self):
-        with open('script_test.py', 'wt') as f:
-            f.write('@initialize_intpy(__file__)\ndef f1():\n\trandom.randint()\n')
-        fileAST = self.getAST('script_test.py')
-        functions = {'f1':fileAST.body[0]}
-        script = Script('__main__', fileAST, [], functions)
-        experiment = Experiment(os.path.dirname(__file__))
-        experiment.add_script(script)
-
-        getId = lambda f_name: hash(ast.unparse(functions[f_name]))
-        classifiedFunctions = {}
-
-        self.script_graph.get_source_code_executed.return_value = ast.unparse(functions['f1'])
-        data_access._get_id.return_value = getId('f1')
-
-        self.assertEqual(len(functions['f1'].decorator_list), 1)
-        decorate_function(functions['f1'], self.script_graph, classifiedFunctions)
-        self.assertEqual(len(functions['f1'].decorator_list), 1)
+        imports = [fileAST.body[0], fileAST.body[1]]
+        script = Script('script_test.py', fileAST, imports, {})
+        
+        copy_script(script, '')
+        self.assertTrue(os.path.exists('script_test_temp.py'))
+        with open('script_test_temp.py') as f:
+            code1 = self.normalize_string(f.read())
+            code2 = self.normalize_string('import script_test_2_temp\nfrom folder3_temp import script_test_3_temp\nst2.f2(10, 3)\nst3.f3(10)')
+            self.assertEqual(code1, code2)
+        os.system('rm script_test_temp.py')
     """
+
 if __name__ == '__main__':
     unittest.main()
