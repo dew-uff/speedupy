@@ -53,4 +53,4 @@ def decorate_experiment_functions(experiment:Experiment) -> None:
 
 def copy_experiment(experiment:Experiment):
     for script in experiment.scripts.values():
-        copy_script(script, experiment.base_dir)
+        copy_script(script)
