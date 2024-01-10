@@ -22,11 +22,16 @@ class SingletonMeta(type):
 class Constantes(metaclass=SingletonMeta):
     def __init__(self):
         self.g_argsp_m, self.g_argsp_M, self.g_argsp_s, self.g_argsp_no_cache, self.g_argsp_hash = get_params()
+
+        self.FOLDER_NAME = ".intpy"
+        self.CACHE_FOLDER_NAME = os.path.join(self.FOLDER_NAME, "cache")
+        self.BD_PATH = os.path.join(self.FOLDER_NAME, "intpy.db")
+        self.TEMP_FOLDER = '.intpy_temp'
         
         self.CONEXAO_BANCO = None
         if self.g_argsp_m != ['v01x']:
             try:
-                self.CONEXAO_BANCO = Banco(os.path.join(".intpy", "intpy.db"))
+                self.CONEXAO_BANCO = Banco(self.BD_PATH)
             except: #Need for unit testing!
                 self.CONEXAO_BANCO = None
         

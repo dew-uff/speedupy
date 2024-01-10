@@ -4,7 +4,8 @@ current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 
-from services.script_service import copy_script, TEMP_FOLDER
+from services.script_service import copy_script
+from constantes import Constantes
 from entities.Script import Script
 from entities.FunctionGraph import FunctionGraph
 
@@ -38,7 +39,7 @@ class TestScriptService(unittest.TestCase):
         return string.replace("\n\n", "\n").replace("\t", "    ").replace("\"", "'")
 
     def assert_script_was_correctly_copied(self):
-        copied_script_path = os.path.join(TEMP_FOLDER, self.script.name)
+        copied_script_path = os.path.join(Constantes().TEMP_FOLDER, self.script.name)
         self.assertTrue(os.path.exists(copied_script_path))
         with open(self.script.name) as f1:
             with open(copied_script_path) as f2:
@@ -81,7 +82,7 @@ class TestScriptService(unittest.TestCase):
         functions['main'].decorator_list[0] = ast.Name(id='execute_intpy', ctx=ast.Load())
                 
         copy_script(self.script)
-        copied_script_path = os.path.join(TEMP_FOLDER, self.script.name)
+        copied_script_path = os.path.join(Constantes().TEMP_FOLDER, self.script.name)
         self.assertTrue(os.path.exists(copied_script_path))
         with open(copied_script_path) as f2:
             code1 = '@decorator1\ndef f1(a, b, c=10):\n\ta * b / c\n'

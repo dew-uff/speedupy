@@ -2,9 +2,7 @@ import os
 from banco import Banco
 
 from logger.log import debug
-
-FOLDER_NAME = ".intpy"
-CACHE_FOLDER_NAME = FOLDER_NAME + "/cache"
+from constantes import Constantes
 
 def _create_table_CLASSIFIED_FUNCTIONS(banco: Banco):
     debug("creating table CLASSIFIED_FUNCTIONS")
@@ -62,7 +60,7 @@ def _create_database():
     if _db_exists():
         debug("database already exists")
         return
-    conexaoBanco = Banco(FOLDER_NAME + '/intpy.db')
+    conexaoBanco = Banco(Constantes().BD_PATH)
     _create_table_CACHE(conexaoBanco)
     _create_table_METADATA(conexaoBanco)
     _create_table_FUNCTION_PARAMS(conexaoBanco)
@@ -76,7 +74,7 @@ def _create_cache_folder():
         return
 
     debug("creating cache folder")
-    os.makedirs(CACHE_FOLDER_NAME)
+    os.makedirs(Constantes().CACHE_FOLDER_NAME)
 
 
 def _create_folder():
@@ -85,19 +83,19 @@ def _create_folder():
         debug(".intpy folder already exists")
         return
 
-    os.makedirs(FOLDER_NAME)
+    os.makedirs(Constantes().FOLDER_NAME)
 
 
 def _cache_folder_exists():
-    return os.path.exists(CACHE_FOLDER_NAME)
+    return os.path.exists(Constantes().CACHE_FOLDER_NAME)
 
 
 def _db_exists():
-    return os.path.isfile(FOLDER_NAME + '/intpy.db')
+    return os.path.isfile(Constantes().BD_PATH)
 
 
 def _folder_exists():
-    return os.path.exists(FOLDER_NAME)
+    return os.path.exists(Constantes().FOLDER_NAME)
 
 
 def _env_exists():

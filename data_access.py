@@ -55,7 +55,7 @@ def _autofix(id):
 
 def _deserialize(id):
     try:
-        with open(".intpy/cache/{0}".format(_get_file_name(id)), 'rb') as file:
+        with open(os.path.join(Constantes().CACHE_FOLDER_NAME, _get_file_name(id)), 'rb') as file:
             return pickle.load(file)
     except FileNotFoundError as e:
         warn("corrupt environment. Cache reference exists for a function in database but there is no file for it in cache folder.\
@@ -65,12 +65,12 @@ def _deserialize(id):
 
 
 def _serialize(return_value, file_name):
-    with open(".intpy/cache/{0}".format(_get_file_name(file_name)), 'wb') as file:
+    with open(os.path.join(Constantes().CACHE_FOLDER_NAME, _get_file_name(file_name)), 'wb') as file:
         return pickle.dump(return_value, file, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 def _get_cache_data_v01x(id):
-    Constantes().CONEXAO_BANCO = Banco(os.path.join(".intpy", "intpy.db"))
+    Constantes().CONEXAO_BANCO = Banco(Constantes().BD_PATH)
     list_file_name = _get(_get_file_name(id))
     Constantes().CONEXAO_BANCO.fecharConexao()
     return _deserialize(id) if len(list_file_name) == 1 else None
@@ -221,7 +221,7 @@ def add_new_data_to_CACHED_DATA_DICTIONARY(list_file_names):
 def create_entry(fun_name, fun_args, fun_return, fun_source, argsp_v):
     id = _get_id(fun_source, fun_args)
     if argsp_v == ['v01x']:
-        Constantes().CONEXAO_BANCO = Banco(os.path.join(".intpy", "intpy.db"))
+        Constantes().CONEXAO_BANCO = Banco(Constantes().BD_PATH)
         debug("serializing return value from {0}".format(id))
         _serialize(fun_return, id)
         debug("inserting reference in database")
@@ -295,7 +295,7 @@ if 'TEST' not in os.environ:
         _populate_cached_data_dictionary()
     elif(Constantes().g_argsp_m == ['2d-ad-t'] or Constantes().g_argsp_m == ['v024x']):
         def _populate_cached_data_dictionary():
-            db_connection = Banco(os.path.join(".intpy", "intpy.db"))
+            db_connection = Banco(Constantes().BD_PATH)
             list_of_ipcache_files = db_connection.executarComandoSQLSelect("SELECT cache_file FROM CACHE")
             for ipcache_file in list_of_ipcache_files:
                 ipcache_file = ipcache_file[0].replace(".ipcache", "")
