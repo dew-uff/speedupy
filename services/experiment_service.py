@@ -50,9 +50,9 @@ def decorate_experiment_functions(experiment:Experiment) -> None:
     classified_functions = get_already_classified_functions()
     for script in experiment.scripts.values():
         decorate_script_functions(script, classified_functions)
-    __decorate_experiment_main_function(experiment)
+    _decorate_experiment_main_function(experiment)
 
-def __decorate_experiment_main_function(experiment:Experiment):
+def _decorate_experiment_main_function(experiment:Experiment):
     main_script = experiment.scripts['__main__']
     
     current_folder = os.path.abspath(os.path.dirname(main_script.name))
@@ -63,8 +63,11 @@ def __decorate_experiment_main_function(experiment:Experiment):
     main_script.AST.body = imports.body + main_script.AST.body
     for func in main_script.functions.values():
         for decorator in func.decorator_list:
-            if isinstance(decorator, ast.Name) and decorator.id == 'initialize_intpy':
-                decorator.id = 'execute_intpy'
+            if isinstance(decorator, ast.Call) and \
+               isinstance(decorator.func, ast.Name) and \
+               decorator.func.id == 'initialize_intpy':
+                func.decorator_list.remove(decorator)
+                func.decorator_list.append(ast.Name(id='execute_intpy', ctx=ast.Load()))
                 return
 
 def copy_experiment(experiment:Experiment):
