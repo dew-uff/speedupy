@@ -6,43 +6,9 @@ import mmh3
 import xxhash
 
 from typing import Dict
-from parser_params import get_params
 from banco import Banco
 from logger.log import debug, warn
-
-#from . import CONEXAO_BANCO
-
-# Opening database connection and creating select query to the database
-# to populate DATA_DICTIONARY
-g_argsp_m, g_argsp_M, g_argsp_s, g_argsp_no_cache, g_argsp_hash = get_params()
-
-from threading import Lock, Thread
-
-class SingletonMeta(type):
-    """
-    Classe thread-safe para implementar Singleton.
-    """
-    _instances = {}
-    _lock: Lock = Lock()
-    def __call__(cls, *args, **kwargs):
-        with cls._lock:
-            if cls not in cls._instances:
-                instance = super().__call__(*args, **kwargs)
-                cls._instances[cls] = instance
-        return cls._instances[cls]
-
-
-class Constantes(metaclass=SingletonMeta):
-    def __init__(self):
-        self.CONEXAO_BANCO = None
-        if g_argsp_m != ['v01x']:
-            self.CONEXAO_BANCO = Banco(os.path.join(".intpy", "intpy.db"))
-        
-        self.DATA_DICTIONARY = {}
-        self.NEW_DATA_DICTIONARY = {}
-        self.FUNCTIONS_ALREADY_SELECTED_FROM_DB = []
-        self.CACHED_DATA_DICTIONARY_SEMAPHORE = threading.Semaphore()
-
+from constantes import Constantes
 
 def _save(file_name):
     Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno("INSERT OR IGNORE INTO CACHE(cache_file) VALUES (?)", (file_name,))
@@ -68,11 +34,11 @@ def _remove(id):
 
 
 def _get_id(fun_source, fun_args=None):
-    if g_argsp_hash[0] == 'md5':
+    if Constantes().g_argsp_hash[0] == 'md5':
         return hashlib.md5((str(fun_args) + fun_source).encode('utf')).hexdigest()
-    elif g_argsp_hash[0] == 'murmur':
+    elif Constantes().g_argsp_hash[0] == 'murmur':
         return hex(mmh3.hash128((str(fun_args) + fun_source).encode('utf')))[2:]
-    elif g_argsp_hash[0] == 'xxhash':
+    elif Constantes().g_argsp_hash[0] == 'xxhash':
         return xxhash.xxh128_hexdigest((str(fun_args) + fun_source).encode('utf'))
 
 
@@ -315,8 +281,8 @@ def get_already_classified_functions() -> Dict[str, str]:
 
 
 if 'TEST' not in os.environ:
-    if(g_argsp_m == ['1d-ad'] or g_argsp_m == ['v022x']
-        or g_argsp_m == ['2d-ad'] or g_argsp_m == ['v023x']):
+    if(Constantes().g_argsp_m == ['1d-ad'] or Constantes().g_argsp_m == ['v022x']
+        or Constantes().g_argsp_m == ['2d-ad'] or Constantes().g_argsp_m == ['v023x']):
         def _populate_cached_data_dictionary():
             list_of_ipcache_files = Constantes().CONEXAO_BANCO.executarComandoSQLSelect("SELECT cache_file FROM CACHE")
             for ipcache_file in list_of_ipcache_files:
@@ -327,7 +293,7 @@ if 'TEST' not in os.environ:
                 else:
                     Constantes().DATA_DICTIONARY[ipcache_file] = result
         _populate_cached_data_dictionary()
-    elif(g_argsp_m == ['2d-ad-t'] or g_argsp_m == ['v024x']):
+    elif(Constantes().g_argsp_m == ['2d-ad-t'] or Constantes().g_argsp_m == ['v024x']):
         def _populate_cached_data_dictionary():
             db_connection = Banco(os.path.join(".intpy", "intpy.db"))
             list_of_ipcache_files = db_connection.executarComandoSQLSelect("SELECT cache_file FROM CACHE")
