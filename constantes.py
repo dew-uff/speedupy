@@ -25,7 +25,10 @@ class Constantes(metaclass=SingletonMeta):
         
         self.CONEXAO_BANCO = None
         if self.g_argsp_m != ['v01x']:
-            self.CONEXAO_BANCO = Banco(os.path.join(".intpy", "intpy.db"))
+            try:
+                self.CONEXAO_BANCO = Banco(os.path.join(".intpy", "intpy.db"))
+            except: #Need for unit testing!
+                self.CONEXAO_BANCO = None
         
         self.DATA_DICTIONARY = {}
         self.NEW_DATA_DICTIONARY = {}

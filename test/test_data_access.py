@@ -4,12 +4,13 @@ current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 
+from data_access import get_already_classified_functions, Constantes
+
 class TestDataAccess(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         os.system("rm -rf .intpy")
         os.mkdir(".intpy")
-        from data_access import get_already_classified_functions, Constantes
         cls.get_already_classified_functions = lambda self: get_already_classified_functions()
         cls.conexaoBanco = Constantes().CONEXAO_BANCO
         stmt = "CREATE TABLE IF NOT EXISTS CLASSIFIED_FUNCTIONS (\

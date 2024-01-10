@@ -5,17 +5,16 @@ current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 
+import data_access
+temp = data_access._get_id
+data_access._get_id = unittest.mock.Mock()
+#data_access = unittest.mock.Mock()
+#sys.modules['data_access'] = data_access
+
 from services.function_inference_service import FunctionClassification
 from entities.Script import Script
 from entities.Experiment import Experiment
 from entities.FunctionGraph import FunctionGraph
-from services.FunctionCalledDetector import FunctionCalledDetector
-
-data_access = unittest.mock.Mock()
-data_access._get_id = unittest.mock.Mock()
-
-sys.modules['data_access'] = data_access
-
 from services.function_service import decorate_function
 
 class TestFunctionService(unittest.TestCase):
