@@ -31,9 +31,10 @@ class TestFunctionCalledDetector(unittest.TestCase):
             f.write('print(1 + 5)\nresp = input("...")')
         fileAST = self.getAST('script_test.py')
         imports = [fileAST.body[0], fileAST.body[1]]
-        script = Script('__main__', fileAST, imports, {})
+        script = Script('script_test.py', fileAST, imports, {})
         experiment = Experiment(os.path.dirname(__file__))
         experiment.add_script(script)
+        experiment.set_main_script(script)
 
         self.functionCalledDetector = FunctionCalledDetector(script, experiment)
         self.assertIsNone(self.functionCalledDetector.find_function_called('random.randint'))
@@ -48,9 +49,10 @@ class TestFunctionCalledDetector(unittest.TestCase):
             f.write('def func2(a, b=3):\n\tdef func21(c):\n\t\tdef func211():\n\t\t\tprint("func211")\n\t\tfunc211()\n\t\treturn c ** 2\n\tfunc21(b)\n\treturn 10\n')
             f.write('func1()\nfunc2(1)\nfunc2(1, b=10)\n')
         fileAST = self.getAST('script_test.py')
-        script = Script('__main__', fileAST, [], {})
+        script = Script('script_test.py', fileAST, [], {})
         experiment = Experiment(os.path.dirname(__file__))
         experiment.add_script(script)
+        experiment.set_main_script(script)
 
         self.functionCalledDetector = FunctionCalledDetector(script, experiment)
         self.assertIsNone(self.functionCalledDetector.find_function_called('func1'))
@@ -72,7 +74,7 @@ class TestFunctionCalledDetector(unittest.TestCase):
         fileAST = self.getAST('script_test.py')
         imports = [fileAST.body[0], fileAST.body[1]]
         functions = {'func1':fileAST.body[2]}
-        script1 = Script('__main__', fileAST, imports, functions)
+        script1 = Script('script_test.py', fileAST, imports, functions)
 
         fileAST = self.getAST('script_test_2.py')
         functions = {'func2':fileAST.body[0],
@@ -89,6 +91,7 @@ class TestFunctionCalledDetector(unittest.TestCase):
         experiment.add_script(script1)
         experiment.add_script(script2)
         experiment.add_script(script3)
+        experiment.set_main_script(script1)
 
         self.functionCalledDetector = FunctionCalledDetector(script1, experiment)
         self.assertEqual(self.functionCalledDetector.find_function_called('func1'), script1.AST.body[2])
@@ -109,7 +112,7 @@ class TestFunctionCalledDetector(unittest.TestCase):
         fileAST = self.getAST('script_test.py')
         imports = [fileAST.body[0], fileAST.body[1]]
         functions = {'func1':fileAST.body[2]}
-        script1 = Script('__main__', fileAST, imports, functions)
+        script1 = Script('script_test.py', fileAST, imports, functions)
 
         fileAST = self.getAST('script_test_2.py')
         functions = {'func2':fileAST.body[0],
@@ -126,6 +129,7 @@ class TestFunctionCalledDetector(unittest.TestCase):
         experiment.add_script(script1)
         experiment.add_script(script2)
         experiment.add_script(script3)
+        experiment.set_main_script(script1)
 
         self.functionCalledDetector = FunctionCalledDetector(script1, experiment)
         self.assertEqual(self.functionCalledDetector.find_function_called('func1'), script1.AST.body[2])
@@ -146,7 +150,7 @@ class TestFunctionCalledDetector(unittest.TestCase):
         fileAST = self.getAST('script_test.py')
         imports = [fileAST.body[0], fileAST.body[1]]
         functions = {'func1':fileAST.body[2]}
-        script1 = Script('__main__', fileAST, imports, functions)
+        script1 = Script('script_test.py', fileAST, imports, functions)
 
         fileAST = self.getAST('script_test_2.py')
         functions = {'func2':fileAST.body[0],
@@ -163,6 +167,7 @@ class TestFunctionCalledDetector(unittest.TestCase):
         experiment.add_script(script1)
         experiment.add_script(script2)
         experiment.add_script(script3)
+        experiment.set_main_script(script1)
 
         self.functionCalledDetector = FunctionCalledDetector(script1, experiment)
         self.assertEqual(self.functionCalledDetector.find_function_called('func1'), script1.AST.body[2])
@@ -183,7 +188,7 @@ class TestFunctionCalledDetector(unittest.TestCase):
         fileAST = self.getAST('script_test.py')
         imports = [fileAST.body[0], fileAST.body[1]]
         functions = {'func1':fileAST.body[2]}
-        script1 = Script('__main__', fileAST, imports, functions)
+        script1 = Script('script_test.py', fileAST, imports, functions)
 
         fileAST = self.getAST('script_test_2.py')
         functions = {'func2':fileAST.body[0],
@@ -200,6 +205,7 @@ class TestFunctionCalledDetector(unittest.TestCase):
         experiment.add_script(script1)
         experiment.add_script(script2)
         experiment.add_script(script3)
+        experiment.set_main_script(script1)
 
         self.functionCalledDetector = FunctionCalledDetector(script1, experiment)
         self.assertEqual(self.functionCalledDetector.find_function_called('func1'), script1.AST.body[2])
@@ -226,7 +232,7 @@ class TestFunctionCalledDetector(unittest.TestCase):
         
         fileAST = self.getAST('script_test.py')
         imports = [fileAST.body[0]]
-        script1 = Script('__main__', fileAST, imports, {})
+        script1 = Script('script_test.py', fileAST, imports, {})
 
         fileAST = self.getAST('folder2/script_test_2.py')
         functions = {'func2':fileAST.body[0]}
@@ -251,6 +257,7 @@ class TestFunctionCalledDetector(unittest.TestCase):
         experiment.add_script(scriptsub2)
         experiment.add_script(scriptsubsub2)
         experiment.add_script(scriptsubsubsub2)
+        experiment.set_main_script(script1)
 
         self.functionCalledDetector = FunctionCalledDetector(scriptsubsub2, experiment)
         self.assertEqual(self.functionCalledDetector.find_function_called('f2'), script2.AST.body[0])

@@ -48,7 +48,7 @@ class TestFunctionService(unittest.TestCase):
                      'f2':fileAST.body[1],
                      'f2.<locals>.f21':fileAST.body[1].body[0],
                      'f2.<locals>.f21.<locals>.f211':fileAST.body[1].body[0].body[0]}
-        script = Script('__main__', fileAST, [], functions)
+        script = Script('script_test.py', fileAST, [], functions)
         experiment = Experiment(os.path.dirname(__file__))
         experiment.add_script(script)
 
@@ -73,7 +73,7 @@ class TestFunctionService(unittest.TestCase):
                      'f2':fileAST.body[1],
                      'f2.<locals>.f21':fileAST.body[1].body[0],
                      'f2.<locals>.f21.<locals>.f211':fileAST.body[1].body[0].body[0]}
-        script = Script('__main__', fileAST, [], functions)
+        script = Script('script_test.py', fileAST, [], functions)
         experiment = Experiment(os.path.dirname(__file__))
         experiment.add_script(script)
 
@@ -101,7 +101,7 @@ class TestFunctionService(unittest.TestCase):
             f.write('@initialize_intpy(__file__)\ndef f1():\n\trandom.randint()\n')
         fileAST = self.getAST('script_test.py')
         functions = {'f1':fileAST.body[0]}
-        script = Script('__main__', fileAST, [], functions)
+        script = Script('script_test.py', fileAST, [], functions)
         experiment = Experiment(os.path.dirname(__file__))
         experiment.add_script(script)
 

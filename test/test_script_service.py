@@ -46,7 +46,7 @@ class TestScriptService(unittest.TestCase):
                 code2 = self.normalize_string(f2.read())
                 self.assertEqual(code1, code2)
     
-    def test_copy_script_without_import_commands(self):
+    def test_copy_script_without_changing_its_AST(self):
         with open('script_test.py', 'wt') as f:
             f.write('@deterministic\ndef f1(a, b, c=10):\n\ta * b / c\n')
             f.write('@collect_metadata\ndef f2():\n\tdef f21(x, y=3):\n\t\tdef f211(a):\n\t\t\treturn "f211"\n\t\treturn "f21"\n\treturn "f2"\n')
@@ -63,132 +63,34 @@ class TestScriptService(unittest.TestCase):
         copy_script(self.script)
         self.assert_script_was_correctly_copied()
 
-    def test_copy_script_with_import_commands_to_non_user_defined_scripts(self):
+    def test_copy_script_after_changing_its_AST(self):
         with open('script_test.py', 'wt') as f:
-            f.write('import random, os, sys\nfrom matplotlib.pyplot import *\n')
-            f.write('@deterministic\ndef f1(a, b, c=10):\n\ta * b / c\n')
+            f.write('def f1(a, b, c=10):\n\ta * b / c\n')
             f.write('@collect_metadata\ndef f2():\n\tdef f21(x, y=3):\n\t\tdef f211(a):\n\t\t\treturn "f211"\n\t\treturn "f21"\n\treturn "f2"\n')
             f.write('@initialize_intpy(__file__)\ndef main():\n\tf1(1, 2, 3)\n\tf2()\n')
             f.write('main()')
         fileAST = self.getAST('script_test.py')
-        imports = [fileAST.body[0], fileAST.body[1]]
-        functions = {'f1':fileAST.body[2],
-                     'f2':fileAST.body[3],
-                     'f2.<locals>.f21':fileAST.body[3].body[0],
-                     'f2.<locals>.f21.<locals>.f211':fileAST.body[3].body[0].body[0],
-                     'main':fileAST.body[4]}
-        self.script = Script('script_test.py', fileAST, imports, functions)
+        functions = {'f1':fileAST.body[0],
+                     'f2':fileAST.body[1],
+                     'f2.<locals>.f21':fileAST.body[1].body[0],
+                     'f2.<locals>.f21.<locals>.f211':fileAST.body[1].body[0].body[0],
+                     'main':fileAST.body[2]}
+        self.script = Script('script_test.py', fileAST, [], functions)
+        functions['f1'].decorator_list.append(ast.Name(id='decorator1', ctx=ast.Load()))
+        functions['f2'].decorator_list.append(ast.Name(id='decorator2', ctx=ast.Load()))
+        functions['main'].decorator_list[0] = ast.Name(id='execute_intpy', ctx=ast.Load())
                 
         copy_script(self.script)
-        self.assert_script_was_correctly_copied()
+        copied_script_path = os.path.join(TEMP_FOLDER, self.script.name)
+        self.assertTrue(os.path.exists(copied_script_path))
+        with open(copied_script_path) as f2:
+            code1 = '@decorator1\ndef f1(a, b, c=10):\n\ta * b / c\n'
+            code1 += '@collect_metadata\n@decorator2\ndef f2():\n\tdef f21(x, y=3):\n\t\tdef f211(a):\n\t\t\treturn "f211"\n\t\treturn "f21"\n\treturn "f2"\n'
+            code1 += '@execute_intpy\ndef main():\n\tf1(1, 2, 3)\n\tf2()\n'
+            code1 += 'main()'
+            code1 = self.normalize_string(code1)
+            code2 = self.normalize_string(f2.read())
+            self.assertEqual(code1, code2)    
     
-    def test_copy_script_which_is_inside_a_folder(self):
-        os.makedirs('folder/subfolder')
-        with open('folder/subfolder/script_test.py', 'wt') as f:
-            f.write('import random, os, sys\nfrom matplotlib.pyplot import *\n')
-            f.write('@deterministic\ndef f1(a, b, c=10):\n\ta * b / c\n')
-            f.write('@collect_metadata\ndef f2():\n\tdef f21(x, y=3):\n\t\tdef f211(a):\n\t\t\treturn "f211"\n\t\treturn "f21"\n\treturn "f2"\n')
-            f.write('@initialize_intpy(__file__)\ndef main():\n\tf1(1, 2, 3)\n\tf2()\n')
-            f.write('main()')
-        fileAST = self.getAST('folder/subfolder/script_test.py')
-        imports = [fileAST.body[0], fileAST.body[1]]
-        functions = {'f1':fileAST.body[2],
-                     'f2':fileAST.body[3],
-                     'f2.<locals>.f21':fileAST.body[3].body[0],
-                     'f2.<locals>.f21.<locals>.f211':fileAST.body[3].body[0].body[0],
-                     'main':fileAST.body[4]}
-        self.script = Script('folder/subfolder/script_test.py', fileAST, imports, functions)
-                
-        copy_script(self.script)
-        self.assert_script_was_correctly_copied()
-    
-    def test_copy_script_with_ast_Import_commands_to_user_defined_scripts(self):
-        os.makedirs('folder4/subfolder4')
-        with open('script_test.py', 'wt') as f:
-            f.write('import script_test_2, script_test_3 as st3, folder4.subfolder4.script_test_4')
-        with open('script_test_2.py', 'wt') as f:
-            f.write('@deterministic\ndef f2(a, b, c=10):\n\ta * b / c\n')
-        with open('script_test_3.py', 'wt') as f:
-            f.write('@collect_metadata\ndef f3():\n\treturn "f3"\n')
-        with open('folder4/subfolder4/script_test_4.py', 'wt') as f:
-            f.write('@collect_metadata\ndef f4():\n\tpass')
-        fileAST = self.getAST('script_test.py')
-        imports = [fileAST.body[0]]
-        self.script = Script('script_test.py', fileAST, imports, {})
-                
-        copy_script(self.script)
-        self.assert_script_was_correctly_copied()
-
-    def test_copy_script_with_ast_ImportFrom_commands_to_user_defined_functions(self):
-        os.makedirs('folder3/subfolder3')
-        with open('script_test.py', 'wt') as f:
-            f.write('from script_test_2 import f2\n')
-            f.write('from folder3.subfolder3.script_test_3 import f3')
-        with open('script_test_2.py', 'wt') as f:
-            f.write('@deterministic\ndef f2(a, b, c=10):\n\ta * b / c\n')
-        with open('folder3/subfolder3/script_test_3.py', 'wt') as f:
-            f.write('@collect_metadata\ndef f3():\n\treturn "f3"\n')
-        fileAST = self.getAST('script_test.py')
-        imports = [fileAST.body[0], fileAST.body[1]]
-        self.script = Script('script_test.py', fileAST, imports, {})
-                
-        copy_script(self.script)
-        self.assert_script_was_correctly_copied()
-    
-    def test_copy_script_with_ast_ImportFrom_commands_to_user_defined_scripts(self):
-        os.makedirs('folder2/subfolder2/subsubfolder2')
-        with open('script_test.py', 'wt') as f:
-            f.write('from folder2.subfolder2 import script_test_21\n')
-            f.write('from folder2.subfolder2.subsubfolder2 import script_test_22')
-        with open('folder2/subfolder2/script_test_21.py', 'wt') as f:
-            f.write('@deterministic\ndef f2(a, b, c=10):\n\ta * b / c\n')
-        with open('folder2/subfolder2/subsubfolder2/script_test_22.py', 'wt') as f:
-            f.write('@collect_metadata\ndef f3():\n\treturn "f3"\n')
-        fileAST = self.getAST('script_test.py')
-        imports = [fileAST.body[0], fileAST.body[1]]
-        self.script = Script('script_test.py', fileAST, imports, {})
-        
-        copy_script(self.script)
-        self.assert_script_was_correctly_copied()
-
-    def test_copy_script_with_ast_ImportFrom_commands_with_relative_path(self):
-        os.makedirs('folder2/subfolder2/subsubfolder2')
-        with open('script_test.py', 'wt') as f:
-            f.write('import folder2.subfolder2.script_test_21\n')
-        with open('folder2/subfolder2/script_test_21.py', 'wt') as f:
-            f.write('from .. import script_test_2\n')
-            f.write('from . import script_test_22\n')
-            f.write('from .subsubfolder2 import script_test_211\n')
-            f.write('@deterministic\ndef f21(a, b, c=10):\n\ta * b / c\n')
-        with open('folder2/script_test_2.py', 'wt') as f:
-            f.write('@deterministic\ndef f2(a):\n\ta ** 7\n')
-        with open('folder2/subfolder2/script_test_22.py', 'wt') as f:
-            f.write('@collect_metadata\ndef f22():\n\treturn "f22"\n')
-        with open('folder2/subfolder2/subsubfolder2/script_test_211.py', 'wt') as f:
-            f.write('@collect_metadata\ndef f211():\n\treturn "f211"\n')
-        
-        fileAST = self.getAST('folder2/subfolder2/script_test_21.py')
-        imports = [fileAST.body[0], fileAST.body[1], fileAST.body[2]]
-        functions = {"f21": fileAST.body[3]}
-        self.script = Script('folder2/subfolder2/script_test_21.py', fileAST, imports, functions)
-        
-        copy_script(self.script)
-        self.assert_script_was_correctly_copied()
-    
-    def test_copy_script_that_is_implicitly_imported_by_other_scripts(self):
-        os.makedirs('folder2/subfolder2/subsubfolder2')
-        with open('script_test.py', 'wt') as f:
-            f.write('import folder2.subfolder2.script_test_21\n')
-        with open('folder2/subfolder2/script_test_21.py', 'wt') as f:
-            f.write('@deterministic\ndef f21(a, b, c=10):\n\ta * b / c\n')
-        with open('folder2/subfolder2/__init__.py', 'wt') as f:
-            f.write('@deterministic\ndef finit21(a, b, c=10):\n\ta * b / c')
-        fileAST = self.getAST('folder2/subfolder2/__init__.py')
-        functions = {'finit21':fileAST.body[0]}
-        self.script = Script('folder2/subfolder2/__init__.py', fileAST, [], functions)
-        
-        copy_script(self.script)
-        self.assert_script_was_correctly_copied()
-
 if __name__ == '__main__':
     unittest.main()

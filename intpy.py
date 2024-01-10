@@ -2,6 +2,7 @@ import os
 import inspect
 import time
 import sys
+sys.path.append(os.path.dirname(__file__))
 
 from functools import wraps
 
@@ -10,23 +11,8 @@ from environment import init_env
 from logger.log import debug
 
 ###############IMPLEMENTANDO !!!!!!!!!!!! #########################
-def collect_metadata():
-    @wraps(f)
-    def wrapper(self, *method_args, **method_kwargs):
-        get_id_function()
-        return_value, elapsed_time = _execute_func(f, self, *method_args, **method_kwargs)
-        store(func_hash, elapsed_time, )
-        debug("calling {0}".format(f.__name__))
-        c = _get_cache(f, method_args)
-        if not _cache_exists(c):
-            debug("cache miss for {0}({1})".format(f.__name__, *method_args))
-            _cache_data(f, method_args, return_value, elapsed_time)
-            return return_value
-        else:
-            debug("cache hit for {0}({1})".format(f.__name__, *method_args))
-            return c
-
-    return wrapper
+def execute_intpy(f):
+    return f
 
 def check_python_version():
     if sys.version_info[0] != 3 or sys.version_info[1] < 9:

@@ -23,16 +23,15 @@ def create_script(script_name:str, experiment_base_dir:str) -> Script:
     
     return Script(script_name, script_AST, script_ASTSearcher.import_commands, script_ASTSearcher.functions)
 
-def create_script_function_graph(script_name:str, experiment:Experiment) -> None:
-    main_script = experiment.scripts[script_name]
+def create_script_function_graph(main_script:Script, experiment:Experiment) -> None:
     u_def_imported_scripts = main_script.get_user_defined_imported_scripts(experiment.base_dir)
     __create_user_defined_imported_scripts_function_graphs(u_def_imported_scripts, experiment)
     script_function_graph = ScriptFunctionGraphCreator(main_script, u_def_imported_scripts, experiment).create_function_graph()
     main_script.function_graph = script_function_graph
 
 def __create_user_defined_imported_scripts_function_graphs(u_def_imported_scripts:List[str], experiment:Experiment) -> None:
-    for script in u_def_imported_scripts:
-        create_script_function_graph(script, experiment)
+    for script_name in u_def_imported_scripts:
+        create_script_function_graph(experiment.scripts[script_name], experiment)
 
 def decorate_script_functions(script:Script, classified_functions:Dict[str, FunctionClassification]) -> None:
     for function in script.functions.values():
@@ -43,4 +42,5 @@ def copy_script(script:Script):
     folders = os.path.dirname(script.name)
     temp_path = os.path.join(TEMP_FOLDER, folders)
     os.makedirs(temp_path, exist_ok=True)
-    os.system(f'cp {script.name} {os.path.join(TEMP_FOLDER, script.name)}')
+    with open(os.path.join(TEMP_FOLDER, script.name), 'wt') as f:
+        f.write(ast.unparse(script.AST))

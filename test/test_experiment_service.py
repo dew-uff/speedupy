@@ -42,13 +42,14 @@ class TestExperimentService(unittest.TestCase):
         imports = [fileAST.body[0], fileAST.body[1], fileAST.body[2]]
         functions = {'f1':fileAST.body[3],
                      'main':fileAST.body[4]}
-        script = Script('__main__', fileAST, imports, functions)
+        script = Script('script_test.py', fileAST, imports, functions)
         experiment = Experiment('')
         experiment.add_script(script)
+        experiment.set_main_script(script)
 
         _decorate_experiment_main_function(experiment)
         
-        with open('script_test.py') as f1:
+        with open(script.name) as f1:
             code1 = 'import sys\nsys.path.append("/home/joaolopez/Downloads/speedupy/test")\nfrom speedupy.intpy import execute_intpy\n' + f1.read().replace('@initialize_intpy(__file__)', '@execute_intpy')
             code2 = ast.unparse(script.AST)
             code1 = self.normalize_string(code1)

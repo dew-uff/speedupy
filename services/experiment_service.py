@@ -17,7 +17,7 @@ def create_experiment(user_script_path:str) -> Experiment:
         script_name = scripts_to_be_analized.pop(0)
         script = create_script(script_name, experiment.base_dir)
         if(script_name == user_script_name):
-            script.name = "__main__"
+            experiment.set_main_script(script)
         experiment.add_script(script)
         __update_scripts_to_be_analized(script, scripts_analized, scripts_to_be_analized, experiment.base_dir)
         scripts_analized.append(script_name)
@@ -42,8 +42,8 @@ def __script_already_analized(script_name:str, scripts_analized:List[str]) -> bo
     return script_name in scripts_analized
     
 def create_experiment_function_graph(experiment:Experiment) -> FunctionGraph:
-    create_script_function_graph("__main__", experiment)
-    script = experiment.scripts["__main__"]
+    create_script_function_graph(experiment.main_script, experiment)
+    script = experiment.main_script
     return script.function_graph
 
 def decorate_experiment_functions(experiment:Experiment) -> None:
@@ -53,7 +53,7 @@ def decorate_experiment_functions(experiment:Experiment) -> None:
     _decorate_experiment_main_function(experiment)
 
 def _decorate_experiment_main_function(experiment:Experiment):
-    main_script = experiment.scripts['__main__']
+    main_script = experiment.main_script
     
     current_folder = os.path.abspath(os.path.dirname(main_script.name))
     imports = f"import sys\nsys.path.append('{current_folder}')\n"
