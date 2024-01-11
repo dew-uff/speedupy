@@ -57,13 +57,12 @@ def get_experiment_functions_hashes(experiment_function_graph:FunctionGraph) -> 
 def decorate_experiment_functions(experiment:Experiment) -> None:
     classified_functions = get_already_classified_functions()
     for script in experiment.scripts.values():
-        decorate_script_functions(script, classified_functions, experiment.functions2hashes)
         add_decorator_imports(script)
+        decorate_script_functions(script, classified_functions, experiment.functions2hashes)
     _decorate_experiment_main_function(experiment)
 
 def _decorate_experiment_main_function(experiment:Experiment):
     main_script = experiment.main_script
-    add_decorator_imports(main_script)
     for func in main_script.functions.values():
         for decorator in func.decorator_list:
             if isinstance(decorator, ast.Call) and \

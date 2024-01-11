@@ -50,7 +50,7 @@ class TestExperimentService(unittest.TestCase):
         _decorate_experiment_main_function(experiment)
         
         with open(script.name) as f1:
-            code1 = 'import sys\nsys.path.append("/home/joaolopez/Downloads/speedupy/test")\nfrom speedupy.intpy import execute_intpy, deterministic, maybe_deterministic, collect_metadata\n' + f1.read().replace('@initialize_intpy(__file__)', '@execute_intpy')
+            code1 = f1.read().replace('@initialize_intpy(__file__)', '@execute_intpy')
             code2 = ast.unparse(script.AST)
             code1 = self.normalize_string(code1)
             code2 = self.normalize_string(code2)
