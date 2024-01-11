@@ -1,20 +1,21 @@
 import ast
 from typing import Dict
-from data_access import get_id
 from services.function_inference_service import FunctionClassification
-from entities.FunctionGraph import FunctionGraph
 
-def decorate_function(function:ast.FunctionDef, function_graph:FunctionGraph, classified_functions:Dict[str, FunctionClassification]) -> None:
-    fun_source = function_graph.get_source_code_executed(function)
-    id = get_id(fun_source)
+def decorate_function(function:ast.FunctionDef, classified_functions:Dict[str, FunctionClassification], functions2hashes:Dict[str, str]) -> None:
+    if is_main_function(function):
+        return
+    id = functions2hashes[function.qualname]
     try:
-        if not is_main_function(function) and classified_functions[id] == FunctionClassification.CACHE:
+        if classified_functions[id] == FunctionClassification.CACHE:
             function.decorator_list.append(ast.Name("deterministic", ast.Load()))
+        elif classified_functions[id] == FunctionClassification.MAYBE_CACHE:
+            function.decorator_list.append(ast.Name("maybe_deterministic", ast.Load()))
     except KeyError:
-        function.decorator_list.append(ast.Name("collect_metadata", ast.Load()))    
+        function.decorator_list.append(ast.Name("collect_metadata", ast.Load()))
 
 def is_main_function(function:ast.FunctionDef) -> bool:
     for decorator in function.decorator_list:
         if isinstance(decorator, ast.Call) and decorator.func.id == "initialize_intpy":
-            return True        
+            return True
     return False

@@ -49,6 +49,7 @@ else:
         experiment = create_experiment(user_script_path)
         exp_func_graph = create_experiment_function_graph(experiment)
         functions2hashes = get_experiment_functions_hashes(exp_func_graph)
+        experiment.functions2hashes = functions2hashes
         decorate_experiment_functions(experiment)
         copy_experiment(experiment)
         save_json_file(functions2hashes, Constantes().EXP_FUNCTIONS_FILENAME)

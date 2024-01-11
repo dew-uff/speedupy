@@ -34,9 +34,9 @@ def __create_user_defined_imported_scripts_function_graphs(u_def_imported_script
     for script_name in u_def_imported_scripts:
         create_script_function_graph(experiment.scripts[script_name], experiment)
 
-def decorate_script_functions(script:Script, classified_functions:Dict[str, FunctionClassification]) -> None:
+def decorate_script_functions(script:Script, classified_functions:Dict[str, FunctionClassification], functions2hashes:Dict[str, str]) -> None:
     for function in script.functions.values():
-        decorate_function(function, script.function_graph, classified_functions)
+        decorate_function(function, classified_functions, functions2hashes)
 
 def copy_script(script:Script):        
     folders = os.path.dirname(script.name)
