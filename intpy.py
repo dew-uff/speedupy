@@ -8,32 +8,33 @@ sys.path.append(os.path.dirname(__file__))
 
 from logger.log import debug
 from constantes import Constantes
-from data_access import get_cache_data, create_entry, salvarNovosDadosBanco
-from services.experiment_service import create_experiment, create_experiment_function_graph
+from util import get_content_json_file
 
-###############IMPLEMENTANDO !!!!!!!!!!!! #########################
-def execute_intpy(f):
+Constantes().set_paths_for_executing_inside_temp_folder()
+from data_access import get_cache_data, create_entry, salvarNovosDadosBanco
+
+#TODO
+def collect_metadata(f):
     return f
 
-g_user_script_graph = None
-g_experiment = None
+#TODO
+def maybe_deterministic(f):
+    return f
 
+def execute_intpy(f):
+    @wraps(f)
+    def wrapper(*method_args, **method_kwargs):
+        _get_experiment_function_hashes()
+        f(*method_args, **method_kwargs)
+        if Constantes().g_argsp_m != ['v01x']:
+            _salvarCache()
+    return wrapper
 
-def initialize_intpy(user_script_path):
-    def decorator(f):
-        def execution(*method_args, **method_kwargs):
-            _get_experiment_function_graph(user_script_path)
-            f(*method_args, **method_kwargs)
-            if Constantes().g_argsp_m != ['v01x']:
-                _salvarCache()
-        return execution
-    return decorator
+g_functions2hashes = None
 
-
-def _get_experiment_function_graph(user_script_path):
-    global g_experiment, g_user_script_graph
-    g_experiment = create_experiment(user_script_path)
-    g_user_script_graph = create_experiment_function_graph(g_experiment)
+def _get_experiment_function_hashes():
+    global g_functions2hashes
+    g_functions2hashes = get_content_json_file(Constantes().EXP_FUNCTIONS_FILENAME)
 
 
 def _salvarCache():
@@ -82,8 +83,8 @@ def _function_call(f):
 
 
 def _get_cache(func, args):
-    fun_source = g_user_script_graph.get_source_code_executed(func)
-    return get_cache_data(func.__name__, args, fun_source, Constantes().g_argsp_m)
+    fun_hash = g_functions2hashes[func.__qualname__]
+    return get_cache_data(func.__name__, args, fun_hash, Constantes().g_argsp_m)
 
 
 def _cache_exists(cache):
@@ -102,7 +103,7 @@ def _execute_func(f, self, *method_args, **method_kwargs):
 def _cache_data(func, fun_args, fun_return, elapsed_time):
     debug("starting caching data for {0}({1})".format(func.__name__, fun_args))
     start = time.perf_counter()
-    fun_source = g_user_script_graph.get_source_code_executed(func)
-    create_entry(func.__name__, fun_args, fun_return, fun_source, Constantes().g_argsp_m)
+    fun_hash = g_functions2hashes[func.__qualname__]
+    create_entry(func.__name__, fun_args, fun_return, fun_hash, Constantes().g_argsp_m)
     end = time.perf_counter()
     debug("caching {0} took {1}".format(func.__name__, end - start))

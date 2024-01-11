@@ -4,7 +4,7 @@ current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 
-from services.script_service import copy_script
+from services.script_service import copy_script, add_decorator_imports
 from constantes import Constantes
 from entities.Script import Script
 from entities.FunctionGraph import FunctionGraph
@@ -76,13 +76,13 @@ class TestScriptService(unittest.TestCase):
                      'f2.<locals>.f21':fileAST.body[1].body[0],
                      'f2.<locals>.f21.<locals>.f211':fileAST.body[1].body[0].body[0],
                      'main':fileAST.body[2]}
-        self.script = Script('script_test.py', fileAST, [], functions)
+        script = Script('script_test.py', fileAST, [], functions)
         functions['f1'].decorator_list.append(ast.Name(id='decorator1', ctx=ast.Load()))
         functions['f2'].decorator_list.append(ast.Name(id='decorator2', ctx=ast.Load()))
         functions['main'].decorator_list[0] = ast.Name(id='execute_intpy', ctx=ast.Load())
                 
-        copy_script(self.script)
-        copied_script_path = os.path.join(Constantes().TEMP_FOLDER, self.script.name)
+        copy_script(script)
+        copied_script_path = os.path.join(Constantes().TEMP_FOLDER, script.name)
         self.assertTrue(os.path.exists(copied_script_path))
         with open(copied_script_path) as f2:
             code1 = '@decorator1\ndef f1(a, b, c=10):\n\ta * b / c\n'
@@ -93,5 +93,27 @@ class TestScriptService(unittest.TestCase):
             code2 = self.normalize_string(f2.read())
             self.assertEqual(code1, code2)    
     
+    def test_add_decorator_imports_to_script(self):
+        with open('script_test.py', 'wt') as f:
+            f.write('@deterministic\ndef f1(a, b, c=10):\n\treturn a * b / c\n')
+            f.write('@maybe_deterministic\ndef f2():\n\treturn 8\n')
+            f.write('@collect_metadata\ndef f3():\n\treturn "f3"\n')
+            f.write('@initialize_intpy(__file__)\ndef main():\n\tf1(1, 2, 3)\n\tf2()\n')
+            f.write('main()')
+        fileAST = self.getAST('script_test.py')
+        functions = {'f1':fileAST.body[0],
+                     'f2':fileAST.body[1],
+                     'f3':fileAST.body[2],
+                     'main':fileAST.body[3]}
+        script = Script('script_test.py', fileAST, [], functions)
+        
+        add_decorator_imports(script)
+        code1 = ast.unparse(script.AST.body[:3])
+        code2 = f"import sys\nsys.path.append('{os.getcwd()}')\nfrom speedupy.intpy import execute_intpy, deterministic, maybe_deterministic, collect_metadata"
+        
+        code1 = self.normalize_string(code1)
+        code2 = self.normalize_string(code2)
+        self.assertEqual(code1, code2)
+
 if __name__ == '__main__':
     unittest.main()

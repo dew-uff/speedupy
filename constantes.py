@@ -36,6 +36,20 @@ class Constantes(metaclass=SingletonMeta):
         self.FUNCTIONS_ALREADY_SELECTED_FROM_DB = []
         self.CACHED_DATA_DICTIONARY_SEMAPHORE = threading.Semaphore()
 
+    def set_paths_for_executing_inside_main_folder(self):
+        self.FOLDER_NAME = ".intpy"
+        self.CACHE_FOLDER_NAME = os.path.join(self.FOLDER_NAME, "cache")
+        self.BD_PATH = os.path.join(self.FOLDER_NAME, "intpy.db")
+        
+        self.EXP_FUNCTIONS_FILENAME = os.path.join(self.TEMP_FOLDER, 'functions_intpy.json')
+        
+    def set_paths_for_executing_inside_temp_folder(self):
+        self.FOLDER_NAME = os.path.join("..", ".intpy")
+        self.CACHE_FOLDER_NAME = os.path.join(self.FOLDER_NAME, "cache")
+        self.BD_PATH = os.path.join(self.FOLDER_NAME, "intpy.db")
+        
+        self.EXP_FUNCTIONS_FILENAME = 'functions_intpy.json'
+
     @property
     def CONEXAO_BANCO(self):
         if self.g_argsp_m != ['v01x'] and self.__CONEXAO_BANCO is None:

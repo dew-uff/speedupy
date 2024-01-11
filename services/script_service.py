@@ -38,6 +38,13 @@ def decorate_script_functions(script:Script, classified_functions:Dict[str, Func
     for function in script.functions.values():
         decorate_function(function, classified_functions, functions2hashes)
 
+def add_decorator_imports(script:Script) -> None:
+    current_folder = os.getcwd()
+    imports = f"import sys\nsys.path.append('{current_folder}')\n"
+    imports += "from speedupy.intpy import execute_intpy, deterministic, maybe_deterministic, collect_metadata"
+    imports = ast.parse(imports)
+    script.AST.body = imports.body + script.AST.body
+
 def copy_script(script:Script):        
     folders = os.path.dirname(script.name)
     temp_path = os.path.join(Constantes().TEMP_FOLDER, folders)

@@ -136,3 +136,7 @@ def get_import_command_of_function(function_name:str, import_commands:Union[ast.
 def save_json_file(data:Dict, filename:str) -> None:
     with open(filename, "wt") as file:
         json.dump(data, file)
+
+def get_content_json_file(filename:str) -> Dict:
+    with open(filename) as file:
+        return json.load(file)

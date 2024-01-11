@@ -5,7 +5,7 @@ from entities.Script import Script
 from entities.Experiment import Experiment
 from entities.FunctionGraph import FunctionGraph
 from data_access import get_already_classified_functions, get_id
-from services.script_service import create_script, create_script_function_graph, decorate_script_functions, copy_script
+from services.script_service import create_script, create_script_function_graph, decorate_script_functions, copy_script, add_decorator_imports
 from util import get_all_init_scripts_implicitly_imported, is_an_user_defined_script
 
 def create_experiment(user_script_path:str) -> Experiment:
@@ -58,17 +58,12 @@ def decorate_experiment_functions(experiment:Experiment) -> None:
     classified_functions = get_already_classified_functions()
     for script in experiment.scripts.values():
         decorate_script_functions(script, classified_functions, experiment.functions2hashes)
+        add_decorator_imports(script)
     _decorate_experiment_main_function(experiment)
 
 def _decorate_experiment_main_function(experiment:Experiment):
     main_script = experiment.main_script
-    
-    current_folder = os.path.abspath(os.path.dirname(main_script.name))
-    imports = f"import sys\nsys.path.append('{current_folder}')\n"
-    imports += "from speedupy.intpy import execute_intpy"
-    imports = ast.parse(imports)
-    
-    main_script.AST.body = imports.body + main_script.AST.body
+    add_decorator_imports(main_script)
     for func in main_script.functions.values():
         for decorator in func.decorator_list:
             if isinstance(decorator, ast.Call) and \
