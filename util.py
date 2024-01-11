@@ -1,5 +1,5 @@
-from typing import Set, Union, List, Optional
-import os, ast
+from typing import Set, Union, List, Optional, Dict
+import os, ast, json
 from copy import deepcopy
 
 def python_code_to_AST(file_name:str) -> ast.Module:
@@ -132,3 +132,7 @@ def get_import_command_of_function(function_name:str, import_commands:Union[ast.
                 if(script_imported_name == script_name):
                     return import_command
     return None
+
+def save_json_file(data:Dict, filename:str) -> None:
+    with open(filename, "wt") as file:
+        json.dump(data, file)

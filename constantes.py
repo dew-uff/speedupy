@@ -26,16 +26,25 @@ class Constantes(metaclass=SingletonMeta):
         self.FOLDER_NAME = ".intpy"
         self.CACHE_FOLDER_NAME = os.path.join(self.FOLDER_NAME, "cache")
         self.BD_PATH = os.path.join(self.FOLDER_NAME, "intpy.db")
+        
         self.TEMP_FOLDER = '.intpy_temp'
+        self.EXP_FUNCTIONS_FILENAME = os.path.join(self.TEMP_FOLDER, 'functions_intpy.json')
         
-        self.CONEXAO_BANCO = None
-        if self.g_argsp_m != ['v01x']:
-            try:
-                self.CONEXAO_BANCO = Banco(self.BD_PATH)
-            except: #Need for unit testing!
-                self.CONEXAO_BANCO = None
-        
+        self.__CONEXAO_BANCO = None
         self.DATA_DICTIONARY = {}
         self.NEW_DATA_DICTIONARY = {}
         self.FUNCTIONS_ALREADY_SELECTED_FROM_DB = []
         self.CACHED_DATA_DICTIONARY_SEMAPHORE = threading.Semaphore()
+
+    @property
+    def CONEXAO_BANCO(self):
+        if self.g_argsp_m != ['v01x'] and self.__CONEXAO_BANCO is None:
+            try:
+                self.__CONEXAO_BANCO = Banco(self.BD_PATH)
+            except: #Need for unit testing!
+                self.__CONEXAO_BANCO = None
+        return self.__CONEXAO_BANCO
+
+    @CONEXAO_BANCO.setter
+    def CONEXAO_BANCO(self, CONEXAO_BANCO):
+        self.__CONEXAO_BANCO = CONEXAO_BANCO

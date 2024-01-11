@@ -1,10 +1,10 @@
 import os, ast
-from typing import List
+from typing import List, Dict
 
 from entities.Script import Script
 from entities.Experiment import Experiment
 from entities.FunctionGraph import FunctionGraph
-from data_access import get_already_classified_functions
+from data_access import get_already_classified_functions, get_id
 from services.script_service import create_script, create_script_function_graph, decorate_script_functions, copy_script
 from util import get_all_init_scripts_implicitly_imported, is_an_user_defined_script
 
@@ -45,6 +45,14 @@ def create_experiment_function_graph(experiment:Experiment) -> FunctionGraph:
     create_script_function_graph(experiment.main_script, experiment)
     script = experiment.main_script
     return script.function_graph
+
+def get_experiment_functions_hashes(experiment_function_graph:FunctionGraph) -> Dict[str, str]:
+    functions2hashes = {}
+    for vertice in experiment_function_graph.graph:
+        source_code = experiment_function_graph.get_source_code_executed_by_graph_node(vertice)
+        hash = get_id(source_code)
+        functions2hashes[vertice.qualname] = hash
+    return functions2hashes
 
 def decorate_experiment_functions(experiment:Experiment) -> None:
     classified_functions = get_already_classified_functions()

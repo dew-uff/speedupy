@@ -6,8 +6,8 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 import data_access
-temp = data_access._get_id
-data_access._get_id = unittest.mock.Mock()
+temp = data_access.get_id
+data_access.get_id = unittest.mock.Mock()
 #data_access = unittest.mock.Mock()
 #sys.modules['data_access'] = data_access
 
@@ -57,7 +57,7 @@ class TestFunctionService(unittest.TestCase):
                           'f2.<locals>.f21.<locals>.f211':'def f211():\n\t\t\treturn "f211"\n'}
         for func in functions:
             self.script_graph.return_value = functions2code[func]
-            data_access._get_id.return_value = hash(functions2code[func])
+            data_access.get_id.return_value = hash(functions2code[func])
             
             self.assertEqual(len(functions[func].decorator_list), 0)
             decorate_function(functions[func], self.script_graph, {})
@@ -83,7 +83,7 @@ class TestFunctionService(unittest.TestCase):
 
         for func in functions:            
             self.script_graph.get_source_code_executed.return_value = ast.unparse(functions[func])
-            data_access._get_id.return_value = getId(func)
+            data_access.get_id.return_value = getId(func)
 
             funcId = getId(func)
             self.assertEqual(len(functions[func].decorator_list), 0)
@@ -108,7 +108,7 @@ class TestFunctionService(unittest.TestCase):
         classifiedFunctions = {}
 
         self.script_graph.get_source_code_executed.return_value = ast.unparse(functions['f1'])
-        data_access._get_id.return_value = getId('f1')
+        data_access.get_id.return_value = getId('f1')
 
         self.assertEqual(len(functions['f1'].decorator_list), 1)
         decorate_function(functions['f1'], self.script_graph, classifiedFunctions)

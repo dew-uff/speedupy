@@ -33,7 +33,7 @@ def _remove(id):
     Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno("DELETE FROM CACHE WHERE cache_file = ?;", (id,))
 
 
-def _get_id(fun_source, fun_args=None):
+def get_id(fun_source, fun_args=None):
     if Constantes().g_argsp_hash[0] == 'md5':
         return hashlib.md5((str(fun_args) + fun_source).encode('utf')).hexdigest()
     elif Constantes().g_argsp_hash[0] == 'murmur':
@@ -177,7 +177,7 @@ def _get_cache_data_v027x(id):
 
 # Aqui misturam as versões v0.2.1.x a v0.2.7.x e v01x
 def get_cache_data(fun_name, fun_args, fun_source, argsp_v):
-    id = _get_id(fun_source, fun_args)
+    id = get_id(fun_source, fun_args)
 
     if(argsp_v == ['v01x']):
         ret_get_cache_data_v01x = _get_cache_data_v01x(id)
@@ -219,7 +219,7 @@ def add_new_data_to_CACHED_DATA_DICTIONARY(list_file_names):
 
 # Aqui misturam as versões v0.2.1.x a v0.2.7.x e v01x
 def create_entry(fun_name, fun_args, fun_return, fun_source, argsp_v):
-    id = _get_id(fun_source, fun_args)
+    id = get_id(fun_source, fun_args)
     if argsp_v == ['v01x']:
         Constantes().CONEXAO_BANCO = Banco(Constantes().BD_PATH)
         debug("serializing return value from {0}".format(id))
