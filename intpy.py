@@ -15,7 +15,12 @@ from data_access import get_cache_data, create_entry, salvarNovosDadosBanco
 
 #TODO
 def collect_metadata(f):
-    return f
+    @wraps(f)
+    def wrapper(*method_args, **method_kwargs):
+        return_value, elapsed_time = _execute_func(f, *method_args, **method_kwargs)
+        _cache_metadata(f, method_args, return_value, elapsed_time)
+        return return_value
+    return wrapper
 
 #TODO
 def maybe_deterministic(f):
