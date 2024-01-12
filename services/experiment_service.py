@@ -49,7 +49,7 @@ def create_experiment_function_graph(experiment:Experiment) -> FunctionGraph:
 def get_experiment_functions_hashes(experiment_function_graph:FunctionGraph) -> Dict[str, str]:
     functions2hashes = {}
     for vertice in experiment_function_graph.graph:
-        source_code = experiment_function_graph.get_source_code_executed_by_graph_node(vertice)
+        source_code = experiment_function_graph.get_source_code_executed(vertice)
         hash = get_id(source_code)
         functions2hashes[vertice.qualname] = hash
     return functions2hashes

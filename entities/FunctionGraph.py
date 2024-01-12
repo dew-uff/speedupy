@@ -1,4 +1,4 @@
-import ast
+import ast, copy
 from util import *
 from typing import Union, List, Callable
 from entities.Script import Script
@@ -16,32 +16,7 @@ class FunctionGraph():
     def add(self, caller_function, function_called):
         self.__graph[caller_function].append(function_called)
     
-    def get_source_code_executed(self, function:Union[Callable, ast.FunctionDef]) -> str:
-        list_of_graph_vertices_not_yet_processed = []
-        list_of_graph_vertices_already_processed = []
-        source_codes_executed = []
-        for current_function_def_node in self.__graph:
-            if(isinstance(function, Callable) and current_function_def_node.qualname == function.__qualname__) or \
-              (isinstance(function, ast.FunctionDef) and current_function_def_node == function):
-                list_of_graph_vertices_not_yet_processed.append(current_function_def_node)
-                break
-
-        while(len(list_of_graph_vertices_not_yet_processed) > 0):
-            current_vertice = list_of_graph_vertices_not_yet_processed.pop(0)
-
-            source_codes_executed.append(ast.unparse(current_vertice))
-
-            for linked_vertice in self.__graph[current_vertice]:
-                if(linked_vertice not in list_of_graph_vertices_not_yet_processed and
-                linked_vertice not in list_of_graph_vertices_already_processed and
-                linked_vertice != current_vertice):
-                    list_of_graph_vertices_not_yet_processed.append(linked_vertice)
-            
-            list_of_graph_vertices_already_processed.append(current_vertice)
-        
-        return "\n".join(source_codes_executed)
-    
-    def get_source_code_executed_by_graph_node(self, function:ast.FunctionDef) -> str:
+    def get_source_code_executed(self, function:ast.FunctionDef) -> str:
         vertices_not_yet_processed = []
         processed_vertices = []
         source_codes_executed = []
@@ -49,13 +24,18 @@ class FunctionGraph():
         vertices_not_yet_processed.append(function)
         while(len(vertices_not_yet_processed) > 0):
             current_vertice = vertices_not_yet_processed.pop(0)
-            source_codes_executed.append(ast.unparse(current_vertice))
+            source_codes_executed.append(self.__get_source_code_of_vertice(current_vertice))
             processed_vertices.append(current_vertice)
             for linked_vertice in self.__graph[current_vertice]:
                 if(linked_vertice not in vertices_not_yet_processed and
                    linked_vertice not in processed_vertices):
                     vertices_not_yet_processed.append(linked_vertice)
         return "\n".join(source_codes_executed)
+    
+    def __get_source_code_of_vertice(self, vertice:ast.FunctionDef) -> str:
+        vertice = copy.deepcopy(vertice)
+        vertice.decorator_list = []
+        return ast.unparse(vertice)
 
     @property
     def graph(self):

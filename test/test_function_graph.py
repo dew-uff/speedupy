@@ -38,7 +38,7 @@ class TestFunctionGraph(unittest.TestCase):
         experiment.set_main_script(script)
 
         graph = FunctionGraph(script, [], experiment)
-        code1 = graph.get_source_code_executed_by_graph_node(functions['f1'])
+        code1 = graph.get_source_code_executed(functions['f1'])
         code1 = self.normalize_string(code1)
         code2 = self.normalize_string(ast.unparse(functions['f1']))
         self.assertEqual(code1, code2)
@@ -64,7 +64,7 @@ class TestFunctionGraph(unittest.TestCase):
         graph.add(functions['f1'], functions['f4'])
         graph.add(functions['f2'], functions['f3'])
 
-        code1 = graph.get_source_code_executed_by_graph_node(functions['f1'])
+        code1 = graph.get_source_code_executed(functions['f1'])
         code1 = self.normalize_string(code1)
         code2 = "\n".join([ast.unparse(functions['f1']),
                            ast.unparse(functions['f2']),
@@ -117,7 +117,7 @@ class TestFunctionGraph(unittest.TestCase):
         script1_graph.add(functions1['f1'], functions3['f3'])
         script1_graph.add(functions1['f1'], functions1['f4'])
 
-        code1 = script1_graph.get_source_code_executed_by_graph_node(functions1['f1'])
+        code1 = script1_graph.get_source_code_executed(functions1['f1'])
         code1 = self.normalize_string(code1)
         code2 = "\n".join([ast.unparse(functions1['f1']),
                            ast.unparse(functions2['f2']),
@@ -139,9 +139,40 @@ class TestFunctionGraph(unittest.TestCase):
 
         graph = FunctionGraph(script, [], experiment)
         graph.add(functions['f1'], functions['f1'])
-        code1 = graph.get_source_code_executed_by_graph_node(functions['f1'])
+        code1 = graph.get_source_code_executed(functions['f1'])
         code1 = self.normalize_string(code1)
         code2 = self.normalize_string(ast.unparse(functions['f1']))
+        self.assertEqual(code1, code2)
+
+    def test_get_source_code_of_decorated_functions(self):
+        with open('script_test.py', 'wt') as f:
+            f.write('@deterministic\ndef f1():\n\trandom.randint()\n')
+            f.write('@initialize_intpy(__file__)\ndef f2(f):\n\tprint("f2")\n')
+            f.write('@decorator1\n@decorator2\ndef f3():\n\treturn "f3"\n')
+        fileAST = self.getAST('script_test.py')
+        functions = {'f1':fileAST.body[0],
+                     'f2':fileAST.body[1],
+                     'f3':fileAST.body[2]}
+        script = Script('script_test.py', fileAST, [], functions)
+        experiment = Experiment(os.path.dirname(__file__))
+        experiment.add_script(script)
+        experiment.set_main_script(script)
+
+        graph = FunctionGraph(script, [], experiment)
+
+        code1 = graph.get_source_code_executed(functions['f1'])
+        code1 = self.normalize_string(code1)
+        code2 = self.normalize_string('def f1():\n\trandom.randint()')
+        self.assertEqual(code1, code2)
+
+        code1 = graph.get_source_code_executed(functions['f2'])
+        code1 = self.normalize_string(code1)
+        code2 = self.normalize_string('def f2(f):\n\tprint("f2")')
+        self.assertEqual(code1, code2)
+
+        code1 = graph.get_source_code_executed(functions['f3'])
+        code1 = self.normalize_string(code1)
+        code2 = self.normalize_string('def f3():\n\treturn "f3"')
         self.assertEqual(code1, code2)
 
 if __name__ == '__main__':

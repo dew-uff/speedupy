@@ -7,9 +7,9 @@ def decorate_function(function:ast.FunctionDef, classified_functions:Dict[str, F
         return
     id = functions2hashes[function.qualname]
     try:
-        if classified_functions[id] == FunctionClassification.CACHE:
+        if classified_functions[id] == FunctionClassification.CACHE.name:
             function.decorator_list.append(ast.Name("deterministic", ast.Load()))
-        elif classified_functions[id] == FunctionClassification.MAYBE_CACHE:
+        elif classified_functions[id] == FunctionClassification.MAYBE_CACHE.name:
             function.decorator_list.append(ast.Name("maybe_deterministic", ast.Load()))
     except KeyError:
         function.decorator_list.append(ast.Name("collect_metadata", ast.Load()))

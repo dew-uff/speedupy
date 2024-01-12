@@ -83,9 +83,9 @@ class TestFunctionService(unittest.TestCase):
                             'f3':md5('def f3(a):\n\treturn a ** 3\n'.encode('utf')),
                             'main':md5('@initialize_intpy(__file__)\ndef main():\n\trandom.randint()\n'.encode('utf'))}
         
-        classified_functions = {functions2hashes['f1']:FunctionClassification.CACHE,
-                               functions2hashes['f2']:FunctionClassification.DONT_CACHE,
-                               functions2hashes['f3']:FunctionClassification.MAYBE_CACHE}
+        classified_functions = {functions2hashes['f1']:"CACHE",
+                               functions2hashes['f2']:"DONT_CACHE",
+                               functions2hashes['f3']:"MAYBE_CACHE"}
         
         self.assertEqual(len(functions['main'].decorator_list), 1)
         decorate_function(functions['main'], classified_functions, functions2hashes)
@@ -99,9 +99,9 @@ class TestFunctionService(unittest.TestCase):
             func_hash = functions2hashes[func]
             if func_hash in classified_functions:
                 classification = classified_functions[func_hash]
-                if classification == FunctionClassification.CACHE:
+                if classification == 'CACHE':
                     decorator = 'deterministic'
-                elif classification == FunctionClassification.MAYBE_CACHE:
+                elif classification == 'MAYBE_CACHE':
                     decorator = 'maybe_deterministic'
                 else:
                     decorator = ''
