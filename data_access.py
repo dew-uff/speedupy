@@ -280,7 +280,7 @@ def get_already_classified_functions() -> Dict[str, str]:
     return classified_functions
 
 
-if 'TEST' not in os.environ:
+def init_data_access():
     if(Constantes().g_argsp_m == ['1d-ad'] or Constantes().g_argsp_m == ['v022x']
         or Constantes().g_argsp_m == ['2d-ad'] or Constantes().g_argsp_m == ['v023x']):
         def _populate_cached_data_dictionary():

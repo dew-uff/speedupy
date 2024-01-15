@@ -20,14 +20,12 @@ class TestInitializeIntPy(unittest.TestCase):
         Constantes().g_argsp_m = None
         Constantes().g_argsp_no_cache = True
 
-        from initialize_intpy import deterministic, initialize_intpy
+        from initialize_intpy import initialize_intpy
         
         self.aux = 0
         def my_function(value):
             self.aux = value
-        
-        self.assertEqual(my_function, deterministic(my_function))
-        
+                
         my_function(10)
         self.assertEqual(self.aux, 10)
 

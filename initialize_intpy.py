@@ -2,9 +2,6 @@ import sys, os
 sys.path.append(os.path.dirname(__file__))
 
 from constantes import Constantes
-from environment import init_env
-
-init_env()
 
 def check_python_version():
     if sys.version_info[0] != 3 or sys.version_info[1] < 9:
@@ -28,11 +25,9 @@ if Constantes().g_argsp_no_cache:
             return execution
         return decorator
 
-
-    def deterministic(f):
-        return f
 else:
     from services.experiment_service import create_experiment, copy_experiment, create_experiment_function_graph, decorate_experiment_functions, get_experiment_functions_hashes
+    from environment import init_env
     from util import save_json_file
 
     def initialize_intpy(user_script_path):
@@ -46,6 +41,7 @@ else:
 
 
     def _initialize_cache(user_script_path):
+        init_env()
         experiment = create_experiment(user_script_path)
         exp_func_graph = create_experiment_function_graph(experiment)
         functions2hashes = get_experiment_functions_hashes(exp_func_graph)
