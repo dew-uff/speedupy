@@ -19,20 +19,7 @@ else:
 
     from logger.log import debug
     from util import get_content_json_file
-    from data_access import get_cache_data, create_entry, salvarNovosDadosBanco, init_data_access
-
-    #TODO
-    def collect_metadata(f):
-        @wraps(f)
-        def wrapper(*method_args, **method_kwargs):
-            return_value, elapsed_time = _execute_func(f, *method_args, **method_kwargs)
-            #_cache_metadata(f, method_args, return_value, elapsed_time)
-            return return_value
-        return wrapper
-
-    #TODO
-    def maybe_deterministic(f):
-        return f
+    from data_access import get_cache_data, add_to_cache, close_data_access, init_data_access, add_to_metadata
 
     def execute_intpy(f):
         @wraps(f)
@@ -42,7 +29,7 @@ else:
             _get_experiment_function_hashes()
             f(*method_args, **method_kwargs)
             if Constantes().g_argsp_m != ['v01x']:
-                _salvarCache()
+                close_data_access()
         return wrapper
 
     g_functions2hashes = None
@@ -51,9 +38,20 @@ else:
         global g_functions2hashes
         g_functions2hashes = get_content_json_file(Constantes().EXP_FUNCTIONS_FILENAME)
 
+    
+    #TODO
+    def maybe_deterministic(f):
+        return f
 
-    def _salvarCache():
-        salvarNovosDadosBanco(Constantes().g_argsp_m)
+
+    #TODO TEST
+    def collect_metadata(f):
+        @wraps(f)
+        def wrapper(*method_args, **method_kwargs):
+            return_value, elapsed_time = _execute_func(f, *method_args, **method_kwargs)
+            _save_metadata(f, method_args, method_kwargs, return_value, elapsed_time)
+            return return_value
+        return wrapper
 
 
     def deterministic(f):
@@ -119,6 +117,12 @@ else:
         debug("starting caching data for {0}({1})".format(func.__name__, fun_args))
         start = time.perf_counter()
         fun_hash = g_functions2hashes[func.__qualname__]
-        create_entry(func.__name__, fun_args, fun_return, fun_hash, Constantes().g_argsp_m)
+        add_to_cache(func.__name__, fun_args, fun_return, fun_hash, Constantes().g_argsp_m)
         end = time.perf_counter()
         debug("caching {0} took {1}".format(func.__name__, end - start))
+
+    #######TODO TEST
+    def _save_metadata(func, fun_args, fun_kwargs, fun_return, elapsed_time):
+        debug("saving metadata for {0}({1})".format(func.__name__, fun_args))
+        fun_hash = g_functions2hashes[func.__qualname__]
+        add_to_metadata(fun_hash, fun_args, fun_kwargs, fun_return, elapsed_time)

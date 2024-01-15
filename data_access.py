@@ -5,7 +5,7 @@ import threading
 import mmh3
 import xxhash
 
-from typing import Dict
+from typing import Dict, List
 from banco import Banco
 from logger.log import debug, warn
 from constantes import Constantes
@@ -33,13 +33,15 @@ def _remove(id):
     Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno("DELETE FROM CACHE WHERE cache_file = ?;", (id,))
 
 
-def get_id(fun_source, fun_args=None):
+def get_id(fun_source, fun_args=None, fun_kwargs=None):
+    data = str(fun_args) + str(fun_kwargs) + fun_source
+    data = data.encode('utf')
     if Constantes().g_argsp_hash[0] == 'md5':
-        return hashlib.md5((str(fun_args) + fun_source).encode('utf')).hexdigest()
+        return hashlib.md5(data).hexdigest()
     elif Constantes().g_argsp_hash[0] == 'murmur':
-        return hex(mmh3.hash128((str(fun_args) + fun_source).encode('utf')))[2:]
+        return hex(mmh3.hash128(data))[2:]
     elif Constantes().g_argsp_hash[0] == 'xxhash':
-        return xxhash.xxh128_hexdigest((str(fun_args) + fun_source).encode('utf'))
+        return xxhash.xxh128_hexdigest(data)
 
 
 def _get_file_name(id):
@@ -218,7 +220,7 @@ def add_new_data_to_CACHED_DATA_DICTIONARY(list_file_names):
 
 
 # Aqui misturam as versões v0.2.1.x a v0.2.7.x e v01x
-def create_entry(fun_name, fun_args, fun_return, fun_source, argsp_v):
+def add_to_cache(fun_name, fun_args, fun_return, fun_source, argsp_v):
     id = get_id(fun_source, fun_args)
     if argsp_v == ['v01x']:
         Constantes().CONEXAO_BANCO = Banco(Constantes().BD_PATH)
@@ -241,36 +243,82 @@ def create_entry(fun_name, fun_args, fun_return, fun_source, argsp_v):
         Constantes().NEW_DATA_DICTIONARY[id] = (fun_return, fun_name)
 
 
+def add_to_metadata(fun_hash, fun_args, fun_kwargs, fun_return, exec_time):
+    Constantes().METADATA.append({'hash':fun_hash,
+                                  'args':fun_args,
+                                  'kwargs':fun_kwargs,
+                                  'return':fun_return,
+                                  'exec_time':exec_time})
+
+
 # Aqui misturam as versões v0.2.1.x a v0.2.7.x
-def salvarNovosDadosBanco(argsp_v):
-    if(argsp_v == ['1d-ow'] or argsp_v == ['v021x'] or
-        argsp_v == ['1d-ad'] or argsp_v == ['v022x']):
+def close_data_access():
+    __save_new_cache_data()
+    __save_new_metadata()
+    Constantes().CONEXAO_BANCO.salvarAlteracoes()
+    Constantes().CONEXAO_BANCO.fecharConexao()
+
+def __save_new_cache_data():
+    if(Constantes().g_argsp_m == ['1d-ow'] or Constantes().g_argsp_m == ['v021x'] or
+        Constantes().g_argsp_m == ['1d-ad'] or Constantes().g_argsp_m == ['v022x']):
         for id in Constantes().DATA_DICTIONARY:
             debug("serializing return value from {0}".format(id))
             _serialize(Constantes().DATA_DICTIONARY[id], id)
             debug("inserting reference in database")
             _save(_get_file_name(id))
     
-    elif(argsp_v == ['2d-ad'] or argsp_v == ['v023x'] or
-        argsp_v == ['2d-ad-t'] or argsp_v == ['v024x'] or
-        argsp_v == ['2d-lz'] or argsp_v == ['v027x']):
+    elif(Constantes().g_argsp_m == ['2d-ad'] or Constantes().g_argsp_m == ['v023x'] or
+        Constantes().g_argsp_m == ['2d-ad-t'] or Constantes().g_argsp_m == ['v024x'] or
+        Constantes().g_argsp_m == ['2d-lz'] or Constantes().g_argsp_m == ['v027x']):
         for id in Constantes().NEW_DATA_DICTIONARY:
             debug("serializing return value from {0}".format(id))
             _serialize(Constantes().NEW_DATA_DICTIONARY[id], id)
             debug("inserting reference in database")
             _save(_get_file_name(id))
     
-    elif(argsp_v == ['2d-ad-f'] or argsp_v == ['v025x'] or
-        argsp_v == ['2d-ad-ft'] or argsp_v == ['v026x']):
+    elif(Constantes().g_argsp_m == ['2d-ad-f'] or Constantes().g_argsp_m == ['v025x'] or
+        Constantes().g_argsp_m == ['2d-ad-ft'] or Constantes().g_argsp_m == ['v026x']):
         for id in Constantes().NEW_DATA_DICTIONARY:
             debug("serializing return value from {0}".format(id))
             _serialize(Constantes().NEW_DATA_DICTIONARY[id][0], id)
             debug("inserting reference in database")
             _save_fun_name(_get_file_name(id), Constantes().NEW_DATA_DICTIONARY[id][1])
 
-    Constantes().CONEXAO_BANCO.salvarAlteracoes()
-    Constantes().CONEXAO_BANCO.fecharConexao()
 
+def __save_new_metadata() -> None:
+    debug("saving metadata")
+    for data in Constantes().METADATA:
+        metadata_id = _add_metadata_record(data['hash'], data['return'], data['exec_time'])
+        _add_function_params_records(metadata_id, data['args'], data['kwargs'])
+
+
+def _add_metadata_record(fun_hash:str, fun_return, exec_time:float) -> int:
+    s_return = pickle.dumps(fun_return)
+    sql = f"INSERT INTO METADATA(function_hash, return_value, execution_time) VALUES (?, ?, ?)"
+    sql_params = [fun_hash, s_return, exec_time]
+    Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
+
+    sql = "SELECT last_insert_rowid()"
+    metadata_id = int(Constantes().CONEXAO_BANCO.executarComandoSQLSelect(sql)[0][0])
+    return metadata_id
+        
+###TODO TEST
+def _add_function_params_records(metadata_id:int, args:List, kwargs:Dict) -> None:
+    sql = "INSERT INTO FUNCTION_PARAMS(metadata_id, parameter_value, parameter_name, parameter_position) VALUES "
+    sql_params = []
+    i = 0
+    for arg in args:
+        s_arg_value = pickle.dumps(arg)
+        sql += "(?, ?, ?, ?), "
+        sql_params += [metadata_id, s_arg_value, None, i]
+        i += 1
+    for arg_name, arg_value in kwargs.items():
+        s_arg_value = pickle.dumps(arg_value)
+        sql += "(?, ?, ?, ?), "
+        sql_params += [metadata_id, s_arg_value, arg_name, i]
+        i += 1
+    sql = sql[:-2] #Removendo os 2 últimos caracteres! (", ")
+    Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
 
 def get_already_classified_functions() -> Dict[str, str]:
     resp = Constantes().CONEXAO_BANCO.executarComandoSQLSelect(f"SELECT function_hash, classification FROM CLASSIFIED_FUNCTIONS")
