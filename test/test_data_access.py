@@ -201,11 +201,34 @@ class TestDataAccess(unittest.TestCase):
         _add_function_params_records(1, [1, True, 'abc'], {})
         params_expected = [(1, pickle.dumps(1), None, 0),
                            (1, pickle.dumps(True), None, 1),
-                           (1, pickle.dumps('abc'), None, 2),]
+                           (1, pickle.dumps('abc'), None, 2)]
         self.assert_FUNCTION_PARAMS_table_records_are_correct(params_expected)
 
-    def test_add_function_params_records_when_function_has_only_kwargs(self): pass
-    def test_add_function_params_records_when_function_has_args_and_kwargs(self): pass
+    def test_add_function_params_records_when_function_has_only_kwargs(self):
+        #Adding a record on METADATA table, because FUNCTION_PARAMS always references a METADATA record!
+        sql = "INSERT INTO METADATA(id, function_hash, return_value, execution_time) VALUES (1, 'sad123asf231', 10, 1.0)"
+        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql)
+        _add_function_params_records(1, [], {'a':10, 'b':True, 'c':(1,)})
+        params_expected = [(1, pickle.dumps(10), 'a', 0),
+                           (1, pickle.dumps(True), 'b', 1),
+                           (1, pickle.dumps((1,)), 'c', 2)]
+        self.assert_FUNCTION_PARAMS_table_records_are_correct(params_expected)
+
+    def test_add_function_params_records_when_function_has_args_and_kwargs(self):
+        #Adding a record on METADATA table, because FUNCTION_PARAMS always references a METADATA record!
+        sql = "INSERT INTO METADATA(id, function_hash, return_value, execution_time) VALUES (1, 'sad123asf231', 10, 1.0)"
+        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql)
+        _add_function_params_records(1, [{'1':1, '0':0}, True, 'abc'], {'a':-7.5, 'b':[1, 2, 3], 'c':(1,)})
+        params_expected = [(1, pickle.dumps({'1':1, '0':0}), None, 0),
+                           (1, pickle.dumps(True), None, 1),
+                           (1, pickle.dumps('abc'), None, 2),
+                           (1, pickle.dumps(-7.5), 'a', 3),
+                           (1, pickle.dumps([1, 2, 3]), 'b', 4),
+                           (1, pickle.dumps((1,)), 'c', 5)]
+        self.assert_FUNCTION_PARAMS_table_records_are_correct(params_expected)
+        
+    def test_add_function_params_records_when_function_has_one_arg_and_one_kwarg(self): pass
+    def test_add_function_params_records_when_function_has_multiple_args_and_multiple_kwargs(self): pass
         # _add_function_params_records(metadata_id, args, kwargs):
         # sql = "INSERT INTO FUNCTION_PARAMS(metadata_id, parameter_value, parameter_name, parameter_position) VALUES "
         # sql_params = []
