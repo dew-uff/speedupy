@@ -63,6 +63,12 @@ class TestIntPy(unittest.TestCase):
         importlib.reload(intpy)
         self.assertEqual(func, intpy.collect_metadata(func))
 
+    def test_collect_metadata_when_executing_speedupy_with_no_cache_arg(self):
+        Constantes().FUNCTIONS_2_HASHES = {func.__qualname__:"func_hash"}
+        with patch('intpy.add_to_metadata', return_value=None) as add_to_metadata:
+            self.assertEqual(intpy.collect_metadata(func)(8, 4), 2)
+            add_to_metadata.assert_called_once()    
+
     def test_function_call_maybe_deterministic_when_DONT_CACHE_FUNCTION_CALLS_is_empty(self):
         Constantes().FUNCTIONS_2_HASHES = {func.__qualname__:"function_hash"}
         Constantes().DONT_CACHE_FUNCTION_CALLS = []
