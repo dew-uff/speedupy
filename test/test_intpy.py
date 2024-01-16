@@ -63,7 +63,7 @@ class TestIntPy(unittest.TestCase):
         importlib.reload(intpy)
         self.assertEqual(func, intpy.collect_metadata(func))
 
-    def test_collect_metadata_when_executing_speedupy_with_no_cache_arg(self):
+    def test_collect_metadata_when_executing_speedupy_with_caching_enabled(self):
         Constantes().FUNCTIONS_2_HASHES = {func.__qualname__:"func_hash"}
         with patch('intpy.add_to_metadata', return_value=None) as add_to_metadata:
             self.assertEqual(intpy.collect_metadata(func)(8, 4), 2)
