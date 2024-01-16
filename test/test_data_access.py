@@ -227,25 +227,27 @@ class TestDataAccess(unittest.TestCase):
                            (1, pickle.dumps((1,)), 'c', 5)]
         self.assert_FUNCTION_PARAMS_table_records_are_correct(params_expected)
         
-    def test_add_function_params_records_when_function_has_one_arg_and_one_kwarg(self): pass
-    def test_add_function_params_records_when_function_has_multiple_args_and_multiple_kwargs(self): pass
-        # _add_function_params_records(metadata_id, args, kwargs):
-        # sql = "INSERT INTO FUNCTION_PARAMS(metadata_id, parameter_value, parameter_name, parameter_position) VALUES "
-        # sql_params = []
-        # i = 0
-        # for arg in args:
-        #     s_arg_value = pickle.dumps(arg)
-        #     sql += "(?, ?, ?, ?), "
-        #     sql_params += [metadata_id, s_arg_value, None, i]
-        #     i += 1
-        # for arg_name, arg_value in kwargs.items():
-        #     s_arg_value = pickle.dumps(arg_value)
-        #     sql += "(?, ?, ?, ?), "
-        #     sql_params += [metadata_id, s_arg_value, arg_name, i]
-        #     i += 1
-        # sql = sql[:-2] #Removendo os 2 últimos caracteres! (", ")
-        # print(f"sql: {sql}")
-        # Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
+    def test_add_function_params_records_when_function_has_one_arg_and_one_kwarg(self):
+        #Adding a record on METADATA table, because FUNCTION_PARAMS always references a METADATA record!
+        sql = "INSERT INTO METADATA(id, function_hash, return_value, execution_time) VALUES (1, 'sad123asf231', 10, 1.0)"
+        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql)
+        _add_function_params_records(1, [True], {'a':-7.5})
+        params_expected = [(1, pickle.dumps(True), None, 0),
+                           (1, pickle.dumps(-7.5), 'a', 1)]
+        self.assert_FUNCTION_PARAMS_table_records_are_correct(params_expected)
+
+    def test_add_function_params_records_when_function_has_multiple_args_and_multiple_kwargs(self):
+        #Adding a record on METADATA table, because FUNCTION_PARAMS always references a METADATA record!
+        sql = "INSERT INTO METADATA(id, function_hash, return_value, execution_time) VALUES (1, 'sad123asf231', 10, 1.0)"
+        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql)
+        _add_function_params_records(1, [True, False, 88], {'a':-7.5, 'b':{1, 2, 10}, 'c':[5, -2]})
+        params_expected = [(1, pickle.dumps(True), None, 0),
+                           (1, pickle.dumps(False), None, 1),
+                           (1, pickle.dumps(88), None, 2),
+                           (1, pickle.dumps(-7.5), 'a', 3),
+                           (1, pickle.dumps({1, 2, 10}), 'b', 4),
+                           (1, pickle.dumps([5, -2]), 'c', 5)]
+        self.assert_FUNCTION_PARAMS_table_records_are_correct(params_expected)
 
 if __name__ == '__main__':
     unittest.main()

@@ -242,7 +242,6 @@ def add_to_cache(fun_name, fun_args, fun_return, fun_source, argsp_v):
         argsp_v == ['2d-ad-ft'] or argsp_v == ['v026x']):
         Constantes().NEW_DATA_DICTIONARY[id] = (fun_return, fun_name)
 
-
 def add_to_metadata(fun_hash, fun_args, fun_kwargs, fun_return, exec_time):
     Constantes().METADATA.append({'hash':fun_hash,
                                   'args':fun_args,
@@ -250,14 +249,13 @@ def add_to_metadata(fun_hash, fun_args, fun_kwargs, fun_return, exec_time):
                                   'return':fun_return,
                                   'exec_time':exec_time})
 
-
-# Aqui misturam as versões v0.2.1.x a v0.2.7.x
 def close_data_access():
     __save_new_cache_data()
     __save_new_metadata()
     Constantes().CONEXAO_BANCO.salvarAlteracoes()
     Constantes().CONEXAO_BANCO.fecharConexao()
 
+# Aqui misturam as versões v0.2.1.x a v0.2.7.x
 def __save_new_cache_data():
     if(Constantes().g_argsp_m == ['1d-ow'] or Constantes().g_argsp_m == ['v021x'] or
         Constantes().g_argsp_m == ['1d-ad'] or Constantes().g_argsp_m == ['v022x']):
@@ -302,7 +300,6 @@ def _add_metadata_record(fun_hash:str, fun_return, exec_time:float) -> int:
     metadata_id = int(Constantes().CONEXAO_BANCO.executarComandoSQLSelect(sql)[0][0])
     return metadata_id
         
-###TODO TEST
 def _add_function_params_records(metadata_id:int, args:List, kwargs:Dict) -> None:
     sql = "INSERT INTO FUNCTION_PARAMS(metadata_id, parameter_value, parameter_name, parameter_position) VALUES "
     sql_params = []
