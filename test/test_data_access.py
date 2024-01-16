@@ -93,7 +93,10 @@ class TestDataAccess(unittest.TestCase):
         Constantes().g_argsp_hash = ['md5']
         source = 'print("Essa é uma função de teste!")\nreturn x ** y / z'
         hash = get_id(source, [1, 5], {'z':-12.5})
-        expected = "[1, 5]{'z': -12.5}" + source
+        expected = b""
+        for elem in [1, 5, 'z', -12.5]:
+            expected += pickle.dumps(elem)
+        expected = str(expected) + source
         expected = hashlib.md5(expected.encode('utf')).hexdigest()
         self.assertEqual(hash, expected)
 
@@ -101,7 +104,10 @@ class TestDataAccess(unittest.TestCase):
         Constantes().g_argsp_hash = ['xxhash']
         source = 'print("Essa é uma função de teste!")\nreturn x ** y / z'
         hash = get_id(source, [1, 5], {'z':-12.5})
-        expected = "[1, 5]{'z': -12.5}" + source
+        expected = b""
+        for elem in [1, 5, 'z', -12.5]:
+            expected += pickle.dumps(elem)
+        expected = str(expected) + source
         expected = xxhash.xxh128_hexdigest(expected.encode('utf'))
         self.assertEqual(hash, expected)
 
@@ -109,7 +115,10 @@ class TestDataAccess(unittest.TestCase):
         Constantes().g_argsp_hash = ['murmur']
         source = 'print("Essa é uma função de teste!")\nreturn x ** y / z'
         hash = get_id(source, [1, 5], {'z':-12.5})
-        expected = "[1, 5]{'z': -12.5}" + source
+        expected = b""
+        for elem in [1, 5, 'z', -12.5]:
+            expected += pickle.dumps(elem)
+        expected = str(expected) + source
         expected = hex(mmh3.hash128(expected.encode('utf')))[2:]
         self.assertEqual(hash, expected)
         
@@ -117,7 +126,10 @@ class TestDataAccess(unittest.TestCase):
         Constantes().g_argsp_hash = ['xxhash']
         source = 'print("Testando!")\ninput("...")\nreturn x + y / -z'
         hash = get_id(source, fun_kwargs={'z':-12.5})
-        expected = "None{'z': -12.5}" + source
+        expected = b""
+        for elem in ['z', -12.5]:
+            expected += pickle.dumps(elem)
+        expected = str(expected) + source
         expected = xxhash.xxh128_hexdigest(expected.encode('utf'))
         self.assertEqual(hash, expected)
 
@@ -125,7 +137,10 @@ class TestDataAccess(unittest.TestCase):
         Constantes().g_argsp_hash = ['md5']
         source = 'print("Testando!")\nos.path.exists("/")\nrandom.randint()\nreturn x + y / -z'
         hash = get_id(source, fun_args=[-1.227, 0])
-        expected = "[-1.227, 0]None" + source
+        expected = b""
+        for elem in [-1.227, 0]:
+            expected += pickle.dumps(elem)
+        expected = str(expected) + source
         expected = hashlib.md5(expected.encode('utf')).hexdigest()
         self.assertEqual(hash, expected)
 
@@ -133,7 +148,8 @@ class TestDataAccess(unittest.TestCase):
         Constantes().g_argsp_hash = ['murmur']
         source = 'print("Testando!")\nreturn x / y ** 2'
         hash = get_id(source)
-        expected = "NoneNone" + source
+        expected = b""
+        expected = str(expected) + source
         expected = hex(mmh3.hash128(expected.encode('utf')))[2:]
         self.assertEqual(hash, expected)
 

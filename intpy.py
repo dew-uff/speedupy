@@ -121,7 +121,7 @@ else:
         end = time.perf_counter()
         debug("caching {0} took {1}".format(func.__name__, end - start))
 
-    #######TODO TEST
+
     def _save_metadata(func, fun_args, fun_kwargs, fun_return, elapsed_time):
         debug("saving metadata for {0}({1})".format(func.__name__, fun_args))
         fun_hash = g_functions2hashes[func.__qualname__]

@@ -33,8 +33,13 @@ def _remove(id):
     Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno("DELETE FROM CACHE WHERE cache_file = ?;", (id,))
 
 
-def get_id(fun_source, fun_args=None, fun_kwargs=None):
-    data = str(fun_args) + str(fun_kwargs) + fun_source
+def get_id(fun_source, fun_args=[], fun_kwargs={}):
+    data = b""
+    for arg in fun_args:
+        data += pickle.dumps(arg)
+    for arg_name, arg_value in fun_kwargs.items():
+        data += pickle.dumps(arg_name) + pickle.dumps(arg_value)
+    data = str(data) + fun_source
     data = data.encode('utf')
     if Constantes().g_argsp_hash[0] == 'md5':
         return hashlib.md5(data).hexdigest()
