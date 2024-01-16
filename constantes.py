@@ -38,6 +38,8 @@ class Constantes(metaclass=SingletonMeta):
         self.METADATA = []
         self.DONT_CACHE_FUNCTION_CALLS = []
 
+        self.FUNCTIONS_2_HASHES = {}
+
     def set_paths_for_executing_inside_main_folder(self):
         self.FOLDER_NAME = ".intpy"
         self.CACHE_FOLDER_NAME = os.path.join(self.FOLDER_NAME, "cache")

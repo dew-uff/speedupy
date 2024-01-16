@@ -16,10 +16,11 @@ else:
     import inspect
     import time
     from functools import wraps
+    from typing import Callable, List, Dict
 
     from logger.log import debug
     from util import get_content_json_file
-    from data_access import get_cache_data, add_to_cache, close_data_access, init_data_access, add_to_metadata
+    from data_access import get_cache_data, add_to_cache, close_data_access, init_data_access, add_to_metadata, get_id
 
     def execute_intpy(f):
         @wraps(f)
@@ -32,19 +33,36 @@ else:
                 close_data_access()
         return wrapper
 
-    g_functions2hashes = None
 
     def _get_experiment_function_hashes():
-        global g_functions2hashes
-        g_functions2hashes = get_content_json_file(Constantes().EXP_FUNCTIONS_FILENAME)
+        Constantes().FUNCTIONS_2_HASHES = get_content_json_file(Constantes().EXP_FUNCTIONS_FILENAME)
 
     
     #TODO
     def maybe_deterministic(f):
-        return f
+        @wraps(f)
+        def wrapper(*method_args, **method_kwargs):
+            debug("{0}({1}) @maybe_deterministic".format(f.__name__, *method_args))
+            c = _get_cache(f, method_args)
+            if not _cache_exists(c):
+                debug("cache miss for {0}({1})".format(f.__name__, *method_args))
+                return_value, elapsed_time = _execute_func(f, *method_args, **method_kwargs)
+                if _function_call_maybe_deterministic(f, method_args, method_kwargs):
+                    debug("{0}({1} may be deterministic!)".format(f.__name__, *method_args))
+                    _save_metadata(f, method_args, method_kwargs, return_value, elapsed_time)
+                return return_value
+            else:
+                debug("cache hit for {0}({1})".format(f.__name__, *method_args))
+                return c
+        return wrapper
 
 
-    #TODO TEST
+    def _function_call_maybe_deterministic(func: Callable, func_args:List, func_kwargs:Dict) -> bool:
+        func_hash = Constantes().FUNCTIONS_2_HASHES[func.__qualname__]
+        func_call_hash = get_id(func_hash, func_args, func_kwargs)
+        return func_call_hash not in Constantes().DONT_CACHE_FUNCTION_CALLS
+
+
     def collect_metadata(f):
         @wraps(f)
         def wrapper(*method_args, **method_kwargs):
@@ -96,7 +114,7 @@ else:
 
 
     def _get_cache(func, args):
-        fun_hash = g_functions2hashes[func.__qualname__]
+        fun_hash = Constantes().FUNCTIONS_2_HASHES[func.__qualname__]
         return get_cache_data(func.__name__, args, fun_hash, Constantes().g_argsp_m)
 
 
@@ -116,7 +134,7 @@ else:
     def _cache_data(func, fun_args, fun_return, elapsed_time):
         debug("starting caching data for {0}({1})".format(func.__name__, fun_args))
         start = time.perf_counter()
-        fun_hash = g_functions2hashes[func.__qualname__]
+        fun_hash = Constantes().FUNCTIONS_2_HASHES[func.__qualname__]
         add_to_cache(func.__name__, fun_args, fun_return, fun_hash, Constantes().g_argsp_m)
         end = time.perf_counter()
         debug("caching {0} took {1}".format(func.__name__, end - start))
@@ -124,5 +142,5 @@ else:
 
     def _save_metadata(func, fun_args, fun_kwargs, fun_return, elapsed_time):
         debug("saving metadata for {0}({1})".format(func.__name__, fun_args))
-        fun_hash = g_functions2hashes[func.__qualname__]
+        fun_hash = Constantes().FUNCTIONS_2_HASHES[func.__qualname__]
         add_to_metadata(fun_hash, fun_args, fun_kwargs, fun_return, elapsed_time)
