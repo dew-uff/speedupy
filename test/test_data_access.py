@@ -6,7 +6,7 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 from constantes import Constantes
-from data_access import get_already_classified_functions, get_id, add_to_metadata, _add_metadata_record, _add_function_params_records
+from data_access import get_already_classified_functions, get_id, add_to_metadata, _add_metadata_record, _add_function_params_records, _populate_dont_cache_function_calls_list
 
 class TestDataAccess(unittest.TestCase):
     @classmethod
@@ -16,6 +16,7 @@ class TestDataAccess(unittest.TestCase):
         cls.create_table_CLASSIFIED_FUNCTIONS()
         cls.create_table_METADATA()
         cls.create_table_FUNCTION_PARAMS()
+        cls.create_table_DONT_CACHE_FUNCTION_CALLS()
 
     @classmethod
     def tearDownClass(cls):
@@ -52,9 +53,17 @@ class TestDataAccess(unittest.TestCase):
                 FOREIGN KEY (metadata_id) REFERENCES METADATA(id)\
                 );"
         Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql)
+    
+    @classmethod
+    def create_table_DONT_CACHE_FUNCTION_CALLS(cls):
+        sql = "CREATE TABLE IF NOT EXISTS DONT_CACHE_FUNCTION_CALLS (\
+                id INTEGER PRIMARY KEY AUTOINCREMENT,\
+                function_call_hash TEXT NOT NULL\
+                );"
+        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql)
 
     def tearDown(self):
-        for table in ["CLASSIFIED_FUNCTIONS", "METADATA", "FUNCTION_PARAMS"]:
+        for table in ["CLASSIFIED_FUNCTIONS", "METADATA", "FUNCTION_PARAMS", "DONT_CACHE_FUNCTION_CALLS"]:
             Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(f"DELETE FROM {table} WHERE id IS NOT NULL;")
     
     def assert_METADATA_table_records_are_correct(self, metadata_expected:List[Tuple]):
@@ -264,6 +273,26 @@ class TestDataAccess(unittest.TestCase):
                            (1, pickle.dumps({1, 2, 10}), 'b', 4),
                            (1, pickle.dumps([5, -2]), 'c', 5)]
         self.assert_FUNCTION_PARAMS_table_records_are_correct(params_expected)
+
+    def test_populate_dont_cache_function_calls_dictionay_when_table_is_empty(self):
+        _populate_dont_cache_function_calls_list()
+        self.assertListEqual(Constantes().DONT_CACHE_FUNCTION_CALLS, [])
+
+    def test_populate_dont_cache_function_calls_dictionay_when_table_has_one_record(self):
+        hash = xxhash.xxh128_hexdigest("String de teste 1".encode('utf'))
+        sql = "INSERT INTO DONT_CACHE_FUNCTION_CALLS(function_call_hash) VALUES (?)"
+        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, [hash])
+        _populate_dont_cache_function_calls_list()
+        self.assertListEqual(Constantes().DONT_CACHE_FUNCTION_CALLS, [hash])
+
+    def test_populate_dont_cache_function_calls_dictionay_when_table_has_many_records(self):
+        hash1 = xxhash.xxh128_hexdigest("String de teste 1".encode('utf'))
+        hash2 = xxhash.xxh128_hexdigest("Testando....".encode('utf'))
+        hash3 = xxhash.xxh128_hexdigest("Outra mensagem!!!!".encode('utf'))
+        sql = "INSERT INTO DONT_CACHE_FUNCTION_CALLS(function_call_hash) VALUES (?), (?), (?)"
+        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, [hash1, hash2, hash3])
+        _populate_dont_cache_function_calls_list()
+        self.assertListEqual(Constantes().DONT_CACHE_FUNCTION_CALLS, [hash1, hash2, hash3])
 
 if __name__ == '__main__':
     unittest.main()

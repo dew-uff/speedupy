@@ -329,8 +329,11 @@ def get_already_classified_functions() -> Dict[str, str]:
         classified_functions[reg[0]] = reg[1]
     return classified_functions
 
-
 def init_data_access():
+    _populate_cache_dictionaries()
+    _populate_dont_cache_function_calls_list()
+
+def _populate_cache_dictionaries():
     if(Constantes().g_argsp_m == ['1d-ad'] or Constantes().g_argsp_m == ['v022x']
         or Constantes().g_argsp_m == ['2d-ad'] or Constantes().g_argsp_m == ['v023x']):
         def _populate_cached_data_dictionary():
@@ -359,3 +362,10 @@ def init_data_access():
             db_connection.fecharConexao()
         load_cached_data_dictionary_thread = threading.Thread(target=_populate_cached_data_dictionary)
         load_cached_data_dictionary_thread.start()
+
+def _populate_dont_cache_function_calls_list():
+    sql = "SELECT function_call_hash FROM DONT_CACHE_FUNCTION_CALLS"
+    resp = Constantes().CONEXAO_BANCO.executarComandoSQLSelect(sql)
+    Constantes().DONT_CACHE_FUNCTION_CALLS = []
+    for func_call_hash in resp:
+        Constantes().DONT_CACHE_FUNCTION_CALLS.append(func_call_hash[0])

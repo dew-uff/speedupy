@@ -36,6 +36,7 @@ class Constantes(metaclass=SingletonMeta):
         self.FUNCTIONS_ALREADY_SELECTED_FROM_DB = []
         self.CACHED_DATA_DICTIONARY_SEMAPHORE = threading.Semaphore()
         self.METADATA = []
+        self.DONT_CACHE_FUNCTION_CALLS = []
 
     def set_paths_for_executing_inside_main_folder(self):
         self.FOLDER_NAME = ".intpy"
