@@ -142,24 +142,31 @@ def get_content_json_file(filename:str) -> Dict:
     with open(filename) as file:
         return json.load(file)
 
-def copy_file_to_temp_folder(src:str) -> None:
-    folders = os.path.dirname(src)
-    temp_path = os.path.join(Constantes().TEMP_FOLDER, folders)
-    os.makedirs(temp_path, exist_ok=True)
-    os.system(f'cp {src} {temp_path}')
+def _get_src_and_dest_to_copy_to_temp_folder(path:str, is_file:bool) -> None:
+    if is_file:
+        src = path
+        file_folder = os.path.dirname(src)
+        dest = os.path.join(Constantes().TEMP_FOLDER, file_folder)
+    else:
+        src = os.path.join(path, "*")
+        dest = os.path.join(Constantes().TEMP_FOLDER, path)
+    return src, dest
 
-def copy_folder_to_temp_folder(src:str) -> None:
-    temp_path = os.path.join(Constantes().TEMP_FOLDER, src)
-    os.makedirs(temp_path, exist_ok=True)
-    os.system(f'cp -r {os.path.join(src, "*")} {temp_path}')
-
-def copy_file_from_temp_folder(dest_file:str) -> None:
-    dest_folder = os.path.dirname(dest_file) if os.path.dirname(dest_file) != '' else './'
-    os.makedirs(dest_folder, exist_ok=True)
-    src = os.path.join(Constantes().TEMP_FOLDER, dest_file)
-    os.system(f'cp {src} {dest_folder}')
-
-def copy_folder_from_temp_folder(dest:str) -> None:
+def copy_to_temp_folder(src:str, is_file:bool) -> None:
+    src, dest = _get_src_and_dest_to_copy_to_temp_folder(src, is_file)
     os.makedirs(dest, exist_ok=True)
-    src = os.path.join(Constantes().TEMP_FOLDER, dest)
-    os.system(f'cp -r {os.path.join(src, "*")} {dest}')
+    os.system(f'cp -r {src} {dest}')
+
+def _get_src_and_dest_to_copy_from_temp_folder(path:str, is_file:bool) -> None:
+    if is_file:
+        src = os.path.join(Constantes().TEMP_FOLDER, path)
+        dest = os.path.dirname(path) if os.path.dirname(path) != '' else './'
+    else:
+        src = os.path.join(Constantes().TEMP_FOLDER, path, '*')
+        dest = path
+    return src, dest
+
+def copy_from_temp_folder(dest:str, is_file:bool) -> None:
+    src, dest = _get_src_and_dest_to_copy_from_temp_folder(dest, is_file)
+    os.makedirs(dest, exist_ok=True)
+    os.system(f'cp -r {src} {dest}')

@@ -1,4 +1,4 @@
-import unittest, unittest.mock, os, sys, importlib
+import unittest, unittest.mock, os, sys, importlib, copy
 
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
@@ -25,13 +25,6 @@ class TestInitializeIntPy(unittest.TestCase):
     def create_file(self, filename, data):
         with open(filename, 'wt') as f:
             f.write(data)
-    
-    def assert_files_correctly_copied_to_temp_folder(self, files):
-        for f in files:
-            temp_path = os.path.join(Constantes().TEMP_FOLDER, f['filename'])
-            self.assertTrue(os.path.exists(temp_path))
-            with open(temp_path) as temp_f:
-                self.assertEqual(temp_f.read(), f['data'])
 
     def assert_files_exist(self, expected_files):
         for expected_f in expected_files:
@@ -66,7 +59,10 @@ class TestInitializeIntPy(unittest.TestCase):
         Constantes().g_argsp_inputs = [files[0]['filename']]
         importlib.reload(initialize_intpy)
         initialize_intpy._copy_input()
-        self.assert_files_correctly_copied_to_temp_folder(files)
+        expected_files = copy.deepcopy(files)
+        for f in expected_files:
+            f['filename'] = os.path.join(Constantes().TEMP_FOLDER, f['filename'])
+        self.assert_files_exist(expected_files)
 
     def test_copy_input_when_experiment_has_one_input_folder(self):
         os.mkdir('folder1/')
@@ -77,7 +73,10 @@ class TestInitializeIntPy(unittest.TestCase):
         Constantes().g_argsp_inputs = ['folder1']
         importlib.reload(initialize_intpy)
         initialize_intpy._copy_input()
-        self.assert_files_correctly_copied_to_temp_folder(files)
+        expected_files = copy.deepcopy(files)
+        for f in expected_files:
+            f['filename'] = os.path.join(Constantes().TEMP_FOLDER, f['filename'])
+        self.assert_files_exist(expected_files)
 
     def test_copy_input_when_experiment_has_many_input_files_and_folders(self):
         os.mkdir('folder1/')
@@ -93,7 +92,10 @@ class TestInitializeIntPy(unittest.TestCase):
         Constantes().g_argsp_inputs = ['folder1', 'folder2/', 'teste.xyz', 'teste.temp']
         importlib.reload(initialize_intpy)
         initialize_intpy._copy_input()
-        self.assert_files_correctly_copied_to_temp_folder(files)
+        expected_files = copy.deepcopy(files)
+        for f in expected_files:
+            f['filename'] = os.path.join(Constantes().TEMP_FOLDER, f['filename'])
+        self.assert_files_exist(expected_files)
 
     def test_copy_input_when_experiment_has_input_folder_with_subfolders(self):
         os.makedirs('folder1/subfolder1')
@@ -107,7 +109,10 @@ class TestInitializeIntPy(unittest.TestCase):
         Constantes().g_argsp_inputs = ['folder1', 'folder2/']
         importlib.reload(initialize_intpy)
         initialize_intpy._copy_input()
-        self.assert_files_correctly_copied_to_temp_folder(files)
+        expected_files = copy.deepcopy(files)
+        for f in expected_files:
+            f['filename'] = os.path.join(Constantes().TEMP_FOLDER, f['filename'])
+        self.assert_files_exist(expected_files)
 
     def test_copy_input_when_experiment_has_input_file_inside_folder_and_subfolder(self):
         os.makedirs('folder1/subfolder1')
@@ -120,7 +125,10 @@ class TestInitializeIntPy(unittest.TestCase):
                                        'folder2/subfolder2/subsubfolder2/teste4.xyz']
         importlib.reload(initialize_intpy)
         initialize_intpy._copy_input()
-        self.assert_files_correctly_copied_to_temp_folder(files)
+        expected_files = copy.deepcopy(files)
+        for f in expected_files:
+            f['filename'] = os.path.join(Constantes().TEMP_FOLDER, f['filename'])
+        self.assert_files_exist(expected_files)
 
     def test_copy_output_when_experiment_doesnt_have_output(self):
         Constantes().g_argsp_outputs = []

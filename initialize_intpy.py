@@ -2,7 +2,7 @@ import sys, os
 sys.path.append(os.path.dirname(__file__))
 
 from constantes import Constantes
-from util import copy_file_to_temp_folder, copy_folder_to_temp_folder, copy_file_from_temp_folder, copy_folder_from_temp_folder
+from util import copy_to_temp_folder, copy_from_temp_folder
 
 def check_python_version():
     if sys.version_info[0] != 3 or sys.version_info[1] < 9:
@@ -54,15 +54,9 @@ else:
 
     def _copy_input():
         for input in Constantes().g_argsp_inputs:
-            if os.path.isfile(input):
-                copy_file_to_temp_folder(input)
-            else:
-                copy_folder_to_temp_folder(input)
-
+            copy_to_temp_folder(input, os.path.isfile(input))
+            
     def _copy_output():
         for output in Constantes().g_argsp_outputs:
             temp_path = os.path.join(Constantes().TEMP_FOLDER, output)
-            if os.path.isfile(temp_path):
-                copy_file_from_temp_folder(output)
-            else:
-                copy_folder_from_temp_folder(output)
+            copy_from_temp_folder(output, os.path.isfile(temp_path))
