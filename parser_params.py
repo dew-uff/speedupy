@@ -109,6 +109,20 @@ def get_params():
                                    nargs=1,
                                    default=['db-file'],
                                    help='SpeedUpy\'s mechanism of storage: choose one of the following options: '+', '.join(storageOptions))
+    
+    intpy_arg_parser.add_argument('-i',
+                                  '--inputs',
+                                   metavar='FILE/FOLDER',
+                                   nargs='*',
+                                   default=[],
+                                   help='specifies all input files/folders your experiment needs in order to execute correctly')
+    
+    intpy_arg_parser.add_argument('-o',
+                                  '--outputs',
+                                   metavar='FILE/FOLDER',
+                                   nargs='*',
+                                   default=[],
+                                   help='specifies all output files/folders your experiment generates')
 
     
     args = intpy_arg_parser.parse_args()
@@ -128,6 +142,9 @@ def get_params():
 
     argsp_hash = args.hash
 
+    argsp_inputs = args.inputs
+
+    argsp_outputs = args.outputs
 
     if str(argsp_m[0]) == 'help' or str(argsp_M[0]) == 'help' or str(argsp_hash[0]) == 'help' or str(argsp_s[0]) == 'help':
         if str(argsp_m[0]) == 'help':
@@ -143,7 +160,7 @@ def get_params():
             print(storage_msg())
         sys.exit()
 
-    return argsp_m, argsp_M, argsp_s, argsp_no_cache, argsp_hash
+    return argsp_m, argsp_M, argsp_s, argsp_no_cache, argsp_hash, argsp_inputs, argsp_outputs
 
 
 """

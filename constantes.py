@@ -21,7 +21,13 @@ class SingletonMeta(type):
 
 class Constantes(metaclass=SingletonMeta):
     def __init__(self):
-        self.g_argsp_m, self.g_argsp_M, self.g_argsp_s, self.g_argsp_no_cache, self.g_argsp_hash = get_params()
+        self.g_argsp_m, \
+        self.g_argsp_M, \
+        self.g_argsp_s, \
+        self.g_argsp_no_cache, \
+        self.g_argsp_hash, \
+        self.argsp_inputs, \
+        self.argsp_outputs = get_params()
 
         self.FOLDER_NAME = ".intpy"
         self.CACHE_FOLDER_NAME = os.path.join(self.FOLDER_NAME, "cache")
