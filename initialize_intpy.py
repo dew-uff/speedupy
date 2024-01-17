@@ -30,6 +30,7 @@ else:
     from services.experiment_service import create_experiment, copy_experiment, create_experiment_function_graph, decorate_experiment_functions, get_experiment_functions_hashes
     from environment import init_env
     from util import save_json_file
+    import subprocess
 
     def initialize_intpy(user_script_path):
         def decorator(f):
@@ -38,6 +39,7 @@ else:
                 _copy_input()
                 os.system(f"cd {Constantes().TEMP_FOLDER}; python {' '.join(sys.argv)}")
                 _copy_output()
+                _start_function_inference_engine()
             return execution
         return decorator
 
@@ -60,3 +62,7 @@ else:
         for output in Constantes().g_argsp_outputs:
             temp_path = os.path.join(Constantes().TEMP_FOLDER, output)
             copy_from_temp_folder(output, os.path.isfile(temp_path))
+
+    def _start_function_inference_engine():
+        func_engine_path = os.path.join(os.path.dirname(__file__), 'function_inference_engine.py')
+        subprocess.Popen(["python", func_engine_path])
