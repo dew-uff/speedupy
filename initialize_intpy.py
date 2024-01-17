@@ -2,6 +2,7 @@ import sys, os
 sys.path.append(os.path.dirname(__file__))
 
 from constantes import Constantes
+from util import copy_file_to_temp_folder, copy_folder_to_temp_folder
 
 def check_python_version():
     if sys.version_info[0] != 3 or sys.version_info[1] < 9:
@@ -34,6 +35,7 @@ else:
         def decorator(f):
             def execution(*method_args, **method_kwargs):
                 _initialize_cache(user_script_path)
+                _copy_input()
                 os.system(f"cd {Constantes().TEMP_FOLDER}; python {' '.join(sys.argv)}")
                 _copy_output()
             return execution
@@ -49,6 +51,13 @@ else:
         decorate_experiment_functions(experiment)
         copy_experiment(experiment)
         save_json_file(functions2hashes, Constantes().EXP_FUNCTIONS_FILENAME)
+
+    def _copy_input():
+        for input in Constantes().g_argsp_inputs:
+            if os.path.isfile(input):
+                copy_file_to_temp_folder(input)
+            else:
+                copy_folder_to_temp_folder(input)
 
     #TODO
     def _copy_output(): pass

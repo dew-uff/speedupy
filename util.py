@@ -1,6 +1,7 @@
 from typing import Set, Union, List, Optional, Dict
 import os, ast, json
 from copy import deepcopy
+from constantes import Constantes
 
 def python_code_to_AST(file_name:str) -> ast.Module:
     try:
@@ -140,3 +141,14 @@ def save_json_file(data:Dict, filename:str) -> None:
 def get_content_json_file(filename:str) -> Dict:
     with open(filename) as file:
         return json.load(file)
+
+def copy_file_to_temp_folder(src:str) -> None:
+    folders = os.path.dirname(src)
+    temp_path = os.path.join(Constantes().TEMP_FOLDER, folders)
+    os.makedirs(temp_path, exist_ok=True)
+    os.system(f'cp {src} {temp_path}')
+
+def copy_folder_to_temp_folder(src:str) -> None:
+    temp_path = os.path.join(Constantes().TEMP_FOLDER, src)
+    os.makedirs(temp_path, exist_ok=True)
+    os.system(f'cp -r {os.path.join(src, "*")} {temp_path}')
