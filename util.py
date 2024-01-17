@@ -152,3 +152,14 @@ def copy_folder_to_temp_folder(src:str) -> None:
     temp_path = os.path.join(Constantes().TEMP_FOLDER, src)
     os.makedirs(temp_path, exist_ok=True)
     os.system(f'cp -r {os.path.join(src, "*")} {temp_path}')
+
+def copy_file_from_temp_folder(dest_file:str) -> None:
+    dest_folder = os.path.dirname(dest_file) if os.path.dirname(dest_file) != '' else './'
+    os.makedirs(dest_folder, exist_ok=True)
+    src = os.path.join(Constantes().TEMP_FOLDER, dest_file)
+    os.system(f'cp {src} {dest_folder}')
+
+def copy_folder_from_temp_folder(dest:str) -> None:
+    os.makedirs(dest, exist_ok=True)
+    src = os.path.join(Constantes().TEMP_FOLDER, dest)
+    os.system(f'cp -r {os.path.join(src, "*")} {dest}')
