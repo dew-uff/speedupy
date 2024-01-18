@@ -2,7 +2,7 @@ import sys, os
 sys.path.append(os.path.dirname(__file__))
 
 from constantes import Constantes
-from util import copy_to_temp_folder, copy_from_temp_folder
+from util import copy_to_temp_folder, copy_from_temp_folder, serialize_to_file
 
 def check_python_version():
     if sys.version_info[0] != 3 or sys.version_info[1] < 9:
@@ -53,6 +53,7 @@ else:
         decorate_experiment_functions(experiment)
         copy_experiment(experiment)
         save_json_file(functions2hashes, Constantes().EXP_FUNCTIONS_FILENAME)
+        serialize_to_file(experiment, Constantes().EXP_SERIALIZED_FILENAME)
 
     def _copy_input():
         for input in Constantes().g_argsp_inputs:

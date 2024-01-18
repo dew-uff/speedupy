@@ -35,6 +35,7 @@ class Constantes(metaclass=SingletonMeta):
         
         self.TEMP_FOLDER = '.intpy_temp'
         self.EXP_FUNCTIONS_FILENAME = os.path.join(self.TEMP_FOLDER, 'functions_intpy.json')
+        self.EXP_SERIALIZED_FILENAME = os.path.join(self.TEMP_FOLDER, 'experiment_intpy.pickle')
         
         self.__CONEXAO_BANCO = None
         self.DATA_DICTIONARY = {}
@@ -52,6 +53,7 @@ class Constantes(metaclass=SingletonMeta):
         self.BD_PATH = os.path.join(self.FOLDER_NAME, "intpy.db")
         
         self.EXP_FUNCTIONS_FILENAME = os.path.join(self.TEMP_FOLDER, 'functions_intpy.json')
+        self.EXP_SERIALIZED_FILENAME = os.path.join(self.TEMP_FOLDER, 'experiment_intpy.pickle')
         
     def set_paths_for_executing_inside_temp_folder(self):
         self.FOLDER_NAME = os.path.join("..", ".intpy")
@@ -59,6 +61,7 @@ class Constantes(metaclass=SingletonMeta):
         self.BD_PATH = os.path.join(self.FOLDER_NAME, "intpy.db")
         
         self.EXP_FUNCTIONS_FILENAME = 'functions_intpy.json'
+        self.EXP_SERIALIZED_FILENAME = 'experiment_intpy.pickle'
 
     @property
     def CONEXAO_BANCO(self):

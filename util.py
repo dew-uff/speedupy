@@ -1,5 +1,5 @@
 from typing import Set, Union, List, Optional, Dict
-import os, ast, json
+import os, ast, json, pickle
 from copy import deepcopy
 from constantes import Constantes
 
@@ -141,6 +141,14 @@ def save_json_file(data:Dict, filename:str) -> None:
 def get_content_json_file(filename:str) -> Dict:
     with open(filename) as file:
         return json.load(file)
+    
+def deserialize_from_file(filename:str):
+    with open(filename, 'rb') as file:
+        return pickle.load(file)
+
+def serialize_to_file(obj, filename:str):
+    with open(filename, 'wb') as file:
+        return pickle.dump(obj, file)
 
 def _get_src_and_dest_to_copy_to_temp_folder(path:str, is_file:bool) -> None:
     if is_file:
