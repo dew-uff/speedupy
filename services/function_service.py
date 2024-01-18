@@ -1,6 +1,8 @@
-import ast
+from typing import List, Dict, Union, Tuple, Optional
+import ast, pickle
 from typing import Dict, Union
 from services.function_inference_service import FunctionClassification
+from constantes import Constantes
 
 def decorate_function(function:ast.FunctionDef, classified_functions:Dict[str, FunctionClassification], functions2hashes:Dict[str, str]) -> None:
     if _is_already_decorated(function):
@@ -28,3 +30,28 @@ def _is_initialize_intpy_decorator(decorator:Union[ast.Call, ast.Name]) -> bool:
 def _is_common_intpy_decorator(decorator:Union[ast.Call, ast.Name]) -> bool:
     return isinstance(decorator, ast.Name) and \
            decorator.id in ["deterministic", "maybe_deterministic", "collect_metadata"]
+
+#TODO
+def classify_function(function:ast.FunctionDef, functions_2_hashes:Dict[str, str]) -> None:
+    func_hash = functions_2_hashes[function.qualname]
+    # func_calls = get_all_func_calls_saved_as_metadata(func_hash)
+
+#TODO
+# def get_all_func_calls_saved_as_metadata(func_hash:str) -> List[str]:
+#     sql = "SELECT return_value, execution_time, parameter_value, parameter_name, parameter_position \
+#            FROM METADATA JOIN FUNCTION_PARAMS ON METADATA.id = FUNCTION_PARAMS.metadata_id\
+#            WHERE function_hash = ?)"
+#     res = Constantes().CONEXAO_BANCO.executarComandoSQLSelect("SELECT.")
+#     func_call_hashes = []
+#     for args, kwargs in res:
+#         hash = data_access.get_id(func_hash, args, kwargs)
+#         func_call_hashes.append(hash)
+#     return func_call_hashes
+
+
+class FunctionCall():
+    def __init__(self, function_hash, args, kwargs):
+        self.__function_hash = function_hash
+        self.__args = args
+        self.__kwargs = kwargs
+        

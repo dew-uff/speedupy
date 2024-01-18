@@ -5,7 +5,7 @@ from entities.Script import Script
 from entities.Experiment import Experiment
 from entities.FunctionGraph import FunctionGraph
 from data_access import get_already_classified_functions, get_id
-from services.script_service import create_script, create_script_function_graph, decorate_script_functions, copy_script, add_decorator_imports
+from services.script_service import create_script, create_script_function_graph, decorate_script_functions, copy_script, add_decorator_imports, classify_script_functions
 from util import get_all_init_scripts_implicitly_imported, is_an_user_defined_script
 
 def create_experiment(user_script_path:str) -> Experiment:
@@ -75,3 +75,7 @@ def _decorate_experiment_main_function(experiment:Experiment):
 def copy_experiment(experiment:Experiment):
     for script in experiment.scripts.values():
         copy_script(script)
+
+def classify_experiment_functions(experiment:Experiment, functions_2_hashes:Dict[str, str]) -> None:
+    for script in experiment.scripts.values():
+        classify_script_functions(script, functions_2_hashes)

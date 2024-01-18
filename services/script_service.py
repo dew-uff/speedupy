@@ -6,7 +6,7 @@ from entities.Script import Script
 from entities.Experiment import Experiment
 from services.ASTSearcher import ASTSearcher
 from services.ScriptFunctionGraphCreator import ScriptFunctionGraphCreator
-from services.function_service import decorate_function
+from services.function_service import decorate_function, classify_function
 from services.function_inference_service import FunctionClassification
 from constantes import Constantes
 
@@ -51,3 +51,7 @@ def copy_script(script:Script):
     os.makedirs(temp_path, exist_ok=True)
     with open(os.path.join(Constantes().TEMP_FOLDER, script.name), 'wt') as f:
         f.write(ast.unparse(script.AST))
+
+def classify_script_functions(script:Script, functions_2_hashes:Dict[str, str]) -> None:
+    for function in script.functions.values():
+        classify_function(function, functions_2_hashes)

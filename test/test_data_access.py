@@ -6,7 +6,7 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 from constantes import Constantes
-from data_access import get_already_classified_functions, get_id, add_to_metadata, _add_metadata_record, _add_function_params_records, _populate_dont_cache_function_calls_list
+from data_access import get_already_classified_functions, get_id, add_to_metadata, _add_metadata_record, _add_function_params_records, _populate_dont_cache_function_calls_list, get_all_saved_metadata_of_a_function
 
 class TestDataAccess(unittest.TestCase):
     @classmethod
@@ -273,6 +273,38 @@ class TestDataAccess(unittest.TestCase):
                            (1, pickle.dumps({1, 2, 10}), 'b', 4),
                            (1, pickle.dumps([5, -2]), 'c', 5)]
         self.assert_FUNCTION_PARAMS_table_records_are_correct(params_expected)
+
+    def test_get_all_saved_metadata_of_a_function_when_metadata_tables_are_empty(self):
+        metadata = get_all_saved_metadata_of_a_function("func_hash")
+        self.assertListEqual(metadata, [])
+
+    def test_get_all_saved_metadata_of_a_function_when_there_is_only_metadata_for_other_functions(self):
+        sql = f"INSERT INTO METADATA(function_hash, return_value, execution_time) VALUES\
+               ('hash1', {b'teste'}, 10.2),
+               ('hash2', {b'teste2'}, 3.0);"
+        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql)
+        
+        sql = "SELECT last_insert_rowid();"
+        Constantes().CONEXAO_BANCO.executarComandoSQLSelect(sql)
+
+
+        sql = f"INSERT INTO FUNCTION_PARAMS(metadata_id, parameter_value, parameter_name, parameter_position) VALUES\
+               ('hash1', {b'teste'}, 10.2),
+               ('hash2', {b'teste2'}, 3.0);"
+        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql)
+
+
+        metadata = get_all_saved_metadata_of_a_function("func_hash")
+        self.assertListEqual(metadata, [])
+        # resp = _get_all_metadata_records(func_hash)
+        # metadata = _convert_metadata_records_to_metadata_instances(resp, func_hash)
+        # return metadata
+    
+    def test_get_all_saved_metadata_of_a_function_when_there_is_one_metadata_record_and_the_function_has_args_and_kwargs(self):pass
+    
+    def test_get_all_saved_metadata_of_a_function_when_there_are_many_metadata_records_of_different_function_calls_and_the_function_has_args_and_kwargs(self):pass
+
+    def test_get_all_saved_metadata_of_a_function_when_there_metadata_records_of_many_functions_and_there_are_also_metadata_records_for_function_passed(self):pass
 
     def test_populate_dont_cache_function_calls_dictionay_when_table_is_empty(self):
         _populate_dont_cache_function_calls_list()

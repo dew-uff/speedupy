@@ -9,6 +9,7 @@ from typing import Dict, List
 from banco import Banco
 from logger.log import debug, warn
 from constantes import Constantes
+from entities.Metadata import Metadata
 
 def _save(file_name):
     Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno("INSERT OR IGNORE INTO CACHE(cache_file) VALUES (?)", (file_name,))
@@ -328,6 +329,40 @@ def get_already_classified_functions() -> Dict[str, str]:
     for reg in resp:
         classified_functions[reg[0]] = reg[1]
     return classified_functions
+
+#TODO TEST
+def get_all_saved_metadata_of_a_function(func_hash:str) -> List[Metadata]:
+    resp = _get_all_metadata_records(func_hash)
+    metadata = _convert_metadata_records_to_metadata_instances(resp, func_hash)
+    return metadata
+
+def _get_all_metadata_records(func_hash:str):
+    sql = "SELECT metadata_id, return_value, execution_time,\
+                  parameter_value, parameter_name, parameter_position \
+           FROM METADATA JOIN FUNCTION_PARAMS ON METADATA.id = FUNCTION_PARAMS.metadata_id\
+           WHERE function_hash = ?\
+           ORDER BY metadata_id, parameter_position"
+    return Constantes().CONEXAO_BANCO.executarComandoSQLSelect(sql, [func_hash])
+
+def _convert_metadata_records_to_metadata_instances(sql_resp, func_hash:str) -> List[Metadata]:
+    def __processing_new_metadata(metadata:int) -> bool:
+        return current_metadata_id != metadata
+    
+    metadata = []
+    current_metadata_id = None
+    for record in sql_resp:
+        metadata_id = int(record[0])
+        if __processing_new_metadata(metadata_id):
+            return_value = pickle.loads(record[1])
+            execution_time = float(record[2])
+            md = Metadata(metadata_id, func_hash, return_value, execution_time)
+            metadata.append(md)
+            current_metadata_id = metadata_id
+        
+        param_value = pickle.loads(record[3])
+        param_name = record[4]
+        md.add_parameter(param_name, param_value)
+    return metadata
 
 def init_data_access():
     _populate_cache_dictionaries()
