@@ -23,7 +23,7 @@ class TestEnvironment(unittest.TestCase):
     
     def assert_db_exists(self):
         self.assertTrue(os.path.exists('.intpy/intpy.db'))
-        expeceted_result = {('sqlite_sequence',), ('CACHE',), ('METADATA',), ('FUNCTION_PARAMS',), ('CLASSIFIED_FUNCTIONS',), ('DONT_CACHE_FUNCTION_CALLS',)}
+        expeceted_result = {('sqlite_sequence',), ('CACHE',), ('METADATA',), ('CLASSIFIED_FUNCTIONS',), ('DONT_CACHE_FUNCTION_CALLS',)}
         conexaoBanco = Banco('.intpy/intpy.db')
         resp = conexaoBanco.executarComandoSQLSelect("SELECT tbl_name FROM sqlite_master WHERE type = 'table'")
         self.assertSetEqual(set(resp), expeceted_result)

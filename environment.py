@@ -58,7 +58,6 @@ def _create_database():
     conexaoBanco = Banco(Constantes().BD_PATH)
     _create_table_CACHE(conexaoBanco)
     _create_table_METADATA(conexaoBanco)
-    _create_table_FUNCTION_PARAMS(conexaoBanco)
     _create_table_CLASSIFIED_FUNCTIONS(conexaoBanco)
     _create_table_DONT_CACHE_FUNCTION_CALLS(conexaoBanco)
     conexaoBanco.fecharConexao()
@@ -82,23 +81,10 @@ def _create_table_METADATA(banco: Banco):
     stmt = "CREATE TABLE IF NOT EXISTS METADATA (\
     id INTEGER PRIMARY KEY AUTOINCREMENT,\
     function_hash TEXT NOT NULL,\
+    args BLOB NOT NULL,\
+    kwargs BLOB NOT NULL,\
     return_value BLOB NOT NULL,\
     execution_time REAL NOT NULL\
-    );"
-
-    banco.executarComandoSQLSemRetorno(stmt)
-
-
-def _create_table_FUNCTION_PARAMS(banco: Banco):
-    debug("creating table FUNCTION_PARAMS")
-    
-    stmt = "CREATE TABLE IF NOT EXISTS FUNCTION_PARAMS (\
-    id INTEGER PRIMARY KEY AUTOINCREMENT,\
-    metadata_id INTEGER NOT NULL,\
-    parameter_value BLOB NOT NULL,\
-    parameter_name TEXT,\
-    parameter_position INTEGER NOT NULL,\
-    FOREIGN KEY (metadata_id) REFERENCES METADATA(id)\
     );"
 
     banco.executarComandoSQLSemRetorno(stmt)
