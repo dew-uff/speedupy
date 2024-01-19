@@ -248,16 +248,13 @@ def add_to_cache(fun_name, fun_args, fun_return, fun_source, argsp_v):
         argsp_v == ['2d-ad-ft'] or argsp_v == ['v026x']):
         Constantes().NEW_DATA_DICTIONARY[id] = (fun_return, fun_name)
 
-def add_to_metadata(fun_hash, fun_args, fun_kwargs, fun_return, exec_time):
-    Constantes().METADATA.append({'hash':fun_hash,
-                                  'args':fun_args,
-                                  'kwargs':fun_kwargs,
-                                  'return':fun_return,
-                                  'exec_time':exec_time})
+def add_to_metadata(fun_hash:str, fun_args:List, fun_kwargs:Dict, fun_return, exec_time:float) -> None:
+    md = Metadata(fun_hash, fun_args, fun_kwargs, fun_return, exec_time)
+    Constantes().METADATA.append(md)
 
 def close_data_access():
     __save_new_cache_data()
-    __save_new_metadata()
+    _save_new_metadata()
     Constantes().CONEXAO_BANCO.salvarAlteracoes()
     Constantes().CONEXAO_BANCO.fecharConexao()
 
@@ -288,40 +285,15 @@ def __save_new_cache_data():
             debug("inserting reference in database")
             _save_fun_name(_get_file_name(id), Constantes().NEW_DATA_DICTIONARY[id][1])
 
-
-def __save_new_metadata() -> None:
+def _save_new_metadata() -> None:
     debug("saving metadata")
-    for data in Constantes().METADATA:
-        metadata_id = _add_metadata_record(data['hash'], data['return'], data['exec_time'])
-        _add_function_params_records(metadata_id, data['args'], data['kwargs'])
-
-
-def _add_metadata_record(fun_hash:str, fun_return, exec_time:float) -> int:
-    s_return = pickle.dumps(fun_return)
-    sql = f"INSERT INTO METADATA(function_hash, return_value, execution_time) VALUES (?, ?, ?)"
-    sql_params = [fun_hash, s_return, exec_time]
-    Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
-
-    sql = "SELECT last_insert_rowid()"
-    metadata_id = int(Constantes().CONEXAO_BANCO.executarComandoSQLSelect(sql)[0][0])
-    return metadata_id
-        
-def _add_function_params_records(metadata_id:int, args:List, kwargs:Dict) -> None:
-    sql = "INSERT INTO FUNCTION_PARAMS(metadata_id, parameter_value, parameter_name, parameter_position) VALUES "
-    sql_params = []
-    i = 0
-    for arg in args:
-        s_arg_value = pickle.dumps(arg)
-        sql += "(?, ?, ?, ?), "
-        sql_params += [metadata_id, s_arg_value, None, i]
-        i += 1
-    for arg_name, arg_value in kwargs.items():
-        s_arg_value = pickle.dumps(arg_value)
-        sql += "(?, ?, ?, ?), "
-        sql_params += [metadata_id, s_arg_value, arg_name, i]
-        i += 1
-    sql = sql[:-2] #Removendo os 2 últimos caracteres! (", ")
-    Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
+    for md in Constantes().METADATA:
+        s_args = pickle.dumps(md.args)
+        s_kwargs = pickle.dumps(md.kwargs)
+        s_return = pickle.dumps(md.return_value)
+        sql = f"INSERT INTO METADATA(function_hash, args, kwargs, return_value, execution_time) VALUES (?, ?, ?, ?, ?)"
+        sql_params = [md.function_hash, s_args, s_kwargs, s_return, md.execution_time]
+        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
 
 def get_already_classified_functions() -> Dict[str, str]:
     resp = Constantes().CONEXAO_BANCO.executarComandoSQLSelect(f"SELECT function_hash, classification FROM CLASSIFIED_FUNCTIONS")
@@ -332,36 +304,18 @@ def get_already_classified_functions() -> Dict[str, str]:
 
 #TODO TEST
 def get_all_saved_metadata_of_a_function(func_hash:str) -> List[Metadata]:
-    resp = _get_all_metadata_records(func_hash)
-    metadata = _convert_metadata_records_to_metadata_instances(resp, func_hash)
-    return metadata
-
-def _get_all_metadata_records(func_hash:str):
-    sql = "SELECT metadata_id, return_value, execution_time,\
-                  parameter_value, parameter_name, parameter_position \
-           FROM METADATA JOIN FUNCTION_PARAMS ON METADATA.id = FUNCTION_PARAMS.metadata_id\
-           WHERE function_hash = ?\
-           ORDER BY metadata_id, parameter_position"
-    return Constantes().CONEXAO_BANCO.executarComandoSQLSelect(sql, [func_hash])
-
-def _convert_metadata_records_to_metadata_instances(sql_resp, func_hash:str) -> List[Metadata]:
-    def __processing_new_metadata(metadata:int) -> bool:
-        return current_metadata_id != metadata
-    
+    sql = "SELECT args, kwargs, return_value, execution_time\
+           FROM METADATA\
+           WHERE function_hash = ?"
+    resp = Constantes().CONEXAO_BANCO.executarComandoSQLSelect(sql, [func_hash])
     metadata = []
-    current_metadata_id = None
-    for record in sql_resp:
-        metadata_id = int(record[0])
-        if __processing_new_metadata(metadata_id):
-            return_value = pickle.loads(record[1])
-            execution_time = float(record[2])
-            md = Metadata(metadata_id, func_hash, return_value, execution_time)
-            metadata.append(md)
-            current_metadata_id = metadata_id
-        
-        param_value = pickle.loads(record[3])
-        param_name = record[4]
-        md.add_parameter(param_name, param_value)
+    for record in resp:
+        args = pickle.loads(record[0])
+        kwargs = pickle.loads(record[1])
+        return_value = pickle.loads(record[2])
+        execution_time = float(record[3])
+        md = Metadata(func_hash, args, kwargs, return_value, execution_time)
+        metadata.append(md)
     return metadata
 
 def init_data_access():

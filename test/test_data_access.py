@@ -6,7 +6,7 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 from constantes import Constantes
-from data_access import get_already_classified_functions, get_id, add_to_metadata, _add_metadata_record, _add_function_params_records, _populate_dont_cache_function_calls_list, get_all_saved_metadata_of_a_function
+from data_access import get_already_classified_functions, get_id, add_to_metadata, _save_new_metadata, _populate_dont_cache_function_calls_list, get_all_saved_metadata_of_a_function
 from entities.Metadata import Metadata
 
 class TestDataAccess(unittest.TestCase):
@@ -16,7 +16,6 @@ class TestDataAccess(unittest.TestCase):
         os.mkdir(".intpy")
         cls.create_table_CLASSIFIED_FUNCTIONS()
         cls.create_table_METADATA()
-        cls.create_table_FUNCTION_PARAMS()
         cls.create_table_DONT_CACHE_FUNCTION_CALLS()
 
     @classmethod
@@ -38,20 +37,10 @@ class TestDataAccess(unittest.TestCase):
         sql = "CREATE TABLE IF NOT EXISTS METADATA (\
                 id INTEGER PRIMARY KEY AUTOINCREMENT,\
                 function_hash TEXT NOT NULL,\
+                args BLOB NOT NULL,\
+                kwargs BLOB NOT NULL,\
                 return_value BLOB NOT NULL,\
                 execution_time REAL NOT NULL\
-                );"
-        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql)
-    
-    @classmethod
-    def create_table_FUNCTION_PARAMS(cls):
-        sql = "CREATE TABLE IF NOT EXISTS FUNCTION_PARAMS (\
-                id INTEGER PRIMARY KEY AUTOINCREMENT,\
-                metadata_id INTEGER NOT NULL,\
-                parameter_value BLOB NOT NULL,\
-                parameter_name TEXT,\
-                parameter_position INTEGER NOT NULL,\
-                FOREIGN KEY (metadata_id) REFERENCES METADATA(id)\
                 );"
         Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql)
     
@@ -64,22 +53,28 @@ class TestDataAccess(unittest.TestCase):
         Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql)
 
     def tearDown(self):
-        for table in ["CLASSIFIED_FUNCTIONS", "METADATA", "FUNCTION_PARAMS", "DONT_CACHE_FUNCTION_CALLS"]:
+        for table in ["CLASSIFIED_FUNCTIONS", "METADATA", "DONT_CACHE_FUNCTION_CALLS"]:
             Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(f"DELETE FROM {table} WHERE id IS NOT NULL;")
     
-    def assert_METADATA_table_records_are_correct(self, metadata_expected:List[Tuple]):
-        sql = f"SELECT id, function_hash, return_value, execution_time FROM METADATA"
+    def assert_metadata_returned_is_correct(self, returned_metadata:List[Metadata], expected_metadata:List[Metadata]) -> None:
+        self.assertEqual(len(returned_metadata), len(expected_metadata))
+        for i in range(len(expected_metadata)):
+            self.assertEqual(returned_metadata[i].function_hash, expected_metadata[i].function_hash)
+            self.assertEqual(returned_metadata[i].args, expected_metadata[i].args)
+            self.assertEqual(returned_metadata[i].kwargs, expected_metadata[i].kwargs)
+            self.assertEqual(returned_metadata[i].return_value, expected_metadata[i].return_value)
+            self.assertEqual(returned_metadata[i].execution_time, expected_metadata[i].execution_time)
+
+    def assert_METADATA_table_records_are_correct(self, metadata_expected:List[Metadata]):
+        sql = f"SELECT function_hash, args, kwargs, return_value, execution_time FROM METADATA"
         resp = Constantes().CONEXAO_BANCO.executarComandoSQLSelect(sql)
         self.assertEqual(len(resp), len(metadata_expected))
         for i in range(len(resp)):
-            self.assertTupleEqual(resp[i], metadata_expected[i])
-
-    def assert_FUNCTION_PARAMS_table_records_are_correct(self, params_expected:List[Tuple]):
-        sql = f"SELECT metadata_id, parameter_value, parameter_name, parameter_position FROM FUNCTION_PARAMS"
-        resp = Constantes().CONEXAO_BANCO.executarComandoSQLSelect(sql)
-        self.assertEqual(len(resp), len(params_expected))
-        for i in range(len(resp)):
-            self.assertTupleEqual(resp[i], params_expected[i])
+            md = metadata_expected[i]
+            s_args = pickle.dumps(md.args)
+            s_kwargs = pickle.dumps(md.kwargs)
+            s_return = pickle.dumps(md.return_value)
+            self.assertTupleEqual(resp[i], (md.function_hash, s_args, s_kwargs, s_return, md.execution_time))
 
     def test_get_already_classified_functions_with_zero_classified_functions(self):
         functions = get_already_classified_functions()
@@ -165,159 +160,91 @@ class TestDataAccess(unittest.TestCase):
 
     def test_add_to_metadata(self):
         self.assertListEqual(Constantes().METADATA, [])
-
-        fun_source = "print('teste')\nreturn 10"
-        fun_hash = xxhash.xxh128_hexdigest(fun_source.encode('utf'))
-        fun_args = [1, True]
-        fun_kwargs = {'a':10, 'b': 'teste', 'c':[1, -2, 3.26]}
-        fun_return = 10
+        hash = "hash_func_1"
+        args = [1, True]
+        kwargs = {'a':10, 'b': 'teste', 'c':[1, -2, 3.26]}
+        ret = 10
         exec_time = 2.125123
-        dict1 = {"hash":fun_hash,
-                 "args":fun_args,
-                 "kwargs":fun_kwargs,
-                 "return":fun_return,
-                 "exec_time":exec_time}
-        add_to_metadata(fun_hash, fun_args, fun_kwargs, fun_return, exec_time)
-        self.assert_addition_to_metadata_is_correct([dict1])
+        md1 = Metadata(hash, args, kwargs, ret, exec_time)
+        add_to_metadata(hash, args, kwargs, ret, exec_time)
+        self.assert_metadata_returned_is_correct(Constantes().METADATA, [md1])
 
-        fun_source = "print('testando')\nprint('\n\n')\nreturn True"
-        fun_hash = xxhash.xxh128_hexdigest(fun_source.encode('utf'))
-        fun_args = []
-        fun_kwargs = {'a':-3, 'c':{1, -2, 3.26}}
-        fun_return = True
+        hash = 'hash_func_2'
+        args = []
+        kwargs = {'a':-3, 'c':{1, -2, 3.26}}
+        ret = True
         exec_time = 5.23151
-        dict2 = {"hash":fun_hash,
-                 "args":fun_args,
-                 "kwargs":fun_kwargs,
-                 "return":fun_return,
-                 "exec_time":exec_time}
-        add_to_metadata(fun_hash, fun_args, fun_kwargs, fun_return, exec_time)
-        self.assert_addition_to_metadata_is_correct([dict1, dict2])
+        md2 = Metadata(hash, args, kwargs, ret, exec_time)
+        add_to_metadata(hash, args, kwargs, ret, exec_time)
+        self.assert_metadata_returned_is_correct(Constantes().METADATA, [md1, md2])
 
-    def assert_addition_to_metadata_is_correct(self, dicts:List) -> None:
-        self.assertEqual(len(Constantes().METADATA), len(dicts))
-        for i in range(len(dicts)):
-            self.assertDictEqual(Constantes().METADATA[i], dicts[i])
+    def test_save_new_metadata_with_only_one_metadata_record(self):
+        md = Metadata('func_hash', [], {}, 3.7, 2.125123)
+        Constantes().METADATA = [md]
+        _save_new_metadata()
+        self.assert_METADATA_table_records_are_correct([md])
 
-    def test_add_metadata_record(self):
-        self.assert_METADATA_table_records_are_correct([])
+    def test_save_new_metadata_when_function_has_only_args(self):
+        md = Metadata('func_hash', [1, True, 'abc'], {}, 10, 1.214)
+        Constantes().METADATA = [md]
+        _save_new_metadata()
+        self.assert_METADATA_table_records_are_correct([md])
 
-        fun_source = "print('testando')\nprint('\n\n')\nreturn 3.7"
-        fun_hash = xxhash.xxh128_hexdigest(fun_source.encode('utf'))
-        fun_return = 3.7
-        exec_time = 2.125123
-        id = _add_metadata_record(fun_hash, fun_return, exec_time)
-        s_return = pickle.dumps(fun_return)
-        metadata_expected = [(id, fun_hash, s_return, exec_time)]
-        self.assert_METADATA_table_records_are_correct(metadata_expected)
+    def test_save_new_metadata_when_function_has_only_kwargs(self):
+        md = Metadata('func_hash', [], {'a':10, 'b':True, 'c':(1,)}, 10, 1.0)
+        Constantes().METADATA = [md]
+        _save_new_metadata()
+        self.assert_METADATA_table_records_are_correct([md])
 
-        fun_source = "print('teste2')\input('\n\n...')\nreturn x ** 3"
-        fun_hash = xxhash.xxh128_hexdigest(fun_source.encode('utf'))
-        fun_return = 900
-        exec_time = 1.1232
-        id = _add_metadata_record(fun_hash, fun_return, exec_time)
-        s_return = pickle.dumps(fun_return)
-        metadata_expected.append((id, fun_hash, s_return, exec_time))
-        self.assert_METADATA_table_records_are_correct(metadata_expected)
-    
-    def test_add_function_params_records_when_function_has_only_args(self):
-        #Adding a record on METADATA table, because FUNCTION_PARAMS always references a METADATA record!
-        sql = "INSERT INTO METADATA(id, function_hash, return_value, execution_time) VALUES (1, 'sad123asf231', 10, 1.0)"
-        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql)
-        _add_function_params_records(1, [1, True, 'abc'], {})
-        params_expected = [(1, pickle.dumps(1), None, 0),
-                           (1, pickle.dumps(True), None, 1),
-                           (1, pickle.dumps('abc'), None, 2)]
-        self.assert_FUNCTION_PARAMS_table_records_are_correct(params_expected)
+    def test_save_new_metadata_when_function_has_args_and_kwargs(self):
+        md = Metadata('func_hash', [{'1':1, '0':0}, True, 'abc'], {'a':10, 'b':True, 'c':(1,)}, 10, 1.0)
+        Constantes().METADATA = [md]
+        _save_new_metadata()
+        self.assert_METADATA_table_records_are_correct([md])
 
-    def test_add_function_params_records_when_function_has_only_kwargs(self):
-        #Adding a record on METADATA table, because FUNCTION_PARAMS always references a METADATA record!
-        sql = "INSERT INTO METADATA(id, function_hash, return_value, execution_time) VALUES (1, 'sad123asf231', 10, 1.0)"
-        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql)
-        _add_function_params_records(1, [], {'a':10, 'b':True, 'c':(1,)})
-        params_expected = [(1, pickle.dumps(10), 'a', 0),
-                           (1, pickle.dumps(True), 'b', 1),
-                           (1, pickle.dumps((1,)), 'c', 2)]
-        self.assert_FUNCTION_PARAMS_table_records_are_correct(params_expected)
+    def test_save_new_metadata_when_function_has_one_arg_and_one_kwarg(self):
+        md = Metadata('func_hash', [True], {'a':-7.5}, 10, 1.0)
+        Constantes().METADATA = [md]
+        _save_new_metadata()
+        self.assert_METADATA_table_records_are_correct([md])
 
-    def test_add_function_params_records_when_function_has_args_and_kwargs(self):
-        #Adding a record on METADATA table, because FUNCTION_PARAMS always references a METADATA record!
-        sql = "INSERT INTO METADATA(id, function_hash, return_value, execution_time) VALUES (1, 'sad123asf231', 10, 1.0)"
-        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql)
-        _add_function_params_records(1, [{'1':1, '0':0}, True, 'abc'], {'a':-7.5, 'b':[1, 2, 3], 'c':(1,)})
-        params_expected = [(1, pickle.dumps({'1':1, '0':0}), None, 0),
-                           (1, pickle.dumps(True), None, 1),
-                           (1, pickle.dumps('abc'), None, 2),
-                           (1, pickle.dumps(-7.5), 'a', 3),
-                           (1, pickle.dumps([1, 2, 3]), 'b', 4),
-                           (1, pickle.dumps((1,)), 'c', 5)]
-        self.assert_FUNCTION_PARAMS_table_records_are_correct(params_expected)
-        
-    def test_add_function_params_records_when_function_has_one_arg_and_one_kwarg(self):
-        #Adding a record on METADATA table, because FUNCTION_PARAMS always references a METADATA record!
-        sql = "INSERT INTO METADATA(id, function_hash, return_value, execution_time) VALUES (1, 'sad123asf231', 10, 1.0)"
-        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql)
-        _add_function_params_records(1, [True], {'a':-7.5})
-        params_expected = [(1, pickle.dumps(True), None, 0),
-                           (1, pickle.dumps(-7.5), 'a', 1)]
-        self.assert_FUNCTION_PARAMS_table_records_are_correct(params_expected)
-
-    def test_add_function_params_records_when_function_has_multiple_args_and_multiple_kwargs(self):
-        #Adding a record on METADATA table, because FUNCTION_PARAMS always references a METADATA record!
-        sql = "INSERT INTO METADATA(id, function_hash, return_value, execution_time) VALUES (1, 'sad123asf231', 10, 1.0)"
-        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql)
-        _add_function_params_records(1, [True, False, 88], {'a':-7.5, 'b':{1, 2, 10}, 'c':[5, -2]})
-        params_expected = [(1, pickle.dumps(True), None, 0),
-                           (1, pickle.dumps(False), None, 1),
-                           (1, pickle.dumps(88), None, 2),
-                           (1, pickle.dumps(-7.5), 'a', 3),
-                           (1, pickle.dumps({1, 2, 10}), 'b', 4),
-                           (1, pickle.dumps([5, -2]), 'c', 5)]
-        self.assert_FUNCTION_PARAMS_table_records_are_correct(params_expected)
+    def test_save_new_metadata_when_function_has_many_args_and_kwargs(self):
+        md = Metadata('func_hash', [True, False, 88], {'a':-7.5, 'b':{1, 2, 10}, 'c':[5, -2]}, 10, 1.0)
+        Constantes().METADATA = [md]
+        _save_new_metadata()
+        self.assert_METADATA_table_records_are_correct([md])
 
     def test_get_all_saved_metadata_of_a_function_when_metadata_tables_are_empty(self):
         metadata = get_all_saved_metadata_of_a_function("func_hash")
         self.assertListEqual(metadata, [])
 
     def add_metadata(self, metadata:List[Metadata]) -> None:
-        sql_1 = "INSERT INTO METADATA(id, function_hash, return_value, execution_time) \
+        sql = "INSERT INTO METADATA(function_hash, args, kwargs, return_value, execution_time) \
                 VALUES"
-        sql_params_1 = []
-
-        sql_2 = "INSERT INTO FUNCTION_PARAMS(metadata_id, parameter_value, parameter_name, parameter_position) VALUES"
-        sql_params_2 = []
+        sql_params = []
         for md in metadata:
-            sql_1 += " (?, ?, ?, ?),"
-            sql_params_1 += [md.id, md.function_hash, pickle.dumps(md.return_value), md.execution_time]
-            
-            i = 0
-            for p in md.args:
-                sql_2 += " (?, ?, ?, ?),"
-                sql_params_2 += [md.id, pickle.dumps(p), None, i]
-                i += 1
-            for k, v in md.kwargs.items():
-                sql_2 += " (?, ?, ?, ?),"
-                sql_params_2 += [md.id, pickle.dumps(v), k, i]
-                i += 1
-        sql_1 = sql_1[:-1] #Removendo vírgula final!
-        sql_2 = sql_2[:-1] #Removendo vírgula final!
-        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql_1, sql_params_1)
-        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql_2, sql_params_2)
+            sql += " (?, ?, ?, ?, ?),"
+            s_args = pickle.dumps(md.args)
+            s_kwargs = pickle.dumps(md.kwargs)
+            s_return = pickle.dumps(md.return_value)
+            sql_params += [md.function_hash, s_args, s_kwargs, s_return, md.execution_time]
+        sql = sql[:-1] #Removendo vírgula final!
+        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
 
     def test_get_all_saved_metadata_of_a_function_when_there_is_only_metadata_for_other_functions(self):
-        md1 = Metadata(1, 'hash1', True, 10.2, args=[10, True], kwargs={'text':'Teste'})
-        md2 = Metadata(2, 'hash2', 'My return!', 3.0, args=[-3.2, (1,), 'teste'], kwargs={'content':'Testando'})
+        md1 = Metadata('hash1', [10, True], {'text':'Teste'}, True, 10.2)
+        md2 = Metadata('hash2', [-3.2, (1,), 'teste'], {'content':'Testando'}, 'My return!', 3.0)
         self.add_metadata([md1, md2])
         metadata = get_all_saved_metadata_of_a_function("func_hash")
         self.assertListEqual(metadata, [])
     
     def test_get_all_saved_metadata_of_a_function_when_there_is_one_metadata_record_and_the_function_has_args_and_kwargs(self):
-        md1 = Metadata(1, 'hash1', True, 10.2, args=[10, True], kwargs={'text':'Teste'})
-        md2 = Metadata(2, 'hash2', 'My return!', 3.0, args=[-3.2, (1,), 'teste'], kwargs={'content':'Testando'})
-        md3 = Metadata(2, 'func_hash', -23.124, 12.1234, args=[-3.2, [(1,)], {'teste'}], kwargs={'content':False})
-        self.add_metadata([md1, md2])
+        md1 = Metadata('hash1', [10, True], {'text':'Teste'}, True, 10.2)
+        md2 = Metadata('hash2', [-3.2, (1,), 'teste'], {'content':'Testando'}, 'My return!', 3.0)
+        md3 = Metadata('func_hash', [-3.2, [(1,)], {'teste'}], {'content':False}, -23.124, 12.1234)
+        self.add_metadata([md1, md2, md3])
         metadata = get_all_saved_metadata_of_a_function("func_hash")
-        self.assertListEqual(metadata, [])
+        self.assert_metadata_returned_is_correct(metadata, [md3])
         # resp = _get_all_metadata_records(func_hash)
         # metadata = _convert_metadata_records_to_metadata_instances(resp, func_hash)
         # return metadata
@@ -325,7 +252,6 @@ class TestDataAccess(unittest.TestCase):
     def test_get_all_saved_metadata_of_a_function_when_there_are_many_metadata_records_of_different_function_calls_and_the_function_has_args_and_kwargs(self):pass
 
     def test_get_all_saved_metadata_of_a_function_when_there_metadata_records_of_many_functions_and_there_are_also_metadata_records_for_function_passed(self):pass
-
     def test_populate_dont_cache_function_calls_dictionay_when_table_is_empty(self):
         _populate_dont_cache_function_calls_list()
         self.assertListEqual(Constantes().DONT_CACHE_FUNCTION_CALLS, [])
