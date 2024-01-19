@@ -3,6 +3,7 @@ import ast, pickle
 from typing import Dict, Union
 from services.function_inference_service import FunctionClassification
 from constantes import Constantes
+from data_access import get_all_saved_metadata_of_a_function_group_by_function_call_hash
 
 def decorate_function(function:ast.FunctionDef, classified_functions:Dict[str, FunctionClassification], functions2hashes:Dict[str, str]) -> None:
     if _is_already_decorated(function):
@@ -34,24 +35,46 @@ def _is_common_intpy_decorator(decorator:Union[ast.Call, ast.Name]) -> bool:
 #TODO
 def classify_function(function:ast.FunctionDef, functions_2_hashes:Dict[str, str]) -> None:
     func_hash = functions_2_hashes[function.qualname]
-    # func_calls = get_all_func_calls_saved_as_metadata(func_hash)
+    func_calls_2_metadata = get_all_saved_metadata_of_a_function_group_by_function_call_hash(func_hash)
+    
+    #Defining function
+    function.decorator_list = []
+    code = ast.unparse(function)
+    print("================")
+    print("Defining function:\n")
+    print(code)
+    print("================\n")
+    exec(code)
+    for f_call in func_calls_2_metadata:
+        args = func_calls_2_metadata[f_call][0].args
+        kwargs = func_calls_2_metadata[f_call][0].kwargs
 
-#TODO
-# def get_all_func_calls_saved_as_metadata(func_hash:str) -> List[str]:
-#     sql = "SELECT return_value, execution_time, parameter_value, parameter_name, parameter_position \
-#            FROM METADATA JOIN FUNCTION_PARAMS ON METADATA.id = FUNCTION_PARAMS.metadata_id\
-#            WHERE function_hash = ?)"
-#     res = Constantes().CONEXAO_BANCO.executarComandoSQLSelect("SELECT.")
-#     func_call_hashes = []
-#     for args, kwargs in res:
-#         hash = data_access.get_id(func_hash, args, kwargs)
-#         func_call_hashes.append(hash)
-#     return func_call_hashes
+        print(type(args))
+        args = list(args)
+        print(args)
+        print(type(args))
 
+        print(kwargs)
+        print(type(kwargs))
 
-class FunctionCall():
-    def __init__(self, function_hash, args, kwargs):
-        self.__function_hash = function_hash
-        self.__args = args
-        self.__kwargs = kwargs
+        #Executing function
+        code = f'\nret = {function.name}(*{args}, **{kwargs})\nprint("oi")\nprint(ret)\nprint("oi")'
+        print("================")
+        print("Executing function:\n")
+        print(code)
+        print("================\n")
         
+        exec(code)
+        my_ret = eval("ret")
+        print(f"my_ret: {my_ret}")
+    """
+    for i in range(10):
+        exec(f"def f_{i}(): return {i}")
+    # Run functions f_0 to f_9
+    for i in range(10):
+        b = None
+        exec(f"a = f_{i}()")
+        exec(f"print(a)")
+        b = eval("a")
+        print(b)
+    """
