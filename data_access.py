@@ -35,11 +35,7 @@ def _remove(id):
 
 
 def get_id(fun_source, fun_args=[], fun_kwargs={}):
-    data = b""
-    for arg in fun_args:
-        data += pickle.dumps(arg)
-    for arg_name, arg_value in fun_kwargs.items():
-        data += pickle.dumps(arg_name) + pickle.dumps(arg_value)
+    data = pickle.dumps(fun_args) + pickle.dumps(fun_kwargs)
     data = str(data) + fun_source
     data = data.encode('utf')
     if Constantes().g_argsp_hash[0] == 'md5':
@@ -302,19 +298,23 @@ def get_already_classified_functions() -> Dict[str, str]:
         classified_functions[reg[0]] = reg[1]
     return classified_functions
 
-def get_all_saved_metadata_of_a_function(func_hash:str) -> List[Metadata]:
+def get_all_saved_metadata_of_a_function_group_by_function_call_hash(func_hash:str) -> Dict[str, List[Metadata]]:
     sql = "SELECT args, kwargs, return_value, execution_time\
            FROM METADATA\
            WHERE function_hash = ?"
     resp = Constantes().CONEXAO_BANCO.executarComandoSQLSelect(sql, [func_hash])
-    metadata = []
+    metadata = {}
     for record in resp:
         args = pickle.loads(record[0])
         kwargs = pickle.loads(record[1])
         return_value = pickle.loads(record[2])
         execution_time = float(record[3])
         md = Metadata(func_hash, args, kwargs, return_value, execution_time)
-        metadata.append(md)
+        
+        func_call_hash = get_id(func_hash, args, kwargs)
+        if func_call_hash not in metadata:
+            metadata[func_call_hash] = []
+        metadata[func_call_hash].append(md)
     return metadata
 
 def init_data_access():

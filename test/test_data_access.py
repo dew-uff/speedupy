@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 import unittest, unittest.mock, os, sys, hashlib, mmh3, xxhash, pickle
 
 current = os.path.dirname(os.path.realpath(__file__))
@@ -6,7 +6,7 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 from constantes import Constantes
-from data_access import get_already_classified_functions, get_id, add_to_metadata, _save_new_metadata, _populate_dont_cache_function_calls_list, get_all_saved_metadata_of_a_function
+from data_access import get_already_classified_functions, get_id, add_to_metadata, _save_new_metadata, _populate_dont_cache_function_calls_list, get_all_saved_metadata_of_a_function_group_by_function_call_hash
 from entities.Metadata import Metadata
 
 class TestDataAccess(unittest.TestCase):
@@ -52,6 +52,9 @@ class TestDataAccess(unittest.TestCase):
                 );"
         Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql)
 
+    def setUp(self):
+        Constantes().g_argsp_hash = ["md5"]
+
     def tearDown(self):
         for table in ["CLASSIFIED_FUNCTIONS", "METADATA", "DONT_CACHE_FUNCTION_CALLS"]:
             Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(f"DELETE FROM {table} WHERE id IS NOT NULL;")
@@ -76,6 +79,30 @@ class TestDataAccess(unittest.TestCase):
             s_return = pickle.dumps(md.return_value)
             self.assertTupleEqual(resp[i], (md.function_hash, s_args, s_kwargs, s_return, md.execution_time))
 
+    def manually_add_metadata(self, metadata:List[Metadata]) -> None:
+        sql = "INSERT INTO METADATA(function_hash, args, kwargs, return_value, execution_time) \
+                VALUES"
+        sql_params = []
+        for md in metadata:
+            sql += " (?, ?, ?, ?, ?),"
+            s_args = pickle.dumps(md.args)
+            s_kwargs = pickle.dumps(md.kwargs)
+            s_return = pickle.dumps(md.return_value)
+            sql_params += [md.function_hash, s_args, s_kwargs, s_return, md.execution_time]
+        sql = sql[:-1] #Removendo vírgula final!
+        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
+
+    def manually_get_id(self, f_source, f_args, f_kwargs, hash_algorithm=['md5']):
+        f_call_hash = pickle.dumps(f_args) + pickle.dumps(f_kwargs)
+        f_call_hash = str(f_call_hash) + f_source
+        if hash_algorithm == ['md5']:
+            f_call_hash = hashlib.md5(f_call_hash.encode('utf')).hexdigest()
+        elif hash_algorithm == ['murmur']:
+            f_call_hash = hex(mmh3.hash128(f_call_hash.encode('utf')))[2:]
+        elif hash_algorithm == ['xxhash']:
+            f_call_hash = xxhash.xxh128_hexdigest(f_call_hash.encode('utf'))
+        return f_call_hash
+    
     def test_get_already_classified_functions_with_zero_classified_functions(self):
         functions = get_already_classified_functions()
         self.assertDictEqual({}, functions)
@@ -98,64 +125,42 @@ class TestDataAccess(unittest.TestCase):
         Constantes().g_argsp_hash = ['md5']
         source = 'print("Essa é uma função de teste!")\nreturn x ** y / z'
         hash = get_id(source, [1, 5], {'z':-12.5})
-        expected = b""
-        for elem in [1, 5, 'z', -12.5]:
-            expected += pickle.dumps(elem)
-        expected = str(expected) + source
-        expected = hashlib.md5(expected.encode('utf')).hexdigest()
+        expected = self.manually_get_id(source, [1, 5], {'z':-12.5})
         self.assertEqual(hash, expected)
 
     def test_get_id_with_hash_xxhash(self):
         Constantes().g_argsp_hash = ['xxhash']
         source = 'print("Essa é uma função de teste!")\nreturn x ** y / z'
         hash = get_id(source, [1, 5], {'z':-12.5})
-        expected = b""
-        for elem in [1, 5, 'z', -12.5]:
-            expected += pickle.dumps(elem)
-        expected = str(expected) + source
-        expected = xxhash.xxh128_hexdigest(expected.encode('utf'))
+        expected = self.manually_get_id(source, [1, 5], {'z':-12.5}, hash_algorithm=['xxhash'])
         self.assertEqual(hash, expected)
 
     def test_get_id_with_hash_murmur(self):
         Constantes().g_argsp_hash = ['murmur']
         source = 'print("Essa é uma função de teste!")\nreturn x ** y / z'
         hash = get_id(source, [1, 5], {'z':-12.5})
-        expected = b""
-        for elem in [1, 5, 'z', -12.5]:
-            expected += pickle.dumps(elem)
-        expected = str(expected) + source
-        expected = hex(mmh3.hash128(expected.encode('utf')))[2:]
+        expected = self.manually_get_id(source, [1, 5], {'z':-12.5}, hash_algorithm=['murmur'])
         self.assertEqual(hash, expected)
         
     def test_get_id_without_fun_args(self):
         Constantes().g_argsp_hash = ['xxhash']
         source = 'print("Testando!")\ninput("...")\nreturn x + y / -z'
         hash = get_id(source, fun_kwargs={'z':-12.5})
-        expected = b""
-        for elem in ['z', -12.5]:
-            expected += pickle.dumps(elem)
-        expected = str(expected) + source
-        expected = xxhash.xxh128_hexdigest(expected.encode('utf'))
+        expected = self.manually_get_id(source, [], {'z':-12.5}, hash_algorithm=['xxhash'])
         self.assertEqual(hash, expected)
 
     def test_get_id_without_fun_kwargs(self):
         Constantes().g_argsp_hash = ['md5']
         source = 'print("Testando!")\nos.path.exists("/")\nrandom.randint()\nreturn x + y / -z'
         hash = get_id(source, fun_args=[-1.227, 0])
-        expected = b""
-        for elem in [-1.227, 0]:
-            expected += pickle.dumps(elem)
-        expected = str(expected) + source
-        expected = hashlib.md5(expected.encode('utf')).hexdigest()
+        expected = self.manually_get_id(source, [-1.227, 0], {})
         self.assertEqual(hash, expected)
 
     def test_get_id_only_with_fun_source(self):
         Constantes().g_argsp_hash = ['murmur']
         source = 'print("Testando!")\nreturn x / y ** 2'
         hash = get_id(source)
-        expected = b""
-        expected = str(expected) + source
-        expected = hex(mmh3.hash128(expected.encode('utf')))[2:]
+        expected = self.manually_get_id(source, [], {}, hash_algorithm=['murmur'])
         self.assertEqual(hash, expected)
 
     def test_add_to_metadata(self):
@@ -215,36 +220,27 @@ class TestDataAccess(unittest.TestCase):
         self.assert_METADATA_table_records_are_correct([md])
 
     def test_get_all_saved_metadata_of_a_function_when_metadata_tables_are_empty(self):
-        metadata = get_all_saved_metadata_of_a_function("func_hash")
-        self.assertListEqual(metadata, [])
-
-    def manually_add_metadata(self, metadata:List[Metadata]) -> None:
-        sql = "INSERT INTO METADATA(function_hash, args, kwargs, return_value, execution_time) \
-                VALUES"
-        sql_params = []
-        for md in metadata:
-            sql += " (?, ?, ?, ?, ?),"
-            s_args = pickle.dumps(md.args)
-            s_kwargs = pickle.dumps(md.kwargs)
-            s_return = pickle.dumps(md.return_value)
-            sql_params += [md.function_hash, s_args, s_kwargs, s_return, md.execution_time]
-        sql = sql[:-1] #Removendo vírgula final!
-        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
+        metadata = get_all_saved_metadata_of_a_function_group_by_function_call_hash("func_hash")
+        self.assertDictEqual(metadata, {})
 
     def test_get_all_saved_metadata_of_a_function_when_there_is_only_metadata_for_other_functions(self):
         md1 = Metadata('hash1', [10, True], {'text':'Teste'}, True, 10.2)
         md2 = Metadata('hash2', [-3.2, (1,), 'teste'], {'content':'Testando'}, 'My return!', 3.0)
         self.manually_add_metadata([md1, md2])
-        metadata = get_all_saved_metadata_of_a_function("func_hash")
-        self.assertListEqual(metadata, [])
-    
+        metadata = get_all_saved_metadata_of_a_function_group_by_function_call_hash("func_hash")
+        self.assertDictEqual(metadata, {})
+
     def test_get_all_saved_metadata_of_a_function_when_there_is_one_metadata_record_and_the_function_has_args_and_kwargs(self):
         md1 = Metadata('hash1', [10, True], {'text':'Teste'}, True, 10.2)
         md2 = Metadata('hash2', [-3.2, (1,), 'teste'], {'content':'Testando'}, 'My return!', 3.0)
         md3 = Metadata('func_hash', [-3.2, [(1,)], {'teste'}], {'content':False}, -23.124, 12.1234)
         self.manually_add_metadata([md1, md2, md3])
-        metadata = get_all_saved_metadata_of_a_function("func_hash")
-        self.assert_metadata_returned_is_correct(metadata, [md3])
+        metadata = get_all_saved_metadata_of_a_function_group_by_function_call_hash("func_hash")
+        
+        f_call_hash = self.manually_get_id('func_hash', [-3.2, [(1,)], {'teste'}], {'content':False})
+        self.assertEqual(len(metadata), 1)
+        self.assertIn(f_call_hash, metadata)
+        self.assert_metadata_returned_is_correct(metadata[f_call_hash], [md3])
     
     def test_get_all_saved_metadata_of_a_function_when_there_are_many_metadata_records_of_different_function_calls_for_the_function_passed(self):
         md1 = Metadata('hash1', [10, True], {'text':'Teste'}, True, 10.2)
@@ -254,9 +250,20 @@ class TestDataAccess(unittest.TestCase):
         md5 = Metadata('func_hash', [], {'x':20}, -2, 0.123)
         md6 = Metadata('func_hash', [0], {}, 400, 56.23)
         self.manually_add_metadata([md1, md2, md3, md4, md5, md6])
-        metadata = get_all_saved_metadata_of_a_function("func_hash")
-        self.assert_metadata_returned_is_correct(metadata, [md2, md3, md4, md5, md6])
+        metadata = get_all_saved_metadata_of_a_function_group_by_function_call_hash("func_hash")
 
+        f_call_hash1 = self.manually_get_id('func_hash', [1, True], {'content':'Teste'})
+        f_call_hash2 = self.manually_get_id('func_hash', [2, False], {'content':'Teste2'})
+        f_call_hash3 = self.manually_get_id('func_hash', [], {'x':20})
+        f_call_hash4 = self.manually_get_id('func_hash', [0], {})
+        expected_f_call_hashes = [f_call_hash1, f_call_hash2, f_call_hash3, f_call_hash4]
+        self.assertEqual(len(metadata), 4)
+        self.assertListEqual(list(metadata.keys()), expected_f_call_hashes)
+        self.assert_metadata_returned_is_correct(metadata[f_call_hash1], [md2, md3])
+        self.assert_metadata_returned_is_correct(metadata[f_call_hash2], [md4])
+        self.assert_metadata_returned_is_correct(metadata[f_call_hash3], [md5])
+        self.assert_metadata_returned_is_correct(metadata[f_call_hash4], [md6])
+    
     def test_populate_dont_cache_function_calls_dictionay_when_table_is_empty(self):
         _populate_dont_cache_function_calls_list()
         self.assertListEqual(Constantes().DONT_CACHE_FUNCTION_CALLS, [])
