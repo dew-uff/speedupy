@@ -7,6 +7,7 @@ sys.path.append(parent)
 
 from constantes import Constantes
 from data_access import get_already_classified_functions, get_id, add_to_metadata, _add_metadata_record, _add_function_params_records, _populate_dont_cache_function_calls_list, get_all_saved_metadata_of_a_function
+from entities.Metadata import Metadata
 
 class TestDataAccess(unittest.TestCase):
     @classmethod
@@ -278,29 +279,48 @@ class TestDataAccess(unittest.TestCase):
         metadata = get_all_saved_metadata_of_a_function("func_hash")
         self.assertListEqual(metadata, [])
 
+    def add_metadata(self, metadata:List[Metadata]) -> None:
+        sql_1 = "INSERT INTO METADATA(id, function_hash, return_value, execution_time) \
+                VALUES"
+        sql_params_1 = []
+
+        sql_2 = "INSERT INTO FUNCTION_PARAMS(metadata_id, parameter_value, parameter_name, parameter_position) VALUES"
+        sql_params_2 = []
+        for md in metadata:
+            sql_1 += " (?, ?, ?, ?),"
+            sql_params_1 += [md.id, md.function_hash, pickle.dumps(md.return_value), md.execution_time]
+            
+            i = 0
+            for p in md.args:
+                sql_2 += " (?, ?, ?, ?),"
+                sql_params_2 += [md.id, pickle.dumps(p), None, i]
+                i += 1
+            for k, v in md.kwargs.items():
+                sql_2 += " (?, ?, ?, ?),"
+                sql_params_2 += [md.id, pickle.dumps(v), k, i]
+                i += 1
+        sql_1 = sql_1[:-1] #Removendo vírgula final!
+        sql_2 = sql_2[:-1] #Removendo vírgula final!
+        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql_1, sql_params_1)
+        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql_2, sql_params_2)
+
     def test_get_all_saved_metadata_of_a_function_when_there_is_only_metadata_for_other_functions(self):
-        sql = f"INSERT INTO METADATA(function_hash, return_value, execution_time) VALUES\
-               ('hash1', {b'teste'}, 10.2),
-               ('hash2', {b'teste2'}, 3.0);"
-        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql)
-        
-        sql = "SELECT last_insert_rowid();"
-        Constantes().CONEXAO_BANCO.executarComandoSQLSelect(sql)
-
-
-        sql = f"INSERT INTO FUNCTION_PARAMS(metadata_id, parameter_value, parameter_name, parameter_position) VALUES\
-               ('hash1', {b'teste'}, 10.2),
-               ('hash2', {b'teste2'}, 3.0);"
-        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql)
-
-
+        md1 = Metadata(1, 'hash1', True, 10.2, args=[10, True], kwargs={'text':'Teste'})
+        md2 = Metadata(2, 'hash2', 'My return!', 3.0, args=[-3.2, (1,), 'teste'], kwargs={'content':'Testando'})
+        self.add_metadata([md1, md2])
+        metadata = get_all_saved_metadata_of_a_function("func_hash")
+        self.assertListEqual(metadata, [])
+    
+    def test_get_all_saved_metadata_of_a_function_when_there_is_one_metadata_record_and_the_function_has_args_and_kwargs(self):
+        md1 = Metadata(1, 'hash1', True, 10.2, args=[10, True], kwargs={'text':'Teste'})
+        md2 = Metadata(2, 'hash2', 'My return!', 3.0, args=[-3.2, (1,), 'teste'], kwargs={'content':'Testando'})
+        md3 = Metadata(2, 'func_hash', -23.124, 12.1234, args=[-3.2, [(1,)], {'teste'}], kwargs={'content':False})
+        self.add_metadata([md1, md2])
         metadata = get_all_saved_metadata_of_a_function("func_hash")
         self.assertListEqual(metadata, [])
         # resp = _get_all_metadata_records(func_hash)
         # metadata = _convert_metadata_records_to_metadata_instances(resp, func_hash)
         # return metadata
-    
-    def test_get_all_saved_metadata_of_a_function_when_there_is_one_metadata_record_and_the_function_has_args_and_kwargs(self):pass
     
     def test_get_all_saved_metadata_of_a_function_when_there_are_many_metadata_records_of_different_function_calls_and_the_function_has_args_and_kwargs(self):pass
 
