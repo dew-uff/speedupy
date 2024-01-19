@@ -218,7 +218,7 @@ class TestDataAccess(unittest.TestCase):
         metadata = get_all_saved_metadata_of_a_function("func_hash")
         self.assertListEqual(metadata, [])
 
-    def add_metadata(self, metadata:List[Metadata]) -> None:
+    def manually_add_metadata(self, metadata:List[Metadata]) -> None:
         sql = "INSERT INTO METADATA(function_hash, args, kwargs, return_value, execution_time) \
                 VALUES"
         sql_params = []
@@ -234,7 +234,7 @@ class TestDataAccess(unittest.TestCase):
     def test_get_all_saved_metadata_of_a_function_when_there_is_only_metadata_for_other_functions(self):
         md1 = Metadata('hash1', [10, True], {'text':'Teste'}, True, 10.2)
         md2 = Metadata('hash2', [-3.2, (1,), 'teste'], {'content':'Testando'}, 'My return!', 3.0)
-        self.add_metadata([md1, md2])
+        self.manually_add_metadata([md1, md2])
         metadata = get_all_saved_metadata_of_a_function("func_hash")
         self.assertListEqual(metadata, [])
     
@@ -242,16 +242,21 @@ class TestDataAccess(unittest.TestCase):
         md1 = Metadata('hash1', [10, True], {'text':'Teste'}, True, 10.2)
         md2 = Metadata('hash2', [-3.2, (1,), 'teste'], {'content':'Testando'}, 'My return!', 3.0)
         md3 = Metadata('func_hash', [-3.2, [(1,)], {'teste'}], {'content':False}, -23.124, 12.1234)
-        self.add_metadata([md1, md2, md3])
+        self.manually_add_metadata([md1, md2, md3])
         metadata = get_all_saved_metadata_of_a_function("func_hash")
         self.assert_metadata_returned_is_correct(metadata, [md3])
-        # resp = _get_all_metadata_records(func_hash)
-        # metadata = _convert_metadata_records_to_metadata_instances(resp, func_hash)
-        # return metadata
     
-    def test_get_all_saved_metadata_of_a_function_when_there_are_many_metadata_records_of_different_function_calls_and_the_function_has_args_and_kwargs(self):pass
+    def test_get_all_saved_metadata_of_a_function_when_there_are_many_metadata_records_of_different_function_calls_for_the_function_passed(self):
+        md1 = Metadata('hash1', [10, True], {'text':'Teste'}, True, 10.2)
+        md2 = Metadata('func_hash', [1, True], {'content':'Teste'}, 'My return!', 3.0)
+        md3 = Metadata('func_hash', [1, True], {'content':'Teste'}, -23.124, 12.1234)
+        md4 = Metadata('func_hash', [2, False], {'content':'Teste2'}, 10, 20.155)
+        md5 = Metadata('func_hash', [], {'x':20}, -2, 0.123)
+        md6 = Metadata('func_hash', [0], {}, 400, 56.23)
+        self.manually_add_metadata([md1, md2, md3, md4, md5, md6])
+        metadata = get_all_saved_metadata_of_a_function("func_hash")
+        self.assert_metadata_returned_is_correct(metadata, [md2, md3, md4, md5, md6])
 
-    def test_get_all_saved_metadata_of_a_function_when_there_metadata_records_of_many_functions_and_there_are_also_metadata_records_for_function_passed(self):pass
     def test_populate_dont_cache_function_calls_dictionay_when_table_is_empty(self):
         _populate_dont_cache_function_calls_list()
         self.assertListEqual(Constantes().DONT_CACHE_FUNCTION_CALLS, [])

@@ -302,7 +302,6 @@ def get_already_classified_functions() -> Dict[str, str]:
         classified_functions[reg[0]] = reg[1]
     return classified_functions
 
-#TODO TEST
 def get_all_saved_metadata_of_a_function(func_hash:str) -> List[Metadata]:
     sql = "SELECT args, kwargs, return_value, execution_time\
            FROM METADATA\
