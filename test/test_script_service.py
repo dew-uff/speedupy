@@ -4,7 +4,7 @@ current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 
-from services.script_service import copy_script, add_decorator_imports_for_execution, add_decorator_imports_for_inference
+from services.script_service import copy_script, add_common_decorator_imports_for_execution, add_start_inference_engine_import, add_execute_intpy_import
 from constantes import Constantes
 from entities.Script import Script
 from entities.FunctionGraph import FunctionGraph
@@ -93,7 +93,7 @@ class TestScriptService(unittest.TestCase):
             code2 = self.normalize_string(f2.read())
             self.assertEqual(code1, code2)    
     
-    def test_add_decorator_imports_for_execution_to_script(self):
+    def test_add_common_decorator_imports_for_execution_to_script(self):
         with open('script_test.py', 'wt') as f:
             f.write('@deterministic\ndef f1(a, b, c=10):\n\treturn a * b / c\n')
             f.write('@maybe_deterministic\ndef f2():\n\treturn 8\n')
@@ -107,32 +107,61 @@ class TestScriptService(unittest.TestCase):
                      'main':fileAST.body[3]}
         script = Script('script_test.py', fileAST, [], functions)
         
-        add_decorator_imports_for_execution(script)
+        add_common_decorator_imports_for_execution(script)
         code1 = ast.unparse(script.AST.body[:3])
-        code2 = f"import sys\nsys.path.append('{os.getcwd()}')\nfrom speedupy.intpy import execute_intpy, deterministic, maybe_deterministic, collect_metadata"
+        code2 = f"import sys\nsys.path.append('{os.getcwd()}')\nfrom speedupy.intpy import deterministic, maybe_deterministic, collect_metadata"
         
         code1 = self.normalize_string(code1)
         code2 = self.normalize_string(code2)
         self.assertEqual(code1, code2)
 
-    def test_add_decorator_imports_for_inference(self):
+    def test_add_execute_intpy_import(self):
         with open('script_test.py', 'wt') as f:
+            f.write(f"import sys\nsys.path.append('{os.getcwd()}')\n")
+            f.write('from speedupy.intpy import deterministic, maybe_deterministic, collect_metadata\n')
+            f.write('@deterministic\ndef f1(a, b, c=10):\n\treturn a * b / c\n')
+            f.write('@maybe_deterministic\ndef f2():\n\treturn 8\n')
+            f.write('@collect_metadata\ndef f3():\n\treturn "f3"\n')
+            f.write('@initialize_intpy(__file__)\ndef main():\n\tf1(1, 2, 3)\n\tf2()\n')
+            f.write('main()')
+        fileAST = self.getAST('script_test.py')
+        functions = {'f1':fileAST.body[3],
+                     'f2':fileAST.body[4],
+                     'f3':fileAST.body[5],
+                     'main':fileAST.body[6]}
+        imports = [fileAST.body[0], fileAST.body[2]]
+        script = Script('script_test.py', fileAST, imports, functions)
+        
+        add_execute_intpy_import(script)
+        code1 = ast.unparse(script.AST.body[:4])
+        code2 = f"import sys\nsys.path.append('{os.getcwd()}')\n"
+        code2 += 'from speedupy.intpy import deterministic, maybe_deterministic, collect_metadata\n'
+        code2 += 'from speedupy.intpy import execute_intpy'
+        code1 = self.normalize_string(code1)
+        code2 = self.normalize_string(code2)
+        self.assertEqual(code1, code2)
+
+    def test_add_start_inference_engine_import(self):
+        with open('script_test.py', 'wt') as f:
+            f.write(f"import sys\nsys.path.append('{os.getcwd()}')\n")
+            f.write('from speedupy.intpy import deterministic, maybe_deterministic, collect_metadata\n')
+            f.write('from speedupy.intpy import execute_intpy\n')
             f.write('@deterministic\ndef f1(a, b, c=10):\n\treturn a * b / c\n')
             f.write('@maybe_deterministic\ndef f2():\n\treturn 8\n')
             f.write('@collect_metadata\ndef f3():\n\treturn "f3"\n')
             f.write('@execute_intpy\ndef main():\n\tf1(1, 2, 3)\n\tf2()\n')
             f.write('main()')
         fileAST = self.getAST('script_test.py')
-        functions = {'f1':fileAST.body[0],
-                     'f2':fileAST.body[1],
-                     'f3':fileAST.body[2],
-                     'main':fileAST.body[3]}
-        script = Script('script_test.py', fileAST, [], functions)
+        functions = {'f1':fileAST.body[4],
+                     'f2':fileAST.body[5],
+                     'f3':fileAST.body[6],
+                     'main':fileAST.body[7]}
+        imports = [fileAST.body[0], fileAST.body[2], fileAST.body[3]]
+        script = Script('script_test.py', fileAST, imports, functions)
         
-        add_decorator_imports_for_inference(script)
-        code1 = ast.unparse(script.AST.body[:3])
-        code2 = f"import sys\nsys.path.append('{os.getcwd()}')\nfrom speedupy.function_inference_engine import start_inference_engine"
-        
+        add_start_inference_engine_import(script)
+        code1 = ast.unparse(script.AST)
+        code2 = ast.unparse(script.AST).replace('from speedupy.intpy import execute_intpy\n', 'from speedupy.function_inference_engine import start_inference_engine\n')
         code1 = self.normalize_string(code1)
         code2 = self.normalize_string(code2)
         self.assertEqual(code1, code2)

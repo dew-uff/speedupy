@@ -5,7 +5,7 @@ from entities.Script import Script
 from entities.Experiment import Experiment
 from entities.FunctionGraph import FunctionGraph
 from data_access import get_already_classified_functions, get_id
-from services.script_service import create_script, create_script_function_graph, decorate_script_functions_for_execution, copy_script, add_decorator_imports_for_execution, classify_script_functions, add_decorator_imports_for_inference
+from services.script_service import create_script, create_script_function_graph, decorate_script_functions_for_execution, copy_script, add_common_decorator_imports_for_execution, classify_script_functions, add_start_inference_engine_import, add_execute_intpy_import
 from services.function_service import is_initialize_intpy_decorator, is_execute_intpy_decorator
 from util import get_all_init_scripts_implicitly_imported, is_an_user_defined_script
 
@@ -58,12 +58,13 @@ def get_experiment_functions_hashes(experiment_function_graph:FunctionGraph) -> 
 def decorate_experiment_functions_for_execution(experiment:Experiment) -> None:
     classified_functions = get_already_classified_functions()
     for script in experiment.scripts.values():
-        add_decorator_imports_for_execution(script)
+        add_common_decorator_imports_for_execution(script)
         decorate_script_functions_for_execution(script, classified_functions, experiment.functions2hashes)
-    _decorate_experiment_main_function_for_execution(experiment)
+    _prepare_experiment_main_script_for_execution(experiment)
 
-def _decorate_experiment_main_function_for_execution(experiment:Experiment):
+def _prepare_experiment_main_script_for_execution(experiment:Experiment):
     main_script = experiment.main_script
+    add_execute_intpy_import(main_script)
     for func in main_script.functions.values():
         for decorator in func.decorator_list:
             if is_initialize_intpy_decorator(decorator):
@@ -73,7 +74,7 @@ def _decorate_experiment_main_function_for_execution(experiment:Experiment):
             
 def prepare_experiment_main_script_for_inference(experiment:Experiment):
     main_script = experiment.main_script
-    add_decorator_imports_for_inference(main_script)
+    add_start_inference_engine_import(main_script)
     for func in main_script.functions.values():
         for decorator in func.decorator_list:
             if is_execute_intpy_decorator(decorator):

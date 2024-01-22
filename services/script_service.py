@@ -38,19 +38,21 @@ def decorate_script_functions_for_execution(script:Script, classified_functions:
     for function in script.functions.values():
         decorate_function(function, classified_functions, functions2hashes)
 
-def add_decorator_imports_for_execution(script:Script) -> None:
+def add_common_decorator_imports_for_execution(script:Script) -> None:
     current_folder = os.getcwd()
     imports = f"import sys\nsys.path.append('{current_folder}')\n"
-    imports += "from speedupy.intpy import execute_intpy, deterministic, maybe_deterministic, collect_metadata"
+    imports += "from speedupy.intpy import deterministic, maybe_deterministic, collect_metadata"
     imports = ast.parse(imports)
     script.AST.body = imports.body + script.AST.body
 
-def add_decorator_imports_for_inference(script:Script) -> None:
-    current_folder = os.getcwd()
-    imports = f"import sys\nsys.path.append('{current_folder}')\n"
-    imports += "from speedupy.function_inference_engine import start_inference_engine"
-    imports = ast.parse(imports)
-    script.AST.body = imports.body + script.AST.body
+def add_execute_intpy_import(script:Script) -> None:
+    import_command = ast.parse("from speedupy.intpy import execute_intpy")
+    script.AST.body.insert(3, import_command)
+
+def add_start_inference_engine_import(script:Script) -> None:
+    script.AST.body.pop(3)
+    import_command = ast.parse("from speedupy.function_inference_engine import start_inference_engine")
+    script.AST.body.insert(3, import_command)
 
 def copy_script(script:Script):        
     folders = os.path.dirname(script.name)
