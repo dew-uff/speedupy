@@ -19,14 +19,17 @@ def decorate_function(function:ast.FunctionDef, classified_functions:Dict[str, F
 
 def _is_already_decorated(function:ast.FunctionDef) -> bool:
     for decorator in function.decorator_list:
-        if _is_initialize_intpy_decorator(decorator) or _is_common_intpy_decorator(decorator):
+        if is_initialize_intpy_decorator(decorator) or _is_common_intpy_decorator(decorator):
             return True
     return False
 
-def _is_initialize_intpy_decorator(decorator:Union[ast.Call, ast.Name]) -> bool:
+def is_initialize_intpy_decorator(decorator:Union[ast.Call, ast.Name]) -> bool:
     return isinstance(decorator, ast.Call) and \
            isinstance(decorator.func, ast.Name) and \
            decorator.func.id == "initialize_intpy"
+
+def is_execute_intpy_decorator(decorator:Union[ast.Call, ast.Name]) -> bool:
+    return isinstance(decorator, ast.Name) and decorator.id  == "execute_intpy"
 
 def _is_common_intpy_decorator(decorator:Union[ast.Call, ast.Name]) -> bool:
     return isinstance(decorator, ast.Name) and \
@@ -36,6 +39,8 @@ def _is_common_intpy_decorator(decorator:Union[ast.Call, ast.Name]) -> bool:
 def classify_function(function:ast.FunctionDef, functions_2_hashes:Dict[str, str]) -> None:
     func_hash = functions_2_hashes[function.qualname]
     func_calls_2_metadata = get_all_saved_metadata_of_a_function_group_by_function_call_hash(func_hash)
+    print("oi")
+    return
     
     #Defining function
     function.decorator_list = []

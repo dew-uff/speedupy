@@ -4,7 +4,7 @@ current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 
-from services.experiment_service import _decorate_experiment_main_function
+from services.experiment_service import _decorate_experiment_main_function_for_execution, prepare_experiment_main_script_for_inference
 from entities.Script import Script
 from entities.Experiment import Experiment
 
@@ -31,7 +31,7 @@ class TestExperimentService(unittest.TestCase):
     def normalize_string(self, string):
         return string.replace("\n\n", "\n").replace("\t", "    ").replace("\"", "'")
     
-    def test_decorate_experiment_main_function(self):
+    def test_decorate_experiment_main_function_for_execution(self):
         with open('script_test.py', 'wt') as f:
             f.write('import random, os, sys\nfrom matplotlib import pyplot as plt\n')
             f.write('from speedupy.intpy import initialize_intpy\n')
@@ -47,10 +47,36 @@ class TestExperimentService(unittest.TestCase):
         experiment.add_script(script)
         experiment.set_main_script(script)
 
-        _decorate_experiment_main_function(experiment)
+        _decorate_experiment_main_function_for_execution(experiment)
         
         with open(script.name) as f1:
             code1 = f1.read().replace('@initialize_intpy(__file__)', '@execute_intpy')
+            code2 = ast.unparse(script.AST)
+            code1 = self.normalize_string(code1)
+            code2 = self.normalize_string(code2)
+            self.assertEqual(code1, code2)
+    
+    def test_prepare_experiment_main_script_for_inference(self):
+        with open('script_test.py', 'wt') as f:
+            f.write('import random, os, sys\nfrom matplotlib import pyplot as plt\n')
+            f.write('from speedupy.intpy import execute_intpy\n')
+            f.write('@decorator1\n@decorator2(__file__)\ndef f1():\n\treturn "f1"\n')
+            f.write('@f1\n@f2\n@execute_intpy\ndef main():\n\tf1(1, 2, 3)\n')
+            f.write('main()')
+        fileAST = self.getAST('script_test.py')
+        imports = [fileAST.body[0], fileAST.body[1], fileAST.body[2]]
+        functions = {'f1':fileAST.body[3],
+                     'main':fileAST.body[4]}
+        script = Script('script_test.py', fileAST, imports, functions)
+        experiment = Experiment('')
+        experiment.add_script(script)
+        experiment.set_main_script(script)
+
+        prepare_experiment_main_script_for_inference(experiment)
+        
+        with open(script.name) as f1:
+            code1 = f"import sys\nsys.path.append('{os.getcwd()}')\nfrom speedupy.function_inference_engine import start_inference_engine\n"
+            code1 += f1.read().replace('@execute_intpy', '@start_inference_engine')
             code2 = ast.unparse(script.AST)
             code1 = self.normalize_string(code1)
             code2 = self.normalize_string(code2)
