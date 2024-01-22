@@ -39,6 +39,20 @@ def _is_common_intpy_decorator(decorator:Union[ast.Call, ast.Name]) -> bool:
 def classify_function(function:ast.FunctionDef, functions_2_hashes:Dict[str, str]) -> None:
     func_hash = functions_2_hashes[function.qualname]
     func_calls_2_metadata = get_all_saved_metadata_of_a_function_group_by_function_call_hash(func_hash)
+
+    #TODO redefinir funções @maybe_deterministic e @collect_metadata em function_inference_engine.py e adicionar import com o @initialize_intpy, para que elas passem a executar códigos-fonte diferentes,
+    #TODO tentar a partir da representação do experimento que tenho, importar cada módulo com importlib.import_module, recuperar a função importada "ex.:fib" e executá-la quantas vezes desejar
+    import importlib
+    mod = importlib.import_module("teste")
+
+    for attr in dir(mod):
+        if attr == function.qualname:
+            print(f"attr{attr}")
+
+            for i in range(2):
+                getattr(mod, attr)(i)
+                #a = eval(f"{mod.__name__}.fib({i})")
+                print(f"fib({i}):{a}")
     print("oi")
     return
     

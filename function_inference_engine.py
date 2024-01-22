@@ -8,12 +8,23 @@ from entities.Experiment import Experiment
 from services.experiment_service import classify_experiment_functions
 from util import get_content_json_file, deserialize_from_file
 
+# def collect_metadata(f):
+#     @wraps(f)
+#     def wrapper(*method_args, **method_kwargs):
+#         print(f.__qualname__)
+#         # return return_value
+#     return wrapper
+
+# def maybe_deterministic(f):
+#     @wraps(f)
+#     def wrapper(*method_args, **method_kwargs):
+#         print(f.__qualname__)
+#         # return c
+#     return wrapper
+
 def start_inference_engine(f):
     @wraps(f)
     def execution(*method_args, **method_kwargs):
-        print("Oi")
-        import time
-        time.sleep(10)
         Constantes().set_paths_for_executing_inside_temp_folder()
         experiment, functions_2_hashes = _get_experiment_and_functions_2_hashes()
         classify_experiment_functions(experiment, functions_2_hashes)
