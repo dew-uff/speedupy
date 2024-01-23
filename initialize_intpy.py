@@ -68,4 +68,5 @@ else:
         prepare_experiment_main_script_for_inference(experiment)
         update_main_script_file(experiment)
         abs_temp_path = os.path.join(os.getcwd(), Constantes().TEMP_FOLDER)
-        subprocess.Popen(["python"] + sys.argv, cwd=abs_temp_path)
+        command = f"python {sys.argv[0]} {' '.join(Constantes().g_argsp_exp_args)} --no-cache"
+        subprocess.Popen(command.split(' '), cwd=abs_temp_path)

@@ -131,6 +131,8 @@ def get_params():
     if args.glossary:
         print(glossary_msg())
         sys.exit()
+
+    argsp_exp_args = args.args
     
     argsp_m = args.memory
 
@@ -160,7 +162,7 @@ def get_params():
             print(storage_msg())
         sys.exit()
 
-    return argsp_m, argsp_M, argsp_s, argsp_no_cache, argsp_hash, argsp_inputs, argsp_outputs
+    return argsp_exp_args, argsp_m, argsp_M, argsp_s, argsp_no_cache, argsp_hash, argsp_inputs, argsp_outputs
 
 
 """

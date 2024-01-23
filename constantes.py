@@ -21,6 +21,7 @@ class SingletonMeta(type):
 
 class Constantes(metaclass=SingletonMeta):
     def __init__(self):
+        self.g_argsp_exp_args,\
         self.g_argsp_m, \
         self.g_argsp_M, \
         self.g_argsp_s, \
