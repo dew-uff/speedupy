@@ -47,9 +47,12 @@ def add_common_decorator_imports_for_execution(script:Script) -> None:
 
 def add_execute_intpy_import(script:Script) -> None:
     import_command = ast.parse("from speedupy.intpy import execute_intpy")
+    #Inserting import right after "from speedupy.intpy import deterministic, maybe_deterministic, collect_metadata"
     script.AST.body.insert(3, import_command)
 
 def add_start_inference_engine_import(script:Script) -> None:
+    #Replacing "from speedupy.intpy import execute_intpy" for 
+    #          "from speedupy.function_inference_engine import start_inference_engine"
     script.AST.body.pop(3)
     import_command = ast.parse("from speedupy.function_inference_engine import start_inference_engine")
     script.AST.body.insert(3, import_command)
