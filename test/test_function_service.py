@@ -1,4 +1,4 @@
-import unittest, unittest.mock, os, sys, ast
+import unittest, unittest.mock, os, sys, ast, importlib
 
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
@@ -9,9 +9,14 @@ from hashlib import md5
 from services.function_inference_service import FunctionClassification
 from entities.Script import Script
 from entities.Experiment import Experiment
-from services.function_service import decorate_function
+from entities.Metadata import Metadata
+from services.function_service import decorate_function, _get_args_and_kwargs_func_call, _get_num_executions_needed, _try_execute_func
+from constantes import Constantes
 
 class TestFunctionService(unittest.TestCase):
+    def setUp(self):
+        Constantes().NUM_EXEC_MIN_PARA_INFERENCIA = 20
+
     def tearDown(self):
         files_and_folders = ['script_test.py', 
                              'script_test_2.py',
@@ -207,5 +212,67 @@ class TestFunctionService(unittest.TestCase):
         self.assertEqual(functions['f2'].decorator_list[0].id, 'maybe_deterministic')
         self.assertEqual(functions['f3'].decorator_list[0].id, 'collect_metadata')
     
+    def test_get_args_and_kwargs_func_call(self):
+        args = (1, True, (1, 2), 'teste')
+        kwargs = {'a':10, 'b':1.331, 'c':{'1':True}}
+        metadata = [Metadata('function_hash', args, kwargs, 10, 2.3124)]
+        args2, kwargs2 = _get_args_and_kwargs_func_call(metadata)
+        self.assertTupleEqual(args, args2)
+        self.assertDictEqual(kwargs, kwargs2)
+
+    def test_get_num_executions_needed_when_func_need_to_be_executed(self):
+        Constantes().NUM_EXEC_MIN_PARA_INFERENCIA = 20
+        metadata = [Metadata('function_hash', (), {}, 10, 2.3124)]
+        self.assertEqual(_get_num_executions_needed(metadata), 19)
+    def test_get_num_executions_needed_when_func_executed_exactly_the_number_of_times_needed(self):
+        Constantes().NUM_EXEC_MIN_PARA_INFERENCIA = 20
+        metadata = [Metadata('function_hash', (), {}, 10, 2.3124) for i in range(20)]
+        self.assertEqual(_get_num_executions_needed(metadata), 0)
+    def test_get_num_executions_needed_when_func_executed_more_times_than_needed(self):
+        Constantes().NUM_EXEC_MIN_PARA_INFERENCIA = 20
+        metadata = [Metadata('function_hash', (), {}, 10, 2.3124) for i in range(30)]
+        self.assertEqual(_get_num_executions_needed(metadata), 0)
+
+    def test_try_execute_func_without_throwing_exception(self):
+        global x
+        x = 0
+        Constantes().NUM_EXEC_MIN_PARA_INFERENCIA = 5
+        metadata = [Metadata('function_hash', (), {}, 3, 2.4213) for i in range(2)]
+        _try_execute_func(importlib.import_module(__name__), 'func', 'function_hash', metadata)
+        self.assertEqual(x, 3)
+        self.assertEqual(len(metadata), Constantes().NUM_EXEC_MIN_PARA_INFERENCIA)
+
+    def test_try_execute_func_raising_exception_during_func_execution(self):
+        Constantes().NUM_EXEC_MIN_PARA_INFERENCIA = 5
+        metadata = [Metadata('function_hash', (), {}, 3, 2.4213) for i in range(2)]
+        _try_execute_func(importlib.import_module(__name__), 'func_raise_exception', 'function_hash', metadata)
+        self.assertEqual(len(metadata), 2)
+
+    def test_try_execute_func_when_function_already_executed_more_times_than_necessary(self):
+        global x
+        x = 0
+        Constantes().NUM_EXEC_MIN_PARA_INFERENCIA = 5
+        metadata = [Metadata('function_hash', (), {}, 3, 2.4213) for i in range(10)]
+        _try_execute_func(importlib.import_module(__name__), 'func', 'function_hash', metadata)
+        self.assertEqual(x, 0)
+        self.assertEqual(len(metadata), 10)
+
+    def test_try_execute_func_when_function_executed_the_exactly_number_of_times_needed(self):
+        global x
+        x = 0
+        Constantes().NUM_EXEC_MIN_PARA_INFERENCIA = 5
+        metadata = [Metadata('function_hash', (), {}, 3, 2.4213) for i in range(5)]
+        _try_execute_func(importlib.import_module(__name__), 'func', 'function_hash', metadata)
+        self.assertEqual(x, 0)
+        self.assertEqual(len(metadata), Constantes().NUM_EXEC_MIN_PARA_INFERENCIA)
+
+x = 0
+def func():
+    global x
+    x += 1
+
+def func_raise_exception():
+    raise Exception()
+
 if __name__ == '__main__':
     unittest.main()

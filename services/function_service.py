@@ -1,9 +1,10 @@
 from typing import List, Dict, Union, Tuple, Optional
-import ast, pickle
-from typing import Dict, Union
+import ast, os, time
 from services.function_inference_service import FunctionClassification
 from constantes import Constantes
 from data_access import get_all_saved_metadata_of_a_function_group_by_function_call_hash
+from entities.Script import Script
+from entities.Metadata import Metadata
 
 def decorate_function(function:ast.FunctionDef, classified_functions:Dict[str, FunctionClassification], functions2hashes:Dict[str, str]) -> None:
     if _is_already_decorated(function):
@@ -36,64 +37,65 @@ def _is_common_intpy_decorator(decorator:Union[ast.Call, ast.Name]) -> bool:
            decorator.id in ["deterministic", "maybe_deterministic", "collect_metadata"]
 
 #TODO
-def classify_function(function:ast.FunctionDef, functions_2_hashes:Dict[str, str]) -> None:
+def classify_function(module, function:ast.FunctionDef, functions_2_hashes:Dict[str, str]) -> None:
     func_hash = functions_2_hashes[function.qualname]
     func_calls_2_metadata = get_all_saved_metadata_of_a_function_group_by_function_call_hash(func_hash)
 
-    #TODO redefinir funções @maybe_deterministic e @collect_metadata em function_inference_engine.py e adicionar import com o @initialize_intpy, para que elas passem a executar códigos-fonte diferentes,
-    #TODO tentar a partir da representação do experimento que tenho, importar cada módulo com importlib.import_module, recuperar a função importada "ex.:fib" e executá-la quantas vezes desejar
-    import importlib
-    mod = importlib.import_module("teste")
-
-    for attr in dir(mod):
-        if attr == function.qualname:
-            print(f"attr{attr}")
-
-            for i in range(2):
-                getattr(mod, attr)(i)
-                #a = eval(f"{mod.__name__}.fib({i})")
-                print(f"fib({i}):{a}")
-    print("oi")
-    return
+    ####DEBUG
+    print("TRY EXECUTING FUNCTION!")
+    print(f"function.name: {function.name}")
+    print(f"function.qualname: {function.qualname}")
+    print(f"len(func_calls_2_metadata): {len(func_calls_2_metadata)}")
+    for a in func_calls_2_metadata:
+        print(f"{a}: {len(func_calls_2_metadata[a])}")
+    print("#############################")
+    ####
     
-    #Defining function
-    function.decorator_list = []
-    code = ast.unparse(function)
-    print("================")
-    print("Defining function:\n")
-    print(code)
-    print("================\n")
-    exec(code)
-    for f_call in func_calls_2_metadata:
-        args = func_calls_2_metadata[f_call][0].args
-        kwargs = func_calls_2_metadata[f_call][0].kwargs
+    for func_call in func_calls_2_metadata:
+        print(f"Antes: {len(func_calls_2_metadata[func_call])}")
+        _try_execute_func(module, function.name, func_call, func_calls_2_metadata[func_call])
+        if _get_num_executions_needed(func_calls_2_metadata[func_call]) == 0:
+            if is_statistically_deterministic_function():
+                classify_as_statistically_deterministic_function()
+            elif should_be_simulated():
+                classify_as_simulated_function_execution()
 
-        print(type(args))
-        args = list(args)
-        print(args)
-        print(type(args))
+def _try_execute_func(module, function_name:str, func_call_hash:str, func_call_metadata:List[Metadata]) -> None:
+    try:
+        args, kwargs = _get_args_and_kwargs_func_call(func_call_metadata)
+        num_exec = _get_num_executions_needed(func_call_metadata)
+        for i in range(num_exec):
+            func = getattr(module, function_name)
+            start = time.perf_counter()
+            ret = func(*args, **kwargs)
+            end = time.perf_counter()
+            elapsed_time = end - start
+            md = Metadata(func_call_hash, args, kwargs, ret, elapsed_time)
+            func_call_metadata.append(md)
 
-        print(kwargs)
-        print(type(kwargs))
+            print(f"{function_name}({args}, {kwargs}): {ret}")
 
-        #Executing function
-        code = f'\nret = {function.name}(*{args}, **{kwargs})\nprint("oi")\nprint(ret)\nprint("oi")'
-        print("================")
-        print("Executing function:\n")
-        print(code)
-        print("================\n")
-        
-        exec(code)
-        my_ret = eval("ret")
-        print(f"my_ret: {my_ret}")
-    """
-    for i in range(10):
-        exec(f"def f_{i}(): return {i}")
-    # Run functions f_0 to f_9
-    for i in range(10):
-        b = None
-        exec(f"a = f_{i}()")
-        exec(f"print(a)")
-        b = eval("a")
-        print(b)
-    """
+    except Exception:
+        pass
+
+def _get_args_and_kwargs_func_call(func_call_metadata:List[Metadata]) -> Tuple[Tuple, Dict]:
+    a_metadata = func_call_metadata[0]
+    return a_metadata.args, a_metadata.kwargs
+
+def _get_num_executions_needed(func_call_metadata:List[Metadata]) -> int:
+    num_exec = Constantes().NUM_EXEC_MIN_PARA_INFERENCIA - len(func_call_metadata)
+    if num_exec < 0:
+        return 0
+    return num_exec
+
+#TODO
+def is_statistically_deterministic_function(): pass
+
+#TODO
+def classify_as_statistically_deterministic_function(): pass
+
+#TODO
+def should_be_simulated(): pass
+
+#TODO
+def classify_as_simulated_function_execution(): pass

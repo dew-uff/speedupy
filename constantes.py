@@ -48,6 +48,8 @@ class Constantes(metaclass=SingletonMeta):
 
         self.FUNCTIONS_2_HASHES = {}
 
+        self.NUM_EXEC_MIN_PARA_INFERENCIA = 20
+
     def set_paths_for_executing_inside_main_folder(self):
         self.FOLDER_NAME = ".intpy"
         self.CACHE_FOLDER_NAME = os.path.join(self.FOLDER_NAME, "cache")
