@@ -1,5 +1,5 @@
 from typing import List, Dict, Union, Tuple, Optional
-import ast, os, time
+import ast, os, time, pickle
 from services.function_inference_service import FunctionClassification
 from constantes import Constantes
 from data_access import get_all_saved_metadata_of_a_function_group_by_function_call_hash
@@ -55,7 +55,7 @@ def classify_function(module, function:ast.FunctionDef, functions_2_hashes:Dict[
         print(f"Antes: {len(func_calls_2_metadata[func_call])}")
         _try_execute_func(module, function.name, func_call, func_calls_2_metadata[func_call])
         if _get_num_executions_needed(func_calls_2_metadata[func_call]) == 0:
-            if is_statistically_deterministic_function():
+            if _is_statistically_deterministic_function():
                 classify_as_statistically_deterministic_function()
             elif should_be_simulated():
                 classify_as_simulated_function_execution()
@@ -88,9 +88,24 @@ def _get_num_executions_needed(func_call_metadata:List[Metadata]) -> int:
         return 0
     return num_exec
 
-#TODO
-def is_statistically_deterministic_function(): pass
+def _is_statistically_deterministic_function(func_call_metadata:List[Metadata]):
+    error_rate = _calculate_function_error_rate(func_call_metadata)
+    return error_rate <= Constantes().MAX_ERROR_RATE
 
+def _calculate_function_error_rate(func_call_metadata:List[Metadata]) -> float:
+    values_2_freq = {}
+    most_common_value = None
+    for md in func_call_metadata:
+        ret = pickle.dumps(md.return_value)
+        if ret not in values_2_freq:
+            values_2_freq[ret] = 0
+        values_2_freq[ret] += 1
+        if most_common_value is None or \
+           values_2_freq[most_common_value] < values_2_freq[ret]:
+            most_common_value = ret
+    error_rate = 1 - values_2_freq[most_common_value] / len(func_call_metadata)
+    return error_rate
+        
 #TODO
 def classify_as_statistically_deterministic_function(): pass
 
