@@ -52,13 +52,19 @@ def classify_function(module, function:ast.FunctionDef, functions_2_hashes:Dict[
     ####
     
     for func_call in func_calls_2_metadata:
-        print(f"Antes: {len(func_calls_2_metadata[func_call])}")
-        _try_execute_func(module, function.name, func_call, func_calls_2_metadata[func_call])
-        if _get_num_executions_needed(func_calls_2_metadata[func_call]) == 0:
-            if _is_statistically_deterministic_function():
+        func_call_md = func_calls_2_metadata[func_call]
+        _try_execute_func(module, function.name, func_call, func_call_md)
+        if _get_num_executions_needed(func_call_md) == 0:
+            if _is_statistically_deterministic_function(func_call_md):
                 classify_as_statistically_deterministic_function()
+                #Add function to CLASSIFIED_FUNCTIONS (or exclude this table)
             elif should_be_simulated():
                 classify_as_simulated_function_execution()
+                #Add function to CLASSIFIED_FUNCTIONS (or exclude this table)
+            else:
+                #Insert func_call_hash on DONT_CACHE_FUNCTION_CALLS
+                pass
+            #Remove metadata from METADA
 
 def _try_execute_func(module, function_name:str, func_call_hash:str, func_call_metadata:List[Metadata]) -> None:
     try:
@@ -107,10 +113,16 @@ def _calculate_function_error_rate(func_call_metadata:List[Metadata]) -> float:
     return error_rate
         
 #TODO
-def classify_as_statistically_deterministic_function(): pass
+def classify_as_statistically_deterministic_function():
+    #Add most returned value on CACHE
+    pass
 
 #TODO
-def should_be_simulated(): pass
+def should_be_simulated():
+    #Mean execution time >= Constantes():MIN_TIME_TO_SIMULATE_FUNC_CALL
+    pass
 
 #TODO
-def classify_as_simulated_function_execution(): pass
+def classify_as_simulated_function_execution():
+    #Insert func_call_hash and return_values_2_frequencies on SIMULATED_FUNCTION_CALLS
+    pass
