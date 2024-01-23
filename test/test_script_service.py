@@ -4,7 +4,7 @@ current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 
-from services.script_service import copy_script, add_common_decorator_imports_for_execution, add_start_inference_engine_import, add_execute_intpy_import
+from services.script_service import copy_script, add_common_decorator_imports_for_execution, add_start_inference_engine_import, add_execute_intpy_import, _get_module_name
 from constantes import Constantes
 from entities.Script import Script
 from entities.FunctionGraph import FunctionGraph
@@ -165,6 +165,14 @@ class TestScriptService(unittest.TestCase):
         code1 = self.normalize_string(code1)
         code2 = self.normalize_string(code2)
         self.assertEqual(code1, code2)
+
+    def test_get_module_name_file_on_main_folder(self):
+        script = Script('script_test.py', ast.parse(""), [], {})
+        self.assertEqual(_get_module_name(script), 'script_test')
+
+    def test_get_module_name_file_inside_subfolder(self):
+        script = Script('folder1/subfolder1/script_test.py', ast.parse(""), [], {})
+        self.assertEqual(_get_module_name(script), 'folder1.subfolder1.script_test')    
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,4 +1,4 @@
-import ast, os, re
+import ast, os, importlib
 
 from typing import List, Dict, Union
 from util import python_code_to_AST, get_script_path, script_name_to_script_path, is_an_user_defined_script
@@ -65,5 +65,10 @@ def copy_script(script:Script):
         f.write(ast.unparse(script.AST))
 
 def classify_script_functions(script:Script, functions_2_hashes:Dict[str, str]) -> None:
+    module_name = _get_module_name(script)
+    module = importlib.import_module(module_name)
     for function in script.functions.values():
-        classify_function(function, functions_2_hashes)
+        classify_function(module, function, functions_2_hashes)
+
+def _get_module_name(script:Script) -> str:
+    return script.name.replace(os.sep, ".").replace(".py", "")
