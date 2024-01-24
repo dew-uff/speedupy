@@ -6,7 +6,6 @@ sys.path.append(parent)
 
 from hashlib import md5
 
-from services.function_inference_service import FunctionClassification
 from entities.Script import Script
 from entities.Experiment import Experiment
 from entities.Metadata import Metadata

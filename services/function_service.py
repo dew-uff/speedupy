@@ -1,9 +1,7 @@
 from typing import List, Dict, Union, Tuple, Optional
-import ast, os, time, pickle
-from services.function_inference_service import FunctionClassification
+import ast, time
 from constantes import Constantes
 from data_access import get_all_saved_metadata_of_a_function_group_by_function_call_hash
-from entities.Script import Script
 from entities.Metadata import Metadata
 from data_access import add_to_cache, add_to_dont_cache_function_calls, remove_metadata
 

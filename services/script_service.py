@@ -1,13 +1,12 @@
 import ast, os, importlib
 
 from typing import List, Dict, Union
-from util import python_code_to_AST, get_script_path, script_name_to_script_path, is_an_user_defined_script
+from util import python_code_to_AST, get_script_path
 from entities.Script import Script
 from entities.Experiment import Experiment
 from services.ASTSearcher import ASTSearcher
 from services.ScriptFunctionGraphCreator import ScriptFunctionGraphCreator
 from services.function_service import decorate_function, classify_function
-from services.function_inference_service import FunctionClassification
 from constantes import Constantes
 
 def create_script(script_name:str, experiment_base_dir:str) -> Script:
