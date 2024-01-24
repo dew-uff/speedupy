@@ -58,7 +58,6 @@ def _create_database():
     conexaoBanco = Banco(Constantes().BD_PATH)
     _create_table_CACHE(conexaoBanco)
     _create_table_METADATA(conexaoBanco)
-    _create_table_CLASSIFIED_FUNCTIONS(conexaoBanco)
     _create_table_DONT_CACHE_FUNCTION_CALLS(conexaoBanco)
     conexaoBanco.fecharConexao()
 
@@ -85,18 +84,6 @@ def _create_table_METADATA(banco: Banco):
     kwargs BLOB NOT NULL,\
     return_value BLOB NOT NULL,\
     execution_time REAL NOT NULL\
-    );"
-
-    banco.executarComandoSQLSemRetorno(stmt)
-
-
-def _create_table_CLASSIFIED_FUNCTIONS(banco: Banco):
-    debug("creating table CLASSIFIED_FUNCTIONS")
-    
-    stmt = "CREATE TABLE IF NOT EXISTS CLASSIFIED_FUNCTIONS (\
-    id INTEGER PRIMARY KEY AUTOINCREMENT,\
-    function_hash TEXT NOT NULL,\
-    classification TEXT NOT NULL\
     );"
 
     banco.executarComandoSQLSemRetorno(stmt)

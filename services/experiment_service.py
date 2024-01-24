@@ -56,10 +56,9 @@ def get_experiment_functions_hashes(experiment_function_graph:FunctionGraph) -> 
     return functions2hashes
 
 def decorate_experiment_functions_for_execution(experiment:Experiment) -> None:
-    classified_functions = get_already_classified_functions()
     for script in experiment.scripts.values():
         add_common_decorator_imports_for_execution(script)
-        decorate_script_functions_for_execution(script, classified_functions, experiment.functions2hashes)
+        decorate_script_functions_for_execution(script)
     _prepare_experiment_main_script_for_execution(experiment)
 
 def _prepare_experiment_main_script_for_execution(experiment:Experiment):

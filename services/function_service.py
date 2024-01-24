@@ -7,17 +7,9 @@ from entities.Script import Script
 from entities.Metadata import Metadata
 from data_access import add_to_cache, add_to_dont_cache_function_calls, remove_metadata
 
-def decorate_function(function:ast.FunctionDef, classified_functions:Dict[str, FunctionClassification], functions2hashes:Dict[str, str]) -> None:
-    if _is_already_decorated(function):
-        return
-    id = functions2hashes[function.qualname]
-    try:
-        if classified_functions[id] == FunctionClassification.CACHE.name:
-            function.decorator_list.append(ast.Name("deterministic", ast.Load()))
-        elif classified_functions[id] == FunctionClassification.MAYBE_CACHE.name:
-            function.decorator_list.append(ast.Name("maybe_deterministic", ast.Load()))
-    except KeyError:
-        function.decorator_list.append(ast.Name("collect_metadata", ast.Load()))
+def decorate_function(function:ast.FunctionDef) -> None:
+    if _is_already_decorated(function): return
+    function.decorator_list.append(ast.Name("maybe_deterministic", ast.Load()))
 
 def _is_already_decorated(function:ast.FunctionDef) -> bool:
     for decorator in function.decorator_list:
@@ -35,7 +27,7 @@ def is_execute_intpy_decorator(decorator:Union[ast.Call, ast.Name]) -> bool:
 
 def _is_common_intpy_decorator(decorator:Union[ast.Call, ast.Name]) -> bool:
     return isinstance(decorator, ast.Name) and \
-           decorator.id in ["deterministic", "maybe_deterministic", "collect_metadata"]
+           decorator.id in ["deterministic", "maybe_deterministic"]
 
 #TODO
 def classify_function(module, function:ast.FunctionDef, functions_2_hashes:Dict[str, str]) -> None:

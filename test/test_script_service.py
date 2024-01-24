@@ -97,20 +97,17 @@ class TestScriptService(unittest.TestCase):
         with open('script_test.py', 'wt') as f:
             f.write('@deterministic\ndef f1(a, b, c=10):\n\treturn a * b / c\n')
             f.write('@maybe_deterministic\ndef f2():\n\treturn 8\n')
-            f.write('@collect_metadata\ndef f3():\n\treturn "f3"\n')
             f.write('@initialize_intpy(__file__)\ndef main():\n\tf1(1, 2, 3)\n\tf2()\n')
             f.write('main()')
         fileAST = self.getAST('script_test.py')
         functions = {'f1':fileAST.body[0],
                      'f2':fileAST.body[1],
-                     'f3':fileAST.body[2],
-                     'main':fileAST.body[3]}
+                     'main':fileAST.body[2]}
         script = Script('script_test.py', fileAST, [], functions)
         
         add_common_decorator_imports_for_execution(script)
         code1 = ast.unparse(script.AST.body[:3])
-        code2 = f"import sys\nsys.path.append('{os.getcwd()}')\nfrom speedupy.intpy import deterministic, maybe_deterministic, collect_metadata"
-        
+        code2 = f"import sys\nsys.path.append('{os.getcwd()}')\nfrom speedupy.intpy import maybe_deterministic"
         code1 = self.normalize_string(code1)
         code2 = self.normalize_string(code2)
         self.assertEqual(code1, code2)

@@ -4,9 +4,6 @@ sys.path.append(os.path.dirname(__file__))
 from constantes import Constantes
 
 if Constantes().g_argsp_no_cache:
-    def collect_metadata(f):
-        return f
-    
     def maybe_deterministic(f):
         return f
     
@@ -35,16 +32,6 @@ else:
 
     def _get_experiment_function_hashes():
         Constantes().FUNCTIONS_2_HASHES = get_content_json_file(Constantes().EXP_FUNCTIONS_FILENAME)
-
-
-    def collect_metadata(f):
-        @wraps(f)
-        def wrapper(*method_args, **method_kwargs):
-            debug("calling {0}".format(f.__name__))
-            return_value, elapsed_time = _execute_func(f, *method_args, **method_kwargs)
-            _save_metadata(f, method_args, method_kwargs, return_value, elapsed_time)
-            return return_value
-        return wrapper
 
 
     def maybe_deterministic(f):

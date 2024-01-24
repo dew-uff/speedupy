@@ -34,20 +34,20 @@ def __create_user_defined_imported_scripts_function_graphs(u_def_imported_script
     for script_name in u_def_imported_scripts:
         create_script_function_graph(experiment.scripts[script_name], experiment)
 
-def decorate_script_functions_for_execution(script:Script, classified_functions:Dict[str, FunctionClassification], functions2hashes:Dict[str, str]) -> None:
+def decorate_script_functions_for_execution(script:Script) -> None:
     for function in script.functions.values():
-        decorate_function(function, classified_functions, functions2hashes)
+        decorate_function(function)
 
 def add_common_decorator_imports_for_execution(script:Script) -> None:
     current_folder = os.getcwd()
     imports = f"import sys\nsys.path.append('{current_folder}')\n"
-    imports += "from speedupy.intpy import deterministic, maybe_deterministic, collect_metadata"
+    imports += "from speedupy.intpy import maybe_deterministic"
     imports = ast.parse(imports)
     script.AST.body = imports.body + script.AST.body
 
 def add_execute_intpy_import(script:Script) -> None:
     import_command = ast.parse("from speedupy.intpy import execute_intpy")
-    #Inserting import right after "from speedupy.intpy import deterministic, maybe_deterministic, collect_metadata"
+    #Inserting import right after "from speedupy.intpy import maybe_deterministic"
     script.AST.body.insert(3, import_command)
 
 def add_start_inference_engine_import(script:Script) -> None:
