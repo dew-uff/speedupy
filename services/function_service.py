@@ -3,7 +3,7 @@ import ast, time
 from constantes import Constantes
 from data_access import get_all_saved_metadata_of_a_function_group_by_function_call_hash
 from entities.Metadata import Metadata
-from data_access import add_to_cache, add_to_dont_cache_function_calls, remove_metadata
+from data_access import add_to_cache, add_to_simulated_function_calls, add_to_dont_cache_function_calls, remove_metadata
 
 def decorate_function(function:ast.FunctionDef) -> None:
     if _is_already_decorated(function): return
@@ -27,8 +27,8 @@ def _is_common_intpy_decorator(decorator:Union[ast.Call, ast.Name]) -> bool:
     return isinstance(decorator, ast.Name) and \
            decorator.id in ["deterministic", "maybe_deterministic"]
 
-#TODO
-def classify_function(module, function:ast.FunctionDef, functions_2_hashes:Dict[str, str]) -> None:
+#TODO TEST
+def execute_and_classify_function(module, function:ast.FunctionDef, functions_2_hashes:Dict[str, str]) -> None:
     func_hash = functions_2_hashes[function.qualname]
     func_calls_2_metadata = get_all_saved_metadata_of_a_function_group_by_function_call_hash(func_hash)
 
@@ -46,17 +46,7 @@ def classify_function(module, function:ast.FunctionDef, functions_2_hashes:Dict[
         func_call_md = func_calls_2_metadata[func_call]
         _try_execute_func(module, function.name, func_call, func_call_md)
         if _get_num_executions_needed(func_call_md) == 0:
-            stats = _get_metadata_statistics(func_call_md)
-            args, kwargs = _get_args_and_kwargs_func_call(func_call_md)
-            if _is_statistically_deterministic_function(stats['error_rate'],
-                                                        stats['mean_exec_time']):
-                classify_as_statistically_deterministic_function(function.name, args, stats['most_common_ret'], func_hash)
-                #Add function to CLASSIFIED_FUNCTIONS (or exclude this table)
-            elif should_be_simulated():
-                classify_as_simulated_function_execution()
-                #Add function to CLASSIFIED_FUNCTIONS (or exclude this table)
-            else:
-                add_to_dont_cache_function_calls(func_hash, args, kwargs)
+            _classify_function(function, func_hash, func_call_md)
             remove_metadata(func_call_md)
 
 def _try_execute_func(module, function_name:str, func_call_hash:str, func_call_metadata:List[Metadata]) -> None:
@@ -87,6 +77,17 @@ def _get_num_executions_needed(func_call_metadata:List[Metadata]) -> int:
         return 0
     return num_exec
 
+def _classify_function(function:ast.FunctionDef, func_hash:str, func_call_md:List[Metadata]) -> None:
+    stats = _get_metadata_statistics(func_call_md)
+    args, kwargs = _get_args_and_kwargs_func_call(func_call_md)
+    if _is_statistically_deterministic_function(stats['error_rate'],
+                                                stats['mean_exec_time']):
+        classify_as_statistically_deterministic_function(function.name, args, stats['most_common_ret'], func_hash)
+    elif _should_be_simulated(stats['mean_exec_time']):
+        classify_as_simulated_function_execution(func_hash, args, kwargs, stats['values_2_freq'])
+    else:
+        add_to_dont_cache_function_calls(func_hash, args, kwargs)
+
 def _get_metadata_statistics(func_call_metadata:List[Metadata]) -> Dict:
     values_2_freq = {}
     mean_exec_time = 0
@@ -111,19 +112,15 @@ def _get_metadata_statistics(func_call_metadata:List[Metadata]) -> Dict:
              'error_rate':error_rate}
     return stats
 
-def _is_statistically_deterministic_function(error_rate:float, mean_exec_time:float):
+def _is_statistically_deterministic_function(error_rate:float, mean_exec_time:float) -> bool:
     return error_rate <= Constantes().MAX_ERROR_RATE and\
            mean_exec_time >= Constantes().MIN_TIME_TO_CACHE
         
 def classify_as_statistically_deterministic_function(fun_name, fun_args, fun_return, fun_source) -> None:
     add_to_cache(fun_name, fun_args, fun_return, fun_source, Constantes().g_argsp_m)
 
-#TODO
-def should_be_simulated():
-    #Mean execution time >= Constantes():MIN_TIME_TO_SIMULATE_FUNC_CALL
-    pass
+def _should_be_simulated(mean_exec_time:float) -> bool:
+    return mean_exec_time >= Constantes().MIN_TIME_TO_SIMULATE_FUNC_CALL
 
-#TODO
-def classify_as_simulated_function_execution():
-    #Insert func_call_hash and return_values_2_frequencies on SIMULATED_FUNCTION_CALLS
-    pass
+def classify_as_simulated_function_execution(fun_hash:str, fun_args:List, fun_kwargs:Dict, returns_2_freq:Dict) -> None:
+    add_to_simulated_function_calls(fun_hash, fun_args, fun_kwargs, returns_2_freq)

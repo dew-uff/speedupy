@@ -1,4 +1,5 @@
-import unittest, unittest.mock, os, sys, ast, importlib
+import unittest, os, sys, ast, importlib
+from unittest.mock import patch
 
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
@@ -9,7 +10,7 @@ from hashlib import md5
 from entities.Script import Script
 from entities.Experiment import Experiment
 from entities.Metadata import Metadata
-from services.function_service import decorate_function, _get_args_and_kwargs_func_call, _get_num_executions_needed, _try_execute_func, _is_statistically_deterministic_function, _get_metadata_statistics
+from services.function_service import decorate_function, _get_args_and_kwargs_func_call, _get_num_executions_needed, _try_execute_func, _is_statistically_deterministic_function, _get_metadata_statistics, _should_be_simulated, _classify_function
 from constantes import Constantes
 
 class TestFunctionService(unittest.TestCase):
@@ -17,6 +18,7 @@ class TestFunctionService(unittest.TestCase):
         Constantes().MAX_ERROR_RATE = 0.2
         Constantes().NUM_EXEC_MIN_PARA_INFERENCIA = 20
         Constantes().MIN_TIME_TO_CACHE = 1
+        Constantes().MIN_TIME_TO_SIMULATE_FUNC_CALL = 10
 
     def tearDown(self):
         files_and_folders = ['script_test.py', 
@@ -111,7 +113,6 @@ class TestFunctionService(unittest.TestCase):
         self.assertEqual(functions['f1'].decorator_list[0].id, 'deterministic')
         self.assertEqual(functions['main'].decorator_list[0].func.id, 'initialize_intpy')
         
-    
     def test_get_args_and_kwargs_func_call(self):
         args = (1, True, (1, 2), 'teste')
         kwargs = {'a':10, 'b':1.331, 'c':{'1':True}}
@@ -235,6 +236,7 @@ class TestFunctionService(unittest.TestCase):
         Constantes().MAX_ERROR_RATE = 0.2
         Constantes().MIN_TIME_TO_CACHE = 1
         self.assertFalse(_is_statistically_deterministic_function(0.1, 0.33))
+
     def test_is_statistically_deterministic_function_when_function_has_high_error_but_executes_too_slow(self):
         Constantes().MAX_ERROR_RATE = 0.2
         Constantes().MIN_TIME_TO_CACHE = 1
@@ -250,9 +252,89 @@ class TestFunctionService(unittest.TestCase):
         Constantes().MIN_TIME_TO_CACHE = 1
         self.assertFalse(_is_statistically_deterministic_function(0.3, 0.02))
 
+    def test_should_be_simulated_when_function_should_be_simulated(self):
+        Constantes().MIN_TIME_TO_SIMULATE_FUNC_CALL = 10
+        self.assertTrue(_should_be_simulated(11.4153))
 
+    def test_should_be_simulated_when_function_is_in_the_limit_to_be_simulated(self):
+        Constantes().MIN_TIME_TO_SIMULATE_FUNC_CALL = 10
+        self.assertTrue(_should_be_simulated(10))
 
+    def test_should_be_simulated_when_function_shouldnt_be_simulated(self):
+        Constantes().MIN_TIME_TO_SIMULATE_FUNC_CALL = 10
+        self.assertFalse(_should_be_simulated(8))
 
+    def test_classify_function_function_shouldnt_be_cached(self):
+        with patch('services.function_service.add_to_dont_cache_function_calls') as \
+                                                                            add_to_dont_cache_fcs,\
+             patch('services.function_service.add_to_cache') as add_to_cache,\
+             patch('services.function_service.add_to_simulated_function_calls') as \
+                                                                            add_to_simulated_fcs:
+                Constantes().MAX_ERROR_RATE = 0.2
+                Constantes().MIN_TIME_TO_CACHE = 1
+                Constantes().MIN_TIME_TO_SIMULATE_FUNC_CALL = 10
+                func = ast.parse('def f(a): return 10').body[0]
+                md1 = Metadata('func_hash', (1,), {'a':True}, 10, 2.0)
+                md2 = Metadata('func_hash', (1,), {'a':True}, 0, 2.0)
+                metadata = 10*[md1] + 10*[md2]
+                _classify_function(func, 'func_hash', metadata)
+                add_to_cache.assert_not_called()
+                add_to_simulated_fcs.assert_not_called()
+                add_to_dont_cache_fcs.assert_called_once()
+            
+    def test_classify_function_function_is_statistically_deterministic(self):
+        with patch('services.function_service.add_to_dont_cache_function_calls') as \
+                                                                            add_to_dont_cache_fcs,\
+             patch('services.function_service.add_to_cache') as add_to_cache,\
+             patch('services.function_service.add_to_simulated_function_calls') as \
+                                                                            add_to_simulated_fcs:
+                Constantes().MAX_ERROR_RATE = 0.2
+                Constantes().MIN_TIME_TO_CACHE = 1
+                Constantes().MIN_TIME_TO_SIMULATE_FUNC_CALL = 10
+                func = ast.parse('def f(a): return 10').body[0]
+                md1 = Metadata('func_hash', (1,), {'a':True}, 10, 2.0)
+                md2 = Metadata('func_hash', (1,), {'a':True}, 0, 2.0)
+                metadata = 9*[md1] + [md2]
+                _classify_function(func, 'func_hash', metadata)
+                add_to_cache.assert_called_once()
+                add_to_simulated_fcs.assert_not_called()
+                add_to_dont_cache_fcs.assert_not_called()
+
+    def test_classify_function_function_should_be_simulated(self):
+        with patch('services.function_service.add_to_dont_cache_function_calls') as \
+                                                                            add_to_dont_cache_fcs,\
+             patch('services.function_service.add_to_cache') as add_to_cache,\
+             patch('services.function_service.add_to_simulated_function_calls') as \
+                                                                            add_to_simulated_fcs:
+                Constantes().MAX_ERROR_RATE = 0.2
+                Constantes().MIN_TIME_TO_CACHE = 1
+                Constantes().MIN_TIME_TO_SIMULATE_FUNC_CALL = 10
+                func = ast.parse('def f(a): return 10').body[0]
+                md1 = Metadata('func_hash', (1,), {'a':True}, 10, 22.0)
+                md2 = Metadata('func_hash', (1,), {'a':True}, 0, 22.0)
+                metadata = 10*[md1] + 10*[md2]
+                _classify_function(func, 'func_hash', metadata)
+                add_to_cache.assert_not_called()
+                add_to_simulated_fcs.assert_called_once()
+                add_to_dont_cache_fcs.assert_not_called()
+        
+    def test_classify_function_function_is_statistically_deterministic_and_should_be_simulated(self):
+        with patch('services.function_service.add_to_dont_cache_function_calls') as \
+                                                                            add_to_dont_cache_fcs,\
+             patch('services.function_service.add_to_cache') as add_to_cache,\
+             patch('services.function_service.add_to_simulated_function_calls') as \
+                                                                            add_to_simulated_fcs:
+                Constantes().MAX_ERROR_RATE = 0.2
+                Constantes().MIN_TIME_TO_CACHE = 1
+                Constantes().MIN_TIME_TO_SIMULATE_FUNC_CALL = 10
+                func = ast.parse('def f(a): return 10').body[0]
+                md1 = Metadata('func_hash', (1,), {'a':True}, 10, 22.0)
+                md2 = Metadata('func_hash', (1,), {'a':True}, 0, 22.0)
+                metadata = 9*[md1] + [md2]
+                _classify_function(func, 'func_hash', metadata)
+                add_to_cache.assert_called_once()
+                add_to_simulated_fcs.assert_not_called()
+                add_to_dont_cache_fcs.assert_not_called()
 
 class MinhaClasse:
     def __init__(self, x, y):

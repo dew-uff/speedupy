@@ -6,7 +6,7 @@ from entities.Script import Script
 from entities.Experiment import Experiment
 from services.ASTSearcher import ASTSearcher
 from services.ScriptFunctionGraphCreator import ScriptFunctionGraphCreator
-from services.function_service import decorate_function, classify_function
+from services.function_service import decorate_function, execute_and_classify_function
 from constantes import Constantes
 
 def create_script(script_name:str, experiment_base_dir:str) -> Script:
@@ -67,7 +67,7 @@ def classify_script_functions(script:Script, functions_2_hashes:Dict[str, str]) 
     module_name = _get_module_name(script)
     module = importlib.import_module(module_name)
     for function in script.functions.values():
-        classify_function(module, function, functions_2_hashes)
+        execute_and_classify_function(module, function, functions_2_hashes)
 
 def _get_module_name(script:Script) -> str:
     return script.name.replace(os.sep, ".").replace(".py", "")
