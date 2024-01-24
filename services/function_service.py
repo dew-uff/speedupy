@@ -5,6 +5,7 @@ from constantes import Constantes
 from data_access import get_all_saved_metadata_of_a_function_group_by_function_call_hash
 from entities.Script import Script
 from entities.Metadata import Metadata
+from data_access import add_to_cache, add_to_dont_cache_function_calls, close_data_access
 
 def decorate_function(function:ast.FunctionDef, classified_functions:Dict[str, FunctionClassification], functions2hashes:Dict[str, str]) -> None:
     if _is_already_decorated(function):
@@ -56,18 +57,18 @@ def classify_function(module, function:ast.FunctionDef, functions_2_hashes:Dict[
         _try_execute_func(module, function.name, func_call, func_call_md)
         if _get_num_executions_needed(func_call_md) == 0:
             stats = _get_metadata_statistics(func_call_md)
+            args, kwargs = _get_args_and_kwargs_func_call(func_call_md)
             if _is_statistically_deterministic_function(stats['error_rate'],
                                                         stats['mean_exec_time']):
-                classify_as_statistically_deterministic_function(stats['values_2_freq'],
-                                                                 stats['mean_exec_time'])
+                classify_as_statistically_deterministic_function(function.name, args, kwargs, stats['most_common_ret'], func_hash)
                 #Add function to CLASSIFIED_FUNCTIONS (or exclude this table)
             elif should_be_simulated():
                 classify_as_simulated_function_execution()
                 #Add function to CLASSIFIED_FUNCTIONS (or exclude this table)
             else:
-                #Insert func_call_hash on DONT_CACHE_FUNCTION_CALLS
-                pass
+                add_to_dont_cache_function_calls(func_hash, args, kwargs)
             #Remove metadata from METADA
+    close_data_access()
 
 def _try_execute_func(module, function_name:str, func_call_hash:str, func_call_metadata:List[Metadata]) -> None:
     try:
@@ -125,10 +126,8 @@ def _is_statistically_deterministic_function(error_rate:float, mean_exec_time:fl
     return error_rate <= Constantes().MAX_ERROR_RATE and\
            mean_exec_time >= Constantes().MIN_TIME_TO_CACHE
         
-#TODO
-def classify_as_statistically_deterministic_function():
-    #Add most returned value on CACHE
-    pass
+def classify_as_statistically_deterministic_function(fun_name, fun_args, fun_return, fun_source) -> None:
+    add_to_cache(fun_name, fun_args, fun_return, fun_source, Constantes().g_argsp_m)
 
 #TODO
 def should_be_simulated():

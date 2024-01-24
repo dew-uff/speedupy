@@ -6,7 +6,7 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 from constantes import Constantes
-from data_access import get_already_classified_functions, get_id, add_to_metadata, _save_new_metadata, _populate_dont_cache_function_calls_list, get_all_saved_metadata_of_a_function_group_by_function_call_hash
+from data_access import get_already_classified_functions, get_id, add_to_metadata, add_to_dont_cache_function_calls, _save_new_metadata, _save_new_dont_cache_function_calls, _populate_dont_cache_function_calls_list, get_all_saved_metadata_of_a_function_group_by_function_call_hash
 from entities.Metadata import Metadata
 
 class TestDataAccess(unittest.TestCase):
@@ -54,6 +54,7 @@ class TestDataAccess(unittest.TestCase):
 
     def setUp(self):
         Constantes().g_argsp_hash = ["md5"]
+        Constantes().NEW_DONT_CACHE_FUNCTION_CALLS = []
 
     def tearDown(self):
         for table in ["CLASSIFIED_FUNCTIONS", "METADATA", "DONT_CACHE_FUNCTION_CALLS"]:
@@ -183,6 +184,22 @@ class TestDataAccess(unittest.TestCase):
         add_to_metadata(hash, args, kwargs, ret, exec_time)
         self.assert_metadata_returned_is_correct(Constantes().METADATA, [md1, md2])
 
+    def test_add_to_dont_cache_function_calls(self):
+        self.assertListEqual(Constantes().NEW_DONT_CACHE_FUNCTION_CALLS, [])
+        f_hash = "hash_func_1"
+        f_args = [1, True]
+        f_kwargs = {'a':10, 'b': 'teste', 'c':[1, -2, 3.26]}
+        fc_hash1 = self.manually_get_id(f_hash, f_args, f_kwargs)
+        add_to_dont_cache_function_calls(f_hash, f_args, f_kwargs)
+        self.assertListEqual(Constantes().NEW_DONT_CACHE_FUNCTION_CALLS, [fc_hash1])
+
+        f_hash = 'hash_func_2'
+        f_args = []
+        f_kwargs = {'a':-3, 'c':{1, -2, 3.26}}
+        fc_hash2 = self.manually_get_id(f_hash, f_args, f_kwargs)
+        add_to_dont_cache_function_calls(f_hash, f_args, f_kwargs)
+        self.assertListEqual(Constantes().NEW_DONT_CACHE_FUNCTION_CALLS, [fc_hash1, fc_hash2])
+
     def test_save_new_metadata_with_only_one_metadata_record(self):
         md = Metadata('func_hash', [], {}, 3.7, 2.125123)
         Constantes().METADATA = [md]
@@ -218,6 +235,22 @@ class TestDataAccess(unittest.TestCase):
         Constantes().METADATA = [md]
         _save_new_metadata()
         self.assert_METADATA_table_records_are_correct([md])
+
+    def test_save_new_dont_cache_function_calls_with_0_new_dont_cache_function_calls(self):
+        Constantes().NEW_DONT_CACHE_FUNCTION_CALLS = []
+        _save_new_dont_cache_function_calls()
+        sql = 'SELECT function_call_hash FROM DONT_CACHE_FUNCTION_CALLS'
+        resp = Constantes().CONEXAO_BANCO.executarComandoSQLSelect(sql)
+        self.assertListEqual(resp, [])
+        
+    def test_save_new_dont_cache_function_calls_with_3_new_dont_cache_function_calls(self):
+        Constantes().NEW_DONT_CACHE_FUNCTION_CALLS = ['fc1_hash', 'fc2_hash', 'fc3_hash']
+        _save_new_dont_cache_function_calls()
+        sql = 'SELECT function_call_hash FROM DONT_CACHE_FUNCTION_CALLS'
+        resp = Constantes().CONEXAO_BANCO.executarComandoSQLSelect(sql)
+        self.assertEqual(resp[0][0], 'fc1_hash')
+        self.assertEqual(resp[1][0], 'fc2_hash')
+        self.assertEqual(resp[2][0], 'fc3_hash')
 
     def test_get_all_saved_metadata_of_a_function_when_metadata_tables_are_empty(self):
         metadata = get_all_saved_metadata_of_a_function_group_by_function_call_hash("func_hash")

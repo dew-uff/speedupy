@@ -45,6 +45,7 @@ class Constantes(metaclass=SingletonMeta):
         self.CACHED_DATA_DICTIONARY_SEMAPHORE = threading.Semaphore()
         self.METADATA = []
         self.DONT_CACHE_FUNCTION_CALLS = []
+        self.NEW_DONT_CACHE_FUNCTION_CALLS = []
 
         self.FUNCTIONS_2_HASHES = {}
 

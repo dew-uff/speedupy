@@ -248,9 +248,14 @@ def add_to_metadata(fun_hash:str, fun_args:List, fun_kwargs:Dict, fun_return, ex
     md = Metadata(fun_hash, fun_args, fun_kwargs, fun_return, exec_time)
     Constantes().METADATA.append(md)
 
+def add_to_dont_cache_function_calls(fun_hash:str, fun_args:List, fun_kwargs:Dict) -> None:
+    fun_call_hash = get_id(fun_hash, fun_args, fun_kwargs)    
+    Constantes().NEW_DONT_CACHE_FUNCTION_CALLS.append(fun_call_hash)
+
 def close_data_access():
     __save_new_cache_data()
     _save_new_metadata()
+    _save_new_dont_cache_function_calls()
     Constantes().CONEXAO_BANCO.salvarAlteracoes()
     Constantes().CONEXAO_BANCO.fecharConexao()
 
@@ -290,6 +295,17 @@ def _save_new_metadata() -> None:
         sql = f"INSERT INTO METADATA(function_hash, args, kwargs, return_value, execution_time) VALUES (?, ?, ?, ?, ?)"
         sql_params = [md.function_hash, s_args, s_kwargs, s_return, md.execution_time]
         Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
+
+def _save_new_dont_cache_function_calls() -> None:
+    debug("saving don't cache function calls")
+    if len(Constantes().NEW_DONT_CACHE_FUNCTION_CALLS) == 0: return
+    sql = "INSERT INTO DONT_CACHE_FUNCTION_CALLS(function_call_hash) VALUES"
+    sql_params = []
+    for func_call_hash in Constantes().NEW_DONT_CACHE_FUNCTION_CALLS:
+        sql += " (?),"
+        sql_params.append(func_call_hash)
+    sql = sql[:-1] # Removendo vírgula final
+    Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
 
 def get_already_classified_functions() -> Dict[str, str]:
     resp = Constantes().CONEXAO_BANCO.executarComandoSQLSelect(f"SELECT function_hash, classification FROM CLASSIFIED_FUNCTIONS")
