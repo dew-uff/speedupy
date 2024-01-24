@@ -7,6 +7,7 @@ from constantes import Constantes
 from entities.Experiment import Experiment
 from services.experiment_service import classify_experiment_functions
 from util import get_content_json_file, deserialize_from_file
+from data_access import close_data_access
 
 def start_inference_engine(f):
     @wraps(f)
@@ -15,6 +16,7 @@ def start_inference_engine(f):
         experiment, functions_2_hashes = _get_experiment_and_functions_2_hashes()
         classify_experiment_functions(experiment, functions_2_hashes)
         #####TODO Calculate error rate and confidence interval
+        close_data_access()
     return execution
 
 def _get_experiment_and_functions_2_hashes() -> Tuple[Experiment, Dict[str, str]]:

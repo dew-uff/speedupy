@@ -315,23 +315,34 @@ def get_already_classified_functions() -> Dict[str, str]:
     return classified_functions
 
 def get_all_saved_metadata_of_a_function_group_by_function_call_hash(func_hash:str) -> Dict[str, List[Metadata]]:
-    sql = "SELECT args, kwargs, return_value, execution_time\
+    sql = "SELECT id, args, kwargs, return_value, execution_time\
            FROM METADATA\
            WHERE function_hash = ?"
     resp = Constantes().CONEXAO_BANCO.executarComandoSQLSelect(sql, [func_hash])
     metadata = {}
     for record in resp:
-        args = pickle.loads(record[0])
-        kwargs = pickle.loads(record[1])
-        return_value = pickle.loads(record[2])
-        execution_time = float(record[3])
-        md = Metadata(func_hash, args, kwargs, return_value, execution_time)
+        id = int(record[0])
+        args = pickle.loads(record[1])
+        kwargs = pickle.loads(record[2])
+        return_value = pickle.loads(record[3])
+        execution_time = float(record[4])
+        md = Metadata(func_hash, args, kwargs, return_value, execution_time, id=id)
         
         func_call_hash = get_id(func_hash, args, kwargs)
         if func_call_hash not in metadata:
             metadata[func_call_hash] = []
         metadata[func_call_hash].append(md)
     return metadata
+
+def remove_metadata(metadata:List[Metadata]) -> None:
+    if len(metadata) == 0: return
+    sql = "DELETE FROM METADATA WHERE id IN ("
+    sql_params = []
+    for md in metadata:
+        sql += '?,'
+        sql_params.append(md.id)
+    sql = sql[:-1] + ')'
+    Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
 
 def init_data_access():
     _populate_cache_dictionaries()

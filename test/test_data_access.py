@@ -6,7 +6,7 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 from constantes import Constantes
-from data_access import get_already_classified_functions, get_id, add_to_metadata, add_to_dont_cache_function_calls, _save_new_metadata, _save_new_dont_cache_function_calls, _populate_dont_cache_function_calls_list, get_all_saved_metadata_of_a_function_group_by_function_call_hash
+from data_access import get_already_classified_functions, get_id, add_to_metadata, add_to_dont_cache_function_calls, _save_new_metadata, _save_new_dont_cache_function_calls, _populate_dont_cache_function_calls_list, remove_metadata, get_all_saved_metadata_of_a_function_group_by_function_call_hash
 from entities.Metadata import Metadata
 
 class TestDataAccess(unittest.TestCase):
@@ -252,7 +252,7 @@ class TestDataAccess(unittest.TestCase):
         self.assertEqual(resp[1][0], 'fc2_hash')
         self.assertEqual(resp[2][0], 'fc3_hash')
 
-    def test_get_all_saved_metadata_of_a_function_when_metadata_tables_are_empty(self):
+    def test_get_all_saved_metadata_of_a_function_when_metadata_table_is_empty(self):
         metadata = get_all_saved_metadata_of_a_function_group_by_function_call_hash("func_hash")
         self.assertDictEqual(metadata, {})
 
@@ -297,6 +297,50 @@ class TestDataAccess(unittest.TestCase):
         self.assert_metadata_returned_is_correct(metadata[f_call_hash3], [md5])
         self.assert_metadata_returned_is_correct(metadata[f_call_hash4], [md6])
     
+    def test_remove_metadata_passing_0_metadata(self):
+        f_hash = 'func_hash'
+        s_args = pickle.dumps((1, 2,))
+        s_kwargs = pickle.dumps({'a':True})
+        s_return = pickle.dumps(-88)
+        sql = 'INSERT INTO METADATA(id, function_hash, args, kwargs, return_value, execution_time) VALUES '
+        sql_params = []
+        for i in range(3):
+            sql += '(?, ?, ?, ?, ?, ?),'
+            sql_params += [i+1, f_hash, s_args, s_kwargs, s_return, 123.123]
+        sql = sql[:-1]
+        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
+
+        remove_metadata([])
+        resp = Constantes().CONEXAO_BANCO.executarComandoSQLSelect('SELECT id FROM METADATA')
+        self.assertEqual(resp[0][0], 1)
+        self.assertEqual(resp[1][0], 2)
+        self.assertEqual(resp[2][0], 3)
+
+    def test_remove_metadata_passing_3_metadata(self):
+        f_hash = 'func_hash'
+        s_args = pickle.dumps((1, 2,))
+        s_kwargs = pickle.dumps({'a':True})
+        s_return = pickle.dumps(-88)
+        sql = 'INSERT INTO METADATA(id, function_hash, args, kwargs, return_value, execution_time) VALUES '
+        sql_params = []
+        for i in range(6):
+            sql += '(?, ?, ?, ?, ?, ?),'
+            sql_params += [i+1, f_hash, s_args, s_kwargs, s_return, 123.123]
+        sql = sql[:-1]
+        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
+
+        md1 = Metadata(f_hash, (1, 2,), {'a':True}, -88, 123.123)
+        md1._Metadata__id = 1
+        md3 = Metadata(f_hash, (1, 2,), {'a':True}, -88, 123.123)
+        md3._Metadata__id = 3
+        md5 = Metadata(f_hash, (1, 2,), {'a':True}, -88, 123.123)
+        md5._Metadata__id = 5
+        remove_metadata([md1, md3, md5])
+        resp = Constantes().CONEXAO_BANCO.executarComandoSQLSelect('SELECT id FROM METADATA')
+        self.assertEqual(resp[0][0], 2)
+        self.assertEqual(resp[1][0], 4)
+        self.assertEqual(resp[2][0], 6)
+
     def test_populate_dont_cache_function_calls_dictionay_when_table_is_empty(self):
         _populate_dont_cache_function_calls_list()
         self.assertListEqual(Constantes().DONT_CACHE_FUNCTION_CALLS, [])

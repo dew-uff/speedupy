@@ -5,7 +5,7 @@ from constantes import Constantes
 from data_access import get_all_saved_metadata_of_a_function_group_by_function_call_hash
 from entities.Script import Script
 from entities.Metadata import Metadata
-from data_access import add_to_cache, add_to_dont_cache_function_calls, close_data_access
+from data_access import add_to_cache, add_to_dont_cache_function_calls, remove_metadata
 
 def decorate_function(function:ast.FunctionDef, classified_functions:Dict[str, FunctionClassification], functions2hashes:Dict[str, str]) -> None:
     if _is_already_decorated(function):
@@ -60,15 +60,14 @@ def classify_function(module, function:ast.FunctionDef, functions_2_hashes:Dict[
             args, kwargs = _get_args_and_kwargs_func_call(func_call_md)
             if _is_statistically_deterministic_function(stats['error_rate'],
                                                         stats['mean_exec_time']):
-                classify_as_statistically_deterministic_function(function.name, args, kwargs, stats['most_common_ret'], func_hash)
+                classify_as_statistically_deterministic_function(function.name, args, stats['most_common_ret'], func_hash)
                 #Add function to CLASSIFIED_FUNCTIONS (or exclude this table)
             elif should_be_simulated():
                 classify_as_simulated_function_execution()
                 #Add function to CLASSIFIED_FUNCTIONS (or exclude this table)
             else:
                 add_to_dont_cache_function_calls(func_hash, args, kwargs)
-            #Remove metadata from METADA
-    close_data_access()
+            remove_metadata(func_call_md)
 
 def _try_execute_func(module, function_name:str, func_call_hash:str, func_call_metadata:List[Metadata]) -> None:
     try:

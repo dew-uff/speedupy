@@ -1,8 +1,8 @@
 from typing import Optional
 
 class Metadata():
-    def __init__(self, function_hash, args, kwargs, return_value, execution_time):
-        self.__id = None
+    def __init__(self, function_hash, args, kwargs, return_value, execution_time, id=None):
+        self.__id = id
         self.__function_hash = function_hash
         self.__args = args
         self.__kwargs = kwargs
