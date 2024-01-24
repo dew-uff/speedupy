@@ -6,7 +6,7 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 from constantes import Constantes
-from data_access import get_already_classified_functions, get_id, add_to_metadata, add_to_dont_cache_function_calls, _save_new_metadata, _save_new_dont_cache_function_calls, _populate_dont_cache_function_calls_list, remove_metadata, get_all_saved_metadata_of_a_function_group_by_function_call_hash
+from data_access import get_already_classified_functions, get_id, add_to_metadata, add_to_dont_cache_function_calls, add_to_simulated_function_calls, _save_new_metadata, _save_new_dont_cache_function_calls, _save_new_simulated_function_calls, _populate_dont_cache_function_calls_list, remove_metadata, get_all_saved_metadata_of_a_function_group_by_function_call_hash
 from entities.Metadata import Metadata
 
 class TestDataAccess(unittest.TestCase):
@@ -15,6 +15,7 @@ class TestDataAccess(unittest.TestCase):
         os.system("rm -rf .intpy")
         os.mkdir(".intpy")
         cls.create_table_CLASSIFIED_FUNCTIONS()
+        cls.create_table_SIMULATED_FUNCTION_CALLS()
         cls.create_table_METADATA()
         cls.create_table_DONT_CACHE_FUNCTION_CALLS()
 
@@ -29,6 +30,15 @@ class TestDataAccess(unittest.TestCase):
                id INTEGER PRIMARY KEY AUTOINCREMENT,\
                function_hash TEXT NOT NULL,\
                classification TEXT NOT NULL\
+               );"
+        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql)
+
+    @classmethod
+    def create_table_SIMULATED_FUNCTION_CALLS(cls):
+        sql = "CREATE TABLE IF NOT EXISTS SIMULATED_FUNCTION_CALLS (\
+               id INTEGER PRIMARY KEY AUTOINCREMENT,\
+               function_call_hash TEXT NOT NULL,\
+               returns_2_freq BLOB NOT NULL\
                );"
         Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql)
     
@@ -55,9 +65,10 @@ class TestDataAccess(unittest.TestCase):
     def setUp(self):
         Constantes().g_argsp_hash = ["md5"]
         Constantes().NEW_DONT_CACHE_FUNCTION_CALLS = []
+        Constantes().NEW_SIMULATED_FUNCTION_CALLS = {}
 
     def tearDown(self):
-        for table in ["CLASSIFIED_FUNCTIONS", "METADATA", "DONT_CACHE_FUNCTION_CALLS"]:
+        for table in ["CLASSIFIED_FUNCTIONS", "SIMULATED_FUNCTION_CALLS", "METADATA", "DONT_CACHE_FUNCTION_CALLS"]:
             Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(f"DELETE FROM {table} WHERE id IS NOT NULL;")
     
     def assert_metadata_returned_is_correct(self, returned_metadata:List[Metadata], expected_metadata:List[Metadata]) -> None:
@@ -200,6 +211,25 @@ class TestDataAccess(unittest.TestCase):
         add_to_dont_cache_function_calls(f_hash, f_args, f_kwargs)
         self.assertListEqual(Constantes().NEW_DONT_CACHE_FUNCTION_CALLS, [fc_hash1, fc_hash2])
 
+    def test_add_to_simulated_function_calls(self):
+        self.assertDictEqual(Constantes().NEW_SIMULATED_FUNCTION_CALLS, {})
+        f_hash = "hash_func_1"
+        f_args = [1, True]
+        f_kwargs = {'a':10, 'b': 'teste', 'c':[1, -2, 3.26]}
+        fc_hash1 = self.manually_get_id(f_hash, f_args, f_kwargs)
+        returns_2_freq1 = {10:2, 8:3, 7:5}
+        add_to_simulated_function_calls(f_hash, f_args, f_kwargs, returns_2_freq1)
+        self.assertDictEqual(Constantes().NEW_SIMULATED_FUNCTION_CALLS, {fc_hash1:returns_2_freq1})
+
+        f_hash = 'hash_func_2'
+        f_args = []
+        f_kwargs = {'a':-3, 'c':{1, -2, 3.26}}
+        fc_hash2 = self.manually_get_id(f_hash, f_args, f_kwargs)
+        returns_2_freq2 = {True:100, False:3, None:10}
+        add_to_simulated_function_calls(f_hash, f_args, f_kwargs, returns_2_freq2)
+        self.assertDictEqual(Constantes().NEW_SIMULATED_FUNCTION_CALLS,{fc_hash1:returns_2_freq1,
+                                                                        fc_hash2:returns_2_freq2})
+
     def test_save_new_metadata_with_only_one_metadata_record(self):
         md = Metadata('func_hash', [], {}, 3.7, 2.125123)
         Constantes().METADATA = [md]
@@ -248,9 +278,31 @@ class TestDataAccess(unittest.TestCase):
         _save_new_dont_cache_function_calls()
         sql = 'SELECT function_call_hash FROM DONT_CACHE_FUNCTION_CALLS'
         resp = Constantes().CONEXAO_BANCO.executarComandoSQLSelect(sql)
+        self.assertEqual(len(resp), 3)
         self.assertEqual(resp[0][0], 'fc1_hash')
         self.assertEqual(resp[1][0], 'fc2_hash')
         self.assertEqual(resp[2][0], 'fc3_hash')
+
+    def test_save_new_simulated_function_calls_with_0_new_simulated_function_calls(self):
+        Constantes().NEW_SIMULATED_FUNCTION_CALLS = {}
+        _save_new_simulated_function_calls()
+        sql = 'SELECT function_call_hash, returns_2_freq FROM SIMULATED_FUNCTION_CALLS'
+        resp = Constantes().CONEXAO_BANCO.executarComandoSQLSelect(sql)
+        self.assertListEqual(resp, [])
+        
+    def test_save_new_simulated_function_calls_with_3_new_simulated_function_calls(self):
+        Constantes().NEW_SIMULATED_FUNCTION_CALLS = {'fc1_hash':{10:2, 8:3, 7:5},
+                                                     'fc2_hash':{True:100, False:3, None:10},
+                                                     'fc3_hash':{(1, 2):10, 'TESTE':3}}
+        _save_new_simulated_function_calls()
+        sql = 'SELECT function_call_hash, returns_2_freq FROM SIMULATED_FUNCTION_CALLS'
+        resp = Constantes().CONEXAO_BANCO.executarComandoSQLSelect(sql)
+        self.assertEqual(len(resp), 3)
+        self.assertTupleEqual(resp[0], ('fc1_hash', pickle.dumps({10:2, 8:3, 7:5})))
+        self.assertTupleEqual(resp[1], ('fc2_hash', pickle.dumps({True:100, False:3, None:10})))
+        self.assertTupleEqual(resp[2], ('fc3_hash', pickle.dumps({(1, 2):10, 'TESTE':3})))
+
+    
 
     def test_get_all_saved_metadata_of_a_function_when_metadata_table_is_empty(self):
         metadata = get_all_saved_metadata_of_a_function_group_by_function_call_hash("func_hash")

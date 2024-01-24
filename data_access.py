@@ -252,10 +252,15 @@ def add_to_dont_cache_function_calls(fun_hash:str, fun_args:List, fun_kwargs:Dic
     fun_call_hash = get_id(fun_hash, fun_args, fun_kwargs)    
     Constantes().NEW_DONT_CACHE_FUNCTION_CALLS.append(fun_call_hash)
 
+def add_to_simulated_function_calls(fun_hash:str, fun_args:List, fun_kwargs:Dict, returns_2_freq:Dict) -> None:
+    fun_call_hash = get_id(fun_hash, fun_args, fun_kwargs)    
+    Constantes().NEW_SIMULATED_FUNCTION_CALLS[fun_call_hash] = returns_2_freq
+
 def close_data_access():
     __save_new_cache_data()
     _save_new_metadata()
     _save_new_dont_cache_function_calls()
+    _save_new_simulated_function_calls()
     Constantes().CONEXAO_BANCO.salvarAlteracoes()
     Constantes().CONEXAO_BANCO.fecharConexao()
 
@@ -304,6 +309,17 @@ def _save_new_dont_cache_function_calls() -> None:
     for func_call_hash in Constantes().NEW_DONT_CACHE_FUNCTION_CALLS:
         sql += " (?),"
         sql_params.append(func_call_hash)
+    sql = sql[:-1] # Removendo vírgula final
+    Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
+
+def _save_new_simulated_function_calls() -> None:
+    debug("saving simulated function calls")
+    if len(Constantes().NEW_SIMULATED_FUNCTION_CALLS) == 0: return
+    sql = "INSERT INTO SIMULATED_FUNCTION_CALLS(function_call_hash, returns_2_freq) VALUES"
+    sql_params = []
+    for func_call_hash, rets_2_freq in Constantes().NEW_SIMULATED_FUNCTION_CALLS.items():
+        sql += " (?, ?),"
+        sql_params += [func_call_hash, pickle.dumps(rets_2_freq)]
     sql = sql[:-1] # Removendo vírgula final
     Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
 

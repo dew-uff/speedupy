@@ -46,12 +46,14 @@ class Constantes(metaclass=SingletonMeta):
         self.METADATA = []
         self.DONT_CACHE_FUNCTION_CALLS = []
         self.NEW_DONT_CACHE_FUNCTION_CALLS = []
+        self.NEW_SIMULATED_FUNCTION_CALLS = {}
 
         self.FUNCTIONS_2_HASHES = {}
 
         self.NUM_EXEC_MIN_PARA_INFERENCIA = 20
         self.MAX_ERROR_RATE = 0.2
         self.MIN_TIME_TO_CACHE = 1
+        self.MIN_TIME_TO_SIMULATE_FUNC_CALL = 10
 
     def set_paths_for_executing_inside_main_folder(self):
         self.FOLDER_NAME = ".intpy"
