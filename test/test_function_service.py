@@ -10,13 +10,14 @@ from services.function_inference_service import FunctionClassification
 from entities.Script import Script
 from entities.Experiment import Experiment
 from entities.Metadata import Metadata
-from services.function_service import decorate_function, _get_args_and_kwargs_func_call, _get_num_executions_needed, _try_execute_func, _calculate_function_error_rate, _is_statistically_deterministic_function
+from services.function_service import decorate_function, _get_args_and_kwargs_func_call, _get_num_executions_needed, _try_execute_func, _is_statistically_deterministic_function, _get_metadata_statistics
 from constantes import Constantes
 
 class TestFunctionService(unittest.TestCase):
     def setUp(self):
         Constantes().MAX_ERROR_RATE = 0.2
         Constantes().NUM_EXEC_MIN_PARA_INFERENCIA = 20
+        Constantes().MIN_TIME_TO_CACHE = 1
 
     def tearDown(self):
         files_and_folders = ['script_test.py', 
@@ -269,72 +270,91 @@ class TestFunctionService(unittest.TestCase):
         self.assertEqual(x, 0)
         self.assertEqual(len(metadata), Constantes().NUM_EXEC_MIN_PARA_INFERENCIA)
 
-    def test_calculate_function_error_rate_func_completely_deterministic(self):
-        metadata = [Metadata('func_hash', (1, 'a', True), {'a':10, 'b':'teste'}, -8, 1.4153) for i in range(20)]
-        error_rate = _calculate_function_error_rate(metadata)
-        self.assertEqual(round(error_rate, 2), 0.00)
+    def test_get_metadata_statistics_func_completely_deterministic(self):
+        metadata = 20*[Metadata('func_hash', (1,), {'a':True}, -8, 1.4123)]
+        stats = _get_metadata_statistics(metadata)
+        self.assertDictEqual(stats['values_2_freq'], {-8:20})
+        self.assertEqual(round(stats['mean_exec_time'], 2), 1.41)
+        self.assertEqual(stats['most_common_ret'], -8)
+        self.assertEqual(round(stats['error_rate'], 2), 0.00)
 
-    def test_calculate_function_error_rate_func_with_different_results_but_one_more_frequent(self):
+    def test_get_metadata_statistic_func_with_different_results_but_one_more_frequent(self):
         args = (1, 'a', True)
         kwargs = {'a':10, 'b':'teste'}
         md1 = Metadata('func_hash', args, kwargs, -8, 1.4153)
-        md2 = Metadata('func_hash', args, kwargs, 0, 1.4153)
-        md3 = Metadata('func_hash', args, kwargs, 3, 1.4153)
+        md2 = Metadata('func_hash', args, kwargs, 0, 2.75)
+        md3 = Metadata('func_hash', args, kwargs, 3, 8.3)
 
         metadata = 6*[md1] + 3*[md2] + [md3]
-        error_rate = _calculate_function_error_rate(metadata)
-        self.assertEqual(round(error_rate, 2), 0.40)
+        stats = _get_metadata_statistics(metadata)
+        self.assertDictEqual(stats['values_2_freq'], {-8:6, 0:3, 3:1})
+        self.assertEqual(round(stats['mean_exec_time'], 2), 2.5)
+        self.assertEqual(stats['most_common_ret'], -8)
+        self.assertEqual(round(stats['error_rate'], 2), 0.40)
 
-    def test_calculate_function_error_rate_func_with_two_results_with_same_frequency(self):
+    def test_get_metadata_statistic_func_with_two_results_with_same_frequency(self):
         args = (1, 'a', True)
         kwargs = {'a':10, 'b':'teste'}
         md1 = Metadata('func_hash', args, kwargs, -8, 1.4153)
-        md2 = Metadata('func_hash', args, kwargs, 0, 1.4153)
+        md2 = Metadata('func_hash', args, kwargs, 0, 3.3)
 
         metadata = 6*[md1] + 6*[md2]
-        error_rate = _calculate_function_error_rate(metadata)
-        self.assertEqual(round(error_rate, 2), 0.50)
+        stats = _get_metadata_statistics(metadata)
+        self.assertDictEqual(stats['values_2_freq'], {-8:6, 0:6})
+        self.assertEqual(round(stats['mean_exec_time'], 2), 2.36)
+        self.assertEqual(stats['most_common_ret'], -8)
+        self.assertEqual(round(stats['error_rate'], 2), 0.50)
 
-    def test_calculate_function_error_rate_func_returns_complex_object(self):
+    def test_get_metadata_statistic_func_returns_complex_object(self):
         args = (1, 'a', True)
         kwargs = {'a':10, 'b':'teste'}
         md1 = Metadata('func_hash', args, kwargs, MinhaClasse(1, 10), 1.4153)
-        md2 = Metadata('func_hash', args, kwargs, MinhaClasse(2, 20), 1.4153)
-        md3 = Metadata('func_hash', args, kwargs, MinhaClasse(3, 30), 1.4153)
+        md2 = Metadata('func_hash', args, kwargs, MinhaClasse(2, 20), 2.2)
+        md3 = Metadata('func_hash', args, kwargs, MinhaClasse(3, 30), 0.55)
 
         metadata = 7*[md1] + 2*[md2] + [md3]
-        error_rate = _calculate_function_error_rate(metadata)
-        self.assertEqual(round(error_rate, 2), 0.30)
+        stats = _get_metadata_statistics(metadata)
+        
+        expected_rets = [MinhaClasse(1, 10), MinhaClasse(2, 20), MinhaClasse(3, 30)]
+        rets_gotten = list(stats['values_2_freq'].keys())
+        self.assertEqual(len(rets_gotten), 3)
+        for i in range(3):
+            self.assertIsInstance(rets_gotten[i], MinhaClasse)
+            self.assertEqual(rets_gotten[i].x, expected_rets[i].x)
+            self.assertEqual(rets_gotten[i].y, expected_rets[i].y)
+        self.assertIsInstance(stats['most_common_ret'], MinhaClasse)
+        self.assertEqual(stats['most_common_ret'].x, 1)
+        self.assertEqual(stats['most_common_ret'].y, 10)
+        self.assertEqual(round(stats['mean_exec_time'], 2), 1.49)
+        self.assertEqual(round(stats['error_rate'], 2), 0.30)
 
-    def test_when_function_is_statistically_deterministic(self):
+    def test_is_statistically_deterministic_function_when_function_can_be_considered_statistically_deterministic(self):
         Constantes().MAX_ERROR_RATE = 0.2
-        args = (1, 'a', True)
-        kwargs = {'a':10, 'b':'teste'}
-        md1 = Metadata('func_hash', args, kwargs, -8, 1.4153)
-        md2 = Metadata('func_hash', args, kwargs, 0, 1.4153)
+        Constantes().MIN_TIME_TO_CACHE = 1
+        self.assertTrue(_is_statistically_deterministic_function(0.1, 1.4153))
 
-        metadata = 9*[md1] + 1*[md2]
-        self.assertTrue(_is_statistically_deterministic_function(metadata))
-
-    def test_when_function_is_right_in_the_limit_to_be_considered_statistically_deterministic(self):
+    def test_is_statistically_deterministic_function_when_function_has_low_error_but_executes_too_fast(self):
         Constantes().MAX_ERROR_RATE = 0.2
-        args = (1, 'a', True)
-        kwargs = {'a':10, 'b':'teste'}
-        md1 = Metadata('func_hash', args, kwargs, -8, 1.4153)
-        md2 = Metadata('func_hash', args, kwargs, 0, 1.4153)
-
-        metadata = 8*[md1] + 2*[md2]
-        self.assertTrue(_is_statistically_deterministic_function(metadata))
-
-    def test_when_function_is_not_statistically_deterministic(self):
+        Constantes().MIN_TIME_TO_CACHE = 1
+        self.assertFalse(_is_statistically_deterministic_function(0.1, 0.33))
+    def test_is_statistically_deterministic_function_when_function_has_high_error_but_executes_too_slow(self):
         Constantes().MAX_ERROR_RATE = 0.2
-        args = (1, 'a', True)
-        kwargs = {'a':10, 'b':'teste'}
-        md1 = Metadata('func_hash', args, kwargs, -8, 1.4153)
-        md2 = Metadata('func_hash', args, kwargs, 0, 1.4153)
+        Constantes().MIN_TIME_TO_CACHE = 1
+        self.assertFalse(_is_statistically_deterministic_function(0.5, 12.5))
 
-        metadata = 7*[md1] + 3*[md2]
-        self.assertFalse(_is_statistically_deterministic_function(metadata))
+    def test_is_statistically_deterministic_function_when_function_is_in_the_limit_to_be_considered_statistically_deterministic(self):
+        Constantes().MAX_ERROR_RATE = 0.2
+        Constantes().MIN_TIME_TO_CACHE = 1
+        self.assertTrue(_is_statistically_deterministic_function(0.2, 1))
+
+    def test_is_statistically_deterministic_function_when_function_is_not_statistically_deterministic_for_both_metrics(self):
+        Constantes().MAX_ERROR_RATE = 0.2
+        Constantes().MIN_TIME_TO_CACHE = 1
+        self.assertFalse(_is_statistically_deterministic_function(0.3, 0.02))
+
+
+
+
 
 class MinhaClasse:
     def __init__(self, x, y):

@@ -14,7 +14,7 @@ def start_inference_engine(f):
         Constantes().set_paths_for_executing_inside_temp_folder()
         experiment, functions_2_hashes = _get_experiment_and_functions_2_hashes()
         classify_experiment_functions(experiment, functions_2_hashes)
-        #Calculate error rate and confidence interval
+        #####TODO Calculate error rate and confidence interval
     return execution
 
 def _get_experiment_and_functions_2_hashes() -> Tuple[Experiment, Dict[str, str]]:

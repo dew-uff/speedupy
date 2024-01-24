@@ -55,8 +55,11 @@ def classify_function(module, function:ast.FunctionDef, functions_2_hashes:Dict[
         func_call_md = func_calls_2_metadata[func_call]
         _try_execute_func(module, function.name, func_call, func_call_md)
         if _get_num_executions_needed(func_call_md) == 0:
-            if _is_statistically_deterministic_function(func_call_md):
-                classify_as_statistically_deterministic_function()
+            stats = _get_metadata_statistics(func_call_md)
+            if _is_statistically_deterministic_function(stats['error_rate'],
+                                                        stats['mean_exec_time']):
+                classify_as_statistically_deterministic_function(stats['values_2_freq'],
+                                                                 stats['mean_exec_time'])
                 #Add function to CLASSIFIED_FUNCTIONS (or exclude this table)
             elif should_be_simulated():
                 classify_as_simulated_function_execution()
@@ -94,23 +97,33 @@ def _get_num_executions_needed(func_call_metadata:List[Metadata]) -> int:
         return 0
     return num_exec
 
-def _is_statistically_deterministic_function(func_call_metadata:List[Metadata]):
-    error_rate = _calculate_function_error_rate(func_call_metadata)
-    return error_rate <= Constantes().MAX_ERROR_RATE
-
-def _calculate_function_error_rate(func_call_metadata:List[Metadata]) -> float:
+def _get_metadata_statistics(func_call_metadata:List[Metadata]) -> Dict:
     values_2_freq = {}
-    most_common_value = None
+    mean_exec_time = 0
+    most_common_ret = None
     for md in func_call_metadata:
-        ret = pickle.dumps(md.return_value)
+        ret = md.return_value
         if ret not in values_2_freq:
             values_2_freq[ret] = 0
         values_2_freq[ret] += 1
-        if most_common_value is None or \
-           values_2_freq[most_common_value] < values_2_freq[ret]:
-            most_common_value = ret
-    error_rate = 1 - values_2_freq[most_common_value] / len(func_call_metadata)
-    return error_rate
+
+        if most_common_ret is None or \
+           values_2_freq[ret] > values_2_freq[most_common_ret]:
+            most_common_ret = ret
+        
+        mean_exec_time += md.execution_time
+    mean_exec_time /= len(func_call_metadata)
+    error_rate = 1 - values_2_freq[most_common_ret] / len(func_call_metadata)
+
+    stats = {'values_2_freq':values_2_freq,
+             'mean_exec_time':mean_exec_time,
+             'most_common_ret':most_common_ret,
+             'error_rate':error_rate}
+    return stats
+
+def _is_statistically_deterministic_function(error_rate:float, mean_exec_time:float):
+    return error_rate <= Constantes().MAX_ERROR_RATE and\
+           mean_exec_time >= Constantes().MIN_TIME_TO_CACHE
         
 #TODO
 def classify_as_statistically_deterministic_function():

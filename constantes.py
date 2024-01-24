@@ -50,6 +50,7 @@ class Constantes(metaclass=SingletonMeta):
 
         self.NUM_EXEC_MIN_PARA_INFERENCIA = 20
         self.MAX_ERROR_RATE = 0.2
+        self.MIN_TIME_TO_CACHE = 1
 
     def set_paths_for_executing_inside_main_folder(self):
         self.FOLDER_NAME = ".intpy"
