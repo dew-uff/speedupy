@@ -16,7 +16,7 @@ else:
 
     from logger.log import debug
     from util import get_content_json_file
-    from data_access import get_cache_data, add_to_cache, close_data_access, init_data_access, add_to_metadata, get_id
+    from data_access import get_cache_data, get_simulated_function, add_to_cache, close_data_access, init_data_access, add_to_metadata, get_id
 
     def execute_intpy(f):
         @wraps(f)
@@ -33,12 +33,13 @@ else:
     def _get_experiment_function_hashes():
         Constantes().FUNCTIONS_2_HASHES = get_content_json_file(Constantes().EXP_FUNCTIONS_FILENAME)
 
-
+    #TODO UPDATE TESTS
     def maybe_deterministic(f):
         @wraps(f)
         def wrapper(*method_args, **method_kwargs):
             debug("calling {0}".format(f.__name__))
             c = _get_cache(f, method_args)
+            func = _get_simulated_function()
             if not _cache_exists(c):
                 debug("cache miss for {0}({1})".format(f.__name__, *method_args))
                 return_value, elapsed_time = _execute_func(f, *method_args, **method_kwargs)
@@ -77,6 +78,11 @@ else:
     def _get_cache(func, args):
         fun_hash = Constantes().FUNCTIONS_2_HASHES[func.__qualname__]
         return get_cache_data(func.__name__, args, fun_hash, Constantes().g_argsp_m)
+
+    #TODO
+    def _get_simulated_function(f, args:List, kwargs:Dict):
+        f_hash = Constantes().FUNCTIONS_2_HASHES[f.__qualname__]
+        return get_simulated_function(f.__name__, args, f_hash, Constantes().g_argsp_m)
 
 
     def _cache_exists(cache):

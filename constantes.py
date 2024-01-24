@@ -46,6 +46,7 @@ class Constantes(metaclass=SingletonMeta):
         self.METADATA = []
         self.DONT_CACHE_FUNCTION_CALLS = []
         self.NEW_DONT_CACHE_FUNCTION_CALLS = []
+        self.SIMULATED_FUNCTION_CALLS = {}
         self.NEW_SIMULATED_FUNCTION_CALLS = {}
 
         self.FUNCTIONS_2_HASHES = {}
