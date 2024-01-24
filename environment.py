@@ -58,6 +58,7 @@ def _create_database():
     conexaoBanco = Banco(Constantes().BD_PATH)
     _create_table_CACHE(conexaoBanco)
     _create_table_METADATA(conexaoBanco)
+    _create_table_SIMULATED_FUNCTION_CALLS(conexaoBanco)
     _create_table_DONT_CACHE_FUNCTION_CALLS(conexaoBanco)
     conexaoBanco.fecharConexao()
 
@@ -95,6 +96,17 @@ def _create_table_DONT_CACHE_FUNCTION_CALLS(banco: Banco):
     stmt = "CREATE TABLE IF NOT EXISTS DONT_CACHE_FUNCTION_CALLS (\
     id INTEGER PRIMARY KEY AUTOINCREMENT,\
     function_call_hash TEXT NOT NULL\
+    );"
+
+    banco.executarComandoSQLSemRetorno(stmt)
+
+def _create_table_SIMULATED_FUNCTION_CALLS(banco: Banco):
+    debug("creating table SIMULATED_FUNCTION_CALLS")
+    
+    stmt = "CREATE TABLE IF NOT EXISTS SIMULATED_FUNCTION_CALLS (\
+    id INTEGER PRIMARY KEY AUTOINCREMENT,\
+    function_call_hash TEXT NOT NULL,\
+    returns_2_freq BLOB NOT NULL\
     );"
 
     banco.executarComandoSQLSemRetorno(stmt)
