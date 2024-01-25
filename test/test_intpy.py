@@ -92,6 +92,26 @@ class TestIntPy(unittest.TestCase):
         with patch('intpy.get_id', return_value='function_call_hash'):
             self.assertTrue(intpy._function_call_maybe_deterministic(func, [1, 2], {}))    
 
+    def test_simulate_func_exec_func_with_four_possible_returns_returning_first_value(self):
+        with patch('random.random', return_value=0.1):
+            returns_2_freq = {1:0.2, 3:0.4, 5:0.1, 7:0.3}
+            self.assertEqual(intpy._simulate_func_exec(returns_2_freq), 1)
+
+    def test_simulate_func_exec_func_with_four_possible_returns_returning_third_value(self):
+        with patch('random.random', return_value=0.61):
+            returns_2_freq = {1:0.2, 3:0.4, 5:0.1, 7:0.3}
+            self.assertEqual(intpy._simulate_func_exec(returns_2_freq), 5)
+
+    def test_simulate_func_exec_func_with_four_possible_returns_returning_fourth_value(self):
+        with patch('random.random', return_value=0.8):
+            returns_2_freq = {1:0.2, 3:0.4, 5:0.1, 7:0.3}
+            self.assertEqual(intpy._simulate_func_exec(returns_2_freq), 7)
+
+    def test_simulate_func_exec_func_when_sorted_number_is_in_the_limit_to_select_a_value(self):
+        with patch('random.random', return_value=0.6):
+            returns_2_freq = {1:0.2, 3:0.4, 5:0.1, 7:0.3}
+            self.assertEqual(intpy._simulate_func_exec(returns_2_freq), 3)
+
 def func(x, y):
     return x / y
 

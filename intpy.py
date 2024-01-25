@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, random
 sys.path.append(os.path.dirname(__file__))
 
 from constantes import Constantes
@@ -12,11 +12,11 @@ if Constantes().g_argsp_no_cache:
 else:
     import time
     from functools import wraps
-    from typing import Callable, List, Dict
+    from typing import Callable, List, Dict, Optional
 
     from logger.log import debug
     from util import get_content_json_file
-    from data_access import get_cache_data, get_simulated_function, add_to_cache, close_data_access, init_data_access, add_to_metadata, get_id
+    from data_access import get_cache_data, get_function_call_return_freqs, add_to_cache, close_data_access, init_data_access, add_to_metadata, get_id
 
     def execute_intpy(f):
         @wraps(f)
@@ -39,19 +39,31 @@ else:
         def wrapper(*method_args, **method_kwargs):
             debug("calling {0}".format(f.__name__))
             c = _get_cache(f, method_args)
-            func = _get_simulated_function()
-            if not _cache_exists(c):
+            returns_2_freq = _get_function_call_return_freqs(f, method_args, method_kwargs)
+            if _cache_exists(c):
+                debug("cache hit for {0}({1})".format(f.__name__, *method_args))
+                return c
+            if _returns_exist(returns_2_freq):
+                debug("simulating {0}({1})".format(f.__name__, *method_args))
+                ret = _simulate_func_exec(returns_2_freq)
+                return ret
+            else:
                 debug("cache miss for {0}({1})".format(f.__name__, *method_args))
                 return_value, elapsed_time = _execute_func(f, *method_args, **method_kwargs)
                 if _function_call_maybe_deterministic(f, method_args, method_kwargs):
                     debug("{0}({1} may be deterministic!)".format(f.__name__, *method_args))
                     _save_metadata(f, method_args, method_kwargs, return_value, elapsed_time)
                 return return_value
-            else:
-                debug("cache hit for {0}({1})".format(f.__name__, *method_args))
-                return c
         return wrapper
 
+
+    def _simulate_func_exec(returns_2_freq:Dict):
+        sorted_num = random.random()
+        sum = 0
+        for value, freq in returns_2_freq.items():
+            sum += freq
+            if sorted_num <= sum:
+                return value
 
     def _function_call_maybe_deterministic(func: Callable, func_args:List, func_kwargs:Dict) -> bool:
         func_hash = Constantes().FUNCTIONS_2_HASHES[func.__qualname__]
@@ -79,14 +91,18 @@ else:
         fun_hash = Constantes().FUNCTIONS_2_HASHES[func.__qualname__]
         return get_cache_data(func.__name__, args, fun_hash, Constantes().g_argsp_m)
 
-    #TODO
-    def _get_simulated_function(f, args:List, kwargs:Dict):
+
+    def _get_function_call_return_freqs(f, args:List, kwargs:Dict) -> Optional[Dict]:
         f_hash = Constantes().FUNCTIONS_2_HASHES[f.__qualname__]
-        return get_simulated_function(f.__name__, args, f_hash, Constantes().g_argsp_m)
+        return get_function_call_return_freqs(f_hash, args, kwargs)
 
 
-    def _cache_exists(cache):
+    def _cache_exists(cache) -> bool:
         return cache is not None
+
+
+    def _returns_exist(rets_2_freq:Optional[Dict]) -> bool:
+        return rets_2_freq is not None
 
 
     def _execute_func(f, self, *method_args, **method_kwargs):
