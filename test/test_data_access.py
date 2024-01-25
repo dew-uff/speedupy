@@ -6,7 +6,7 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 from constantes import Constantes
-from data_access import get_already_classified_functions, get_id, add_to_metadata, add_to_dont_cache_function_calls, add_to_simulated_function_calls, _save_new_metadata, _save_new_dont_cache_function_calls, _save_new_simulated_function_calls, _populate_dont_cache_function_calls_list, remove_metadata, get_all_saved_metadata_of_a_function_group_by_function_call_hash
+from data_access import get_already_classified_functions, get_id, add_to_metadata, add_to_dont_cache_function_calls, add_to_simulated_function_calls, _save_new_metadata, _save_new_dont_cache_function_calls, _save_new_simulated_function_calls, _populate_dont_cache_function_calls_list, _populate_simulated_function_calls_dict, remove_metadata, get_all_saved_metadata_of_a_function_group_by_function_call_hash
 from entities.Metadata import Metadata
 
 class TestDataAccess(unittest.TestCase):
@@ -66,6 +66,7 @@ class TestDataAccess(unittest.TestCase):
         Constantes().g_argsp_hash = ["md5"]
         Constantes().NEW_DONT_CACHE_FUNCTION_CALLS = []
         Constantes().NEW_SIMULATED_FUNCTION_CALLS = {}
+        Constantes().SIMULATED_FUNCTION_CALLS = {}
 
     def tearDown(self):
         for table in ["CLASSIFIED_FUNCTIONS", "SIMULATED_FUNCTION_CALLS", "METADATA", "DONT_CACHE_FUNCTION_CALLS"]:
@@ -412,6 +413,36 @@ class TestDataAccess(unittest.TestCase):
         Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, [hash1, hash2, hash3])
         _populate_dont_cache_function_calls_list()
         self.assertListEqual(Constantes().DONT_CACHE_FUNCTION_CALLS, [hash1, hash2, hash3])
+
+    def test_populate_simulated_function_calls_dict_when_table_is_empty(self):
+        _populate_simulated_function_calls_dict()
+        self.assertDictEqual(Constantes().SIMULATED_FUNCTION_CALLS, {})
+
+    def test_populate_simulated_function_calls_dict_when_table_has_one_record(self):
+        hash = 'func_call_hash'
+        returns_2_freq = {10:3, False:4}
+        sql = "INSERT INTO SIMULATED_FUNCTION_CALLS(function_call_hash, returns_2_freq) VALUES (?, ?)"
+        sql_params = [hash, pickle.dumps(returns_2_freq)]
+        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
+        _populate_simulated_function_calls_dict()
+        self.assertDictEqual(Constantes().SIMULATED_FUNCTION_CALLS, {hash:returns_2_freq})
+
+    def test_populate_simulated_function_calls_dict_when_table_has_many_records(self):
+        hash1 = 'func_call_hash1'
+        returns_2_freq1 = {10:3, False:4}
+        hash2 = 'func_call_hash2'
+        returns_2_freq2 = {1.231:4}
+        hash3 = 'func_call_hash3'
+        returns_2_freq3 = {5:3, 'teste':4}
+        sql = "INSERT INTO SIMULATED_FUNCTION_CALLS(function_call_hash, returns_2_freq) VALUES (?, ?), (?, ?), (?, ?)"
+        sql_params = [hash1, pickle.dumps(returns_2_freq1),
+                      hash2, pickle.dumps(returns_2_freq2),
+                      hash3, pickle.dumps(returns_2_freq3)]
+        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
+        _populate_simulated_function_calls_dict()
+        self.assertDictEqual(Constantes().SIMULATED_FUNCTION_CALLS, {hash1:returns_2_freq1,
+                                                                     hash2:returns_2_freq2,
+                                                                     hash3:returns_2_freq3})
 
 if __name__ == '__main__':
     unittest.main()

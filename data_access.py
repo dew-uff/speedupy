@@ -364,7 +364,6 @@ def remove_metadata(metadata:List[Metadata]) -> None:
     sql = sql[:-1] + ')'
     Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
 
-#TODO UPDATE TESTS
 def init_data_access():
     _populate_cache_dictionaries()
     _populate_dont_cache_function_calls_list()
@@ -407,15 +406,9 @@ def _populate_dont_cache_function_calls_list():
     for func_call_hash in resp:
         Constantes().DONT_CACHE_FUNCTION_CALLS.append(func_call_hash[0])
 
-#TODO
 def _populate_simulated_function_calls_dict():
     sql = "SELECT function_call_hash, returns_2_freq FROM SIMULATED_FUNCTION_CALLS"
     resp = Constantes().CONEXAO_BANCO.executarComandoSQLSelect(sql)
     Constantes().SIMULATED_FUNCTION_CALLS = {}
     for func_call_hash, returns_2_freq in resp:
-        func = _create_simulation_function(returns_2_freq)
-        Constantes().SIMULATED_FUNCTION_CALLS[func_call_hash] = func
-
-#TODO
-def _create_simulation_function(returns_2_freq:Dict):
-    pass
+        Constantes().SIMULATED_FUNCTION_CALLS[func_call_hash] = pickle.loads(returns_2_freq)
