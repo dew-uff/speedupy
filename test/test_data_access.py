@@ -6,7 +6,7 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 from constantes import Constantes
-from data_access import get_already_classified_functions, get_id, add_to_metadata, add_to_dont_cache_function_calls, add_to_simulated_function_calls, _save_new_metadata, _save_new_dont_cache_function_calls, _save_new_simulated_function_calls, _populate_dont_cache_function_calls_list, _populate_simulated_function_calls_dict, remove_metadata, get_all_saved_metadata_of_a_function_group_by_function_call_hash
+from data_access import get_already_classified_functions, get_id, add_to_metadata, add_to_dont_cache_function_calls, add_to_simulated_function_calls, _save_new_metadata, _save_new_dont_cache_function_calls, _save_new_simulated_function_calls, _populate_dont_cache_function_calls_list, _populate_simulated_function_calls_dict, remove_metadata, get_all_saved_metadata_of_a_function_group_by_function_call_hash, get_function_call_return_freqs
 from entities.Metadata import Metadata
 
 class TestDataAccess(unittest.TestCase):
@@ -443,6 +443,16 @@ class TestDataAccess(unittest.TestCase):
         self.assertDictEqual(Constantes().SIMULATED_FUNCTION_CALLS, {hash1:returns_2_freq1,
                                                                      hash2:returns_2_freq2,
                                                                      hash3:returns_2_freq3})
+
+    def test_get_function_call_return_freqs_when_function_isnt_simulated(self):
+        self.assertIsNone(get_function_call_return_freqs("func_hash", (1,), {'a':False}))        
+
+    def test_get_function_call_return_freqs_when_function_is_simulated(self):
+        id = self.manually_get_id("func_hash", (1,), {'a':False})
+        Constantes().SIMULATED_FUNCTION_CALLS = {id:{'a':0.5, 'b':0.5}}
+        
+        ret_2_freq = get_function_call_return_freqs("func_hash", (1,), {'a':False})
+        self.assertDictEqual(ret_2_freq, {'a':0.5, 'b':0.5})
 
 if __name__ == '__main__':
     unittest.main()

@@ -5,7 +5,7 @@ import threading
 import mmh3
 import xxhash
 
-from typing import Dict, List
+from typing import Dict, List, Tuple, Optional
 from banco import Banco
 from logger.log import debug, warn
 from constantes import Constantes
@@ -208,9 +208,13 @@ def get_cache_data(fun_name, fun_args, fun_source, argsp_v):
         ret_get_cache_data_v027x = _get_cache_data_v027x(id)
         return ret_get_cache_data_v027x
 
-#TODO
-def get_simulated_function(fun_name, fun_args, fun_source):
-    pass
+
+def get_function_call_return_freqs(fun_source:str, fun_args:Tuple, fun_kwargs:Dict) -> Optional[Dict]:
+    try:
+        func_call_hash = get_id(fun_source, fun_args, fun_kwargs)
+        return Constantes().SIMULATED_FUNCTION_CALLS[func_call_hash]
+    except KeyError:
+        return None
 
 
 def add_new_data_to_CACHED_DATA_DICTIONARY(list_file_names):
