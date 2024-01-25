@@ -172,12 +172,12 @@ class TestFunctionService(unittest.TestCase):
     def test_get_metadata_statistics_func_completely_deterministic(self):
         metadata = 20*[Metadata('func_hash', (1,), {'a':True}, -8, 1.4123)]
         stats = _get_metadata_statistics(metadata)
-        self.assertDictEqual(stats['values_2_freq'], {-8:20})
+        self.assertDictEqual(stats['values_2_freq'], {-8:1})
         self.assertEqual(round(stats['mean_exec_time'], 2), 1.41)
         self.assertEqual(stats['most_common_ret'], -8)
         self.assertEqual(round(stats['error_rate'], 2), 0.00)
 
-    def test_get_metadata_statistic_func_with_different_results_but_one_more_frequent(self):
+    def test_get_metadata_statistics_func_with_different_results_but_one_more_frequent(self):
         args = (1, 'a', True)
         kwargs = {'a':10, 'b':'teste'}
         md1 = Metadata('func_hash', args, kwargs, -8, 1.4153)
@@ -186,12 +186,12 @@ class TestFunctionService(unittest.TestCase):
 
         metadata = 6*[md1] + 3*[md2] + [md3]
         stats = _get_metadata_statistics(metadata)
-        self.assertDictEqual(stats['values_2_freq'], {-8:6, 0:3, 3:1})
+        self.assertDictEqual(stats['values_2_freq'], {-8:0.6, 0:0.3, 3:0.1})
         self.assertEqual(round(stats['mean_exec_time'], 2), 2.5)
         self.assertEqual(stats['most_common_ret'], -8)
         self.assertEqual(round(stats['error_rate'], 2), 0.40)
 
-    def test_get_metadata_statistic_func_with_two_results_with_same_frequency(self):
+    def test_get_metadata_statistics_func_with_two_results_with_same_frequency(self):
         args = (1, 'a', True)
         kwargs = {'a':10, 'b':'teste'}
         md1 = Metadata('func_hash', args, kwargs, -8, 1.4153)
@@ -199,12 +199,12 @@ class TestFunctionService(unittest.TestCase):
 
         metadata = 6*[md1] + 6*[md2]
         stats = _get_metadata_statistics(metadata)
-        self.assertDictEqual(stats['values_2_freq'], {-8:6, 0:6})
+        self.assertDictEqual(stats['values_2_freq'], {-8:0.5, 0:0.5})
         self.assertEqual(round(stats['mean_exec_time'], 2), 2.36)
         self.assertEqual(stats['most_common_ret'], -8)
         self.assertEqual(round(stats['error_rate'], 2), 0.50)
 
-    def test_get_metadata_statistic_func_returns_complex_object(self):
+    def test_get_metadata_statistics_func_returns_complex_object(self):
         args = (1, 'a', True)
         kwargs = {'a':10, 'b':'teste'}
         md1 = Metadata('func_hash', args, kwargs, MinhaClasse(1, 10), 1.4153)
@@ -221,6 +221,7 @@ class TestFunctionService(unittest.TestCase):
             self.assertIsInstance(rets_gotten[i], MinhaClasse)
             self.assertEqual(rets_gotten[i].x, expected_rets[i].x)
             self.assertEqual(rets_gotten[i].y, expected_rets[i].y)
+        self.assertListEqual(list(stats['values_2_freq'].values()), [0.7, 0.2, 0.1])
         self.assertIsInstance(stats['most_common_ret'], MinhaClasse)
         self.assertEqual(stats['most_common_ret'].x, 1)
         self.assertEqual(stats['most_common_ret'].y, 10)

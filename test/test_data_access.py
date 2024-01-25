@@ -218,7 +218,7 @@ class TestDataAccess(unittest.TestCase):
         f_args = [1, True]
         f_kwargs = {'a':10, 'b': 'teste', 'c':[1, -2, 3.26]}
         fc_hash1 = self.manually_get_id(f_hash, f_args, f_kwargs)
-        returns_2_freq1 = {10:2, 8:3, 7:5}
+        returns_2_freq1 = {10:0.3, 8:0.3, 7:0.4}
         add_to_simulated_function_calls(f_hash, f_args, f_kwargs, returns_2_freq1)
         self.assertDictEqual(Constantes().NEW_SIMULATED_FUNCTION_CALLS, {fc_hash1:returns_2_freq1})
 
@@ -226,7 +226,7 @@ class TestDataAccess(unittest.TestCase):
         f_args = []
         f_kwargs = {'a':-3, 'c':{1, -2, 3.26}}
         fc_hash2 = self.manually_get_id(f_hash, f_args, f_kwargs)
-        returns_2_freq2 = {True:100, False:3, None:10}
+        returns_2_freq2 = {True:0.9, False:0.05, 10:0.05}
         add_to_simulated_function_calls(f_hash, f_args, f_kwargs, returns_2_freq2)
         self.assertDictEqual(Constantes().NEW_SIMULATED_FUNCTION_CALLS,{fc_hash1:returns_2_freq1,
                                                                         fc_hash2:returns_2_freq2})
@@ -420,7 +420,7 @@ class TestDataAccess(unittest.TestCase):
 
     def test_populate_simulated_function_calls_dict_when_table_has_one_record(self):
         hash = 'func_call_hash'
-        returns_2_freq = {10:3, False:4}
+        returns_2_freq = {10:0.3, False:0.6}
         sql = "INSERT INTO SIMULATED_FUNCTION_CALLS(function_call_hash, returns_2_freq) VALUES (?, ?)"
         sql_params = [hash, pickle.dumps(returns_2_freq)]
         Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
@@ -429,11 +429,11 @@ class TestDataAccess(unittest.TestCase):
 
     def test_populate_simulated_function_calls_dict_when_table_has_many_records(self):
         hash1 = 'func_call_hash1'
-        returns_2_freq1 = {10:3, False:4}
+        returns_2_freq1 = {10:0.3, False:0.6}
         hash2 = 'func_call_hash2'
-        returns_2_freq2 = {1.231:4}
+        returns_2_freq2 = {1.231:1}
         hash3 = 'func_call_hash3'
-        returns_2_freq3 = {5:3, 'teste':4}
+        returns_2_freq3 = {5:0.8, 'teste':0.2}
         sql = "INSERT INTO SIMULATED_FUNCTION_CALLS(function_call_hash, returns_2_freq) VALUES (?, ?), (?, ?), (?, ?)"
         sql_params = [hash1, pickle.dumps(returns_2_freq1),
                       hash2, pickle.dumps(returns_2_freq2),

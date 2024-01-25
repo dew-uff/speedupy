@@ -105,6 +105,8 @@ def _get_metadata_statistics(func_call_metadata:List[Metadata]) -> Dict:
         mean_exec_time += md.execution_time
     mean_exec_time /= len(func_call_metadata)
     error_rate = 1 - values_2_freq[most_common_ret] / len(func_call_metadata)
+    for value in values_2_freq:
+        values_2_freq[value] /= len(func_call_metadata)
 
     stats = {'values_2_freq':values_2_freq,
              'mean_exec_time':mean_exec_time,
