@@ -12,11 +12,13 @@ from data_access import close_data_access
 def start_inference_engine(f):
     @wraps(f)
     def execution(*method_args, **method_kwargs):
+        print("Inferindo funções...")
         Constantes().set_paths_for_executing_inside_temp_folder()
         experiment, functions_2_hashes = _get_experiment_and_functions_2_hashes()
         classify_experiment_functions(experiment, functions_2_hashes)
         #####TODO Calculate error rate and confidence interval
         close_data_access()
+        print("Inferência de funções concluída!")
     return execution
 
 def _get_experiment_and_functions_2_hashes() -> Tuple[Experiment, Dict[str, str]]:

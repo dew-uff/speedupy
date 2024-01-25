@@ -31,17 +31,6 @@ def _is_common_intpy_decorator(decorator:Union[ast.Call, ast.Name]) -> bool:
 def execute_and_classify_function(module, function:ast.FunctionDef, functions_2_hashes:Dict[str, str]) -> None:
     func_hash = functions_2_hashes[function.qualname]
     func_calls_2_metadata = get_all_saved_metadata_of_a_function_group_by_function_call_hash(func_hash)
-
-    ####DEBUG
-    print("TRY EXECUTING FUNCTION!")
-    print(f"function.name: {function.name}")
-    print(f"function.qualname: {function.qualname}")
-    print(f"len(func_calls_2_metadata): {len(func_calls_2_metadata)}")
-    for a in func_calls_2_metadata:
-        print(f"{a}: {len(func_calls_2_metadata[a])}")
-    print("#############################")
-    ####
-    
     for func_call in func_calls_2_metadata:
         func_call_md = func_calls_2_metadata[func_call]
         _try_execute_func(module, function.name, func_call, func_call_md)
@@ -61,9 +50,6 @@ def _try_execute_func(module, function_name:str, func_call_hash:str, func_call_m
             elapsed_time = end - start
             md = Metadata(func_call_hash, args, kwargs, ret, elapsed_time)
             func_call_metadata.append(md)
-
-            print(f"{function_name}({args}, {kwargs}): {ret}")
-
     except Exception:
         pass
 
