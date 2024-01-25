@@ -33,7 +33,7 @@ else:
     def _get_experiment_function_hashes():
         Constantes().FUNCTIONS_2_HASHES = get_content_json_file(Constantes().EXP_FUNCTIONS_FILENAME)
 
-    #TODO UPDATE TESTS
+    
     def maybe_deterministic(f):
         @wraps(f)
         def wrapper(*method_args, **method_kwargs):

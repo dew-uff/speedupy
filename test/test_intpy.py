@@ -45,32 +45,59 @@ class TestIntPy(unittest.TestCase):
         Constantes().FUNCTIONS_2_HASHES = {func.__qualname__:"func_hash"}
         Constantes().DONT_CACHE_FUNCTION_CALLS = ["hash1"]
         with patch('intpy.get_cache_data', return_value=2) as get_cache_data, \
-             patch('intpy.get_id', return_value="func_call_hash") as get_id, \
-             patch('intpy.add_to_metadata', return_value=None) as add_to_metadata:
+             patch('intpy.get_function_call_return_freqs', return_value=None) as get_func_call_return_freqs, \
+             patch('random.random') as random, \
+             patch('intpy.get_id') as get_id, \
+             patch('intpy.add_to_metadata') as add_to_metadata:
             self.assertEqual(intpy.maybe_deterministic(func)(8, 4), 2)
             get_cache_data.assert_called_once()
+            get_func_call_return_freqs.assert_called_once()
+            random.assert_not_called()
             get_id.assert_not_called()
             add_to_metadata.assert_not_called()
 
-    def test_maybe_deterministic_when_cache_miss_and_function_call_in_DONT_CACHE_FUNCTION_CALLS(self):
-        Constantes().FUNCTIONS_2_HASHES = {func.__qualname__:"func_hash"}
-        Constantes().DONT_CACHE_FUNCTION_CALLS = ["hash1", "func_call_hash"]
-        with patch('intpy.get_cache_data', return_value=None) as get_cache_data, \
-             patch('intpy.get_id', return_value="func_call_hash") as get_id, \
-             patch('intpy.add_to_metadata', return_value=None) as add_to_metadata:
-            self.assertEqual(intpy.maybe_deterministic(func)(8, 4), 2)
-            get_cache_data.assert_called_once()
-            get_id.assert_called_once()
-            add_to_metadata.assert_not_called()
-
-    def test_maybe_deterministic_when_cache_miss_and_function_call_not_in_DONT_CACHE_FUNCTION_CALLS(self):
+    def test_maybe_deterministic_when_function_call_is_simulated(self):
         Constantes().FUNCTIONS_2_HASHES = {func.__qualname__:"func_hash"}
         Constantes().DONT_CACHE_FUNCTION_CALLS = ["hash1"]
         with patch('intpy.get_cache_data', return_value=None) as get_cache_data, \
-             patch('intpy.get_id', return_value="func_call_hash") as get_id, \
+             patch('intpy.get_function_call_return_freqs', return_value={0:0.5, 1:0.5}) as get_func_call_return_freqs, \
+             patch('random.random', return_value=0.6) as random, \
+             patch('intpy.get_id') as get_id, \
+             patch('intpy.add_to_metadata') as add_to_metadata:
+            self.assertEqual(intpy.maybe_deterministic(func)(8, 4), 1)
+            get_cache_data.assert_called_once()
+            get_func_call_return_freqs.assert_called_once()
+            random.assert_called_once()
+            get_id.assert_not_called()
+            add_to_metadata.assert_not_called()
+
+    def test_maybe_deterministic_when_function_call_in_DONT_CACHE_FUNCTION_CALLS(self):
+        Constantes().FUNCTIONS_2_HASHES = {func.__qualname__:"func_hash"}
+        Constantes().DONT_CACHE_FUNCTION_CALLS = ["hash1", "func_call_hash"]
+        with patch('intpy.get_cache_data', return_value=None) as get_cache_data, \
+             patch('intpy.get_function_call_return_freqs', return_value=None) as get_func_call_return_freqs, \
+             patch('random.random') as random, \
+             patch('intpy.get_id', return_value='func_call_hash') as get_id, \
+             patch('intpy.add_to_metadata') as add_to_metadata:
+            self.assertEqual(intpy.maybe_deterministic(func)(8, 4), 2)
+            get_cache_data.assert_called_once()
+            get_func_call_return_freqs.assert_called_once()
+            random.assert_not_called()
+            get_id.assert_called_once()
+            add_to_metadata.assert_not_called()
+
+    def test_maybe_deterministic_when_function_need_to_execute_and_can_collect_metadata(self):
+        Constantes().FUNCTIONS_2_HASHES = {func.__qualname__:"func_hash"}
+        Constantes().DONT_CACHE_FUNCTION_CALLS = ["hash1"]
+        with patch('intpy.get_cache_data', return_value=None) as get_cache_data, \
+             patch('intpy.get_function_call_return_freqs', return_value=None) as get_func_call_return_freqs, \
+             patch('random.random') as random, \
+             patch('intpy.get_id', return_value='func_call_hash') as get_id, \
              patch('intpy.add_to_metadata', return_value=None) as add_to_metadata:
             self.assertEqual(intpy.maybe_deterministic(func)(8, 4), 2)
             get_cache_data.assert_called_once()
+            get_func_call_return_freqs.assert_called_once()
+            random.assert_not_called()
             get_id.assert_called_once()
             add_to_metadata.assert_called_once()
  
