@@ -10,16 +10,11 @@ import intpy
 
 class TestIntPy(unittest.TestCase):
     def setUp(self):
-        Constantes().g_argsp_no_cache = False
+        Constantes().g_argsp_exec_mode = 'accurate'
         importlib.reload(intpy)
         Constantes().FUNCTIONS_2_HASHES = {}
         Constantes().DONT_CACHE_FUNCTION_CALLS = []
 
-    def test_deterministic_when_executing_speedupy_with_no_cache_arg(self):
-        Constantes().g_argsp_no_cache = True
-        importlib.reload(intpy)
-        self.assertEqual(func, intpy.deterministic(func))
-    
     def test_deterministic_when_cache_hit(self):
         Constantes().FUNCTIONS_2_HASHES = {func.__qualname__:"func_hash"}
         with patch('intpy.get_cache_data', return_value=2) as get_cache_data, \
@@ -35,11 +30,6 @@ class TestIntPy(unittest.TestCase):
             self.assertEqual(intpy.deterministic(func)(8, 4), 2)
             get_cache_data.assert_called_once()
             add_to_cache.assert_called_once()
-        
-    def test_maybe_deterministic_when_executing_speedupy_with_no_cache_arg(self):
-        Constantes().g_argsp_no_cache = True
-        importlib.reload(intpy)
-        self.assertEqual(func, intpy.maybe_deterministic(func))
 
     def test_maybe_deterministic_when_cache_hit(self):
         Constantes().FUNCTIONS_2_HASHES = {func.__qualname__:"func_hash"}

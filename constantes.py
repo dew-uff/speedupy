@@ -25,7 +25,8 @@ class Constantes(metaclass=SingletonMeta):
         self.g_argsp_m, \
         self.g_argsp_M, \
         self.g_argsp_s, \
-        self.g_argsp_no_cache, \
+        self.g_argsp_exec_mode, \
+        self.g_argsp_strategy, \
         self.g_argsp_hash, \
         self.g_argsp_inputs, \
         self.g_argsp_outputs = get_params()

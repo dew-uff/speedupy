@@ -1,4 +1,5 @@
-import unittest, unittest.mock, os, sys, importlib, copy
+import unittest, os, sys, importlib, copy, io
+from unittest.mock import patch
 
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
@@ -7,13 +8,11 @@ sys.path.append(parent)
 from constantes import Constantes
 import initialize_intpy
 
-g_argsp_no_cache = True
-g_argsp_m = None
-
 class TestInitializeIntPy(unittest.TestCase):
     def setUp(self):
         Constantes().g_argsp_m = ['2d-ad']
-        Constantes().g_argsp_no_cache = False
+        Constantes().g_argsp_exec_mode = 'manual'
+        Constantes().g_argsp_strategy = None
         Constantes().g_argsp_inputs = []
         Constantes().g_argsp_outputs = []
 
@@ -31,21 +30,58 @@ class TestInitializeIntPy(unittest.TestCase):
             self.assertTrue(os.path.exists(expected_f['filename']))
             with open(expected_f['filename']) as opened_f:
                 self.assertEqual(opened_f.read(), expected_f['data'])
-            
-    def test_initialize_intpy_decorator(self):
-        Constantes().g_argsp_m = None
-        Constantes().g_argsp_no_cache = True
-        importlib.reload(initialize_intpy)
-        
-        self.aux = 0
-        def my_function(value):
-            self.aux = value
-                
-        my_function(10)
-        self.assertEqual(self.aux, 10)
 
-        initialize_intpy.initialize_intpy(__file__)(my_function)(-3)
-        self.assertEqual(self.aux, -3)
+    def test_validate_user_args_with_correct_args(self):
+        Constantes().g_argsp_m = ['2d-ad']
+        Constantes().g_argsp_exec_mode = 'manual'
+        importlib.reload(initialize_intpy)
+        self.assertEqual(Constantes().g_argsp_exec_mode, 'manual')
+        self.assertEqual(Constantes().g_argsp_m, ['2d-ad'])
+        
+    def test_validate_user_args_without_exec_mode_nor_strategy(self):
+        Constantes().g_argsp_m = ['2d-ad']
+        Constantes().g_argsp_exec_mode = None
+        Constantes().g_argsp_strategy = None
+        importlib.reload(initialize_intpy)
+        self.assertEqual(Constantes().g_argsp_exec_mode, 'manual')
+        self.assertIsNone(Constantes().g_argsp_strategy)
+
+    def test_validate_user_args_without_exec_mode_but_with_strategy(self):
+        Constantes().g_argsp_m = ['2d-ad']
+        Constantes().g_argsp_exec_mode = None
+        Constantes().g_argsp_strategy = 'counting'
+        importlib.reload(initialize_intpy)
+        self.assertEqual(Constantes().g_argsp_exec_mode, 'probabilistic')
+        self.assertEqual(Constantes().g_argsp_strategy, 'counting')
+
+    def test_validate_user_args_with_probabilistic_mode_without_strategy(self):
+        Constantes().g_argsp_m = ['2d-ad']
+        Constantes().g_argsp_exec_mode = 'probabilistic'
+        Constantes().g_argsp_strategy = None
+        importlib.reload(initialize_intpy)
+        self.assertEqual(Constantes().g_argsp_exec_mode, 'probabilistic')
+        self.assertEqual(Constantes().g_argsp_strategy, 'error')
+
+    @patch('sys.stdout', new_callable=io.StringIO)
+    def test_validate_user_args_with_strategy_and_exec_mode_non_probabilistic(self, stdout_mock):
+        Constantes().g_argsp_m = ['2d-ad']
+        Constantes().g_argsp_exec_mode = 'manual'
+        Constantes().g_argsp_strategy = 'counting'
+        self.assertRaises(SystemExit, importlib.reload, initialize_intpy)
+
+    @patch('sys.stdout', new_callable=io.StringIO)
+    def test_validate_user_args_without_architecture_but_using_cache(self, stdout_mock):
+        Constantes().g_argsp_m = None
+        Constantes().g_argsp_exec_mode = 'manual'
+        self.assertRaises(SystemExit, importlib.reload, initialize_intpy)
+
+    def test_initialize_intpy_decorator_on_no_cache_exec_mode(self):
+        def my_function(value):
+            return 2*value
+        Constantes().g_argsp_m = None
+        Constantes().g_argsp_exec_mode = 'no-cache'
+        importlib.reload(initialize_intpy)
+        self.assertEqual(my_function, initialize_intpy.initialize_intpy(__file__)(my_function))
 
     def test_copy_input_when_experiment_doesnt_have_input(self):
         Constantes().g_argsp_inputs = []

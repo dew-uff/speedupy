@@ -10,7 +10,19 @@ To run in the IntPy DEBUG mode use:\n\
 $ DEBUG=True python "+str(sys.argv[0])+" program_arguments [-h, --help] [-g, --glossary] [-m memory|help, --memory memory|help] [-0, --no-cache] [-H type|help, --hash type|help] [-M method|help, --marshalling method|help] [-s form|help, --storage form|help]\n\n\
 "
 def glossary_msg():
-    return hashes_msg() + marshalling_msg() + storage_msg() + memory_msg()
+    return exec_mode_msg() + strategy_msg() + hashes_msg() + marshalling_msg() + storage_msg() + memory_msg()
+
+def exec_mode_msg():
+    return "Defines how SpeeduPy will execute:\n\
+            =>no-cache      : SpeeduPy will cache no functions\n\
+            =>manual        : SpeeduPy only caches the functions annotated by the user with @deterministic\n\
+            =>accurate      : SpeedUpy looks for statistically pure functions and only caches function calls that always returned the same output\n\
+            =>probabilistic : SpeedUpy looks for statistically pure functions and caches function calls that sometimes returned different outputs, according to the policy set on --strategy param\n"
+
+def strategy_msg():
+    return "Defines SpeeduPy\'s policy for caching function calls when executing in probabilistic mode\n\
+            =>error    : SpeeduPy only caches function calls that introduce errors up to a user-specified limit\n\
+            =>counting : SpeeduPy only caches function calls whose most produced output occurred at least a minimum percentage of times defined by the user\n"
 
 def hashes_msg():
     return "\nHashes: \n\
@@ -19,6 +31,7 @@ def hashes_msg():
     =>xxhash: is a modern non-cryptographic hash function with a lower collision resistence and better performance compered to murmur.\n\
     usage: $ python "+str(sys.argv[0])+" program_arguments -H|--hash options\
     \n"
+
 def marshalling_msg():
     return "Marshalling:\n\
     =>Pickle:\n\
@@ -49,21 +62,37 @@ def memory_msg():
 
 def get_params():
     memories = ['help','ad', '1d-ow', '1d-ad', '2d-ad', '2d-ad-t', '2d-ad-f', '2d-ad-ft', '2d-lz']
-
     hashes = ['help','md5', 'murmur', 'xxhash']
-
     marshals = ['help','pickle']
-
     storageOptions = ['help','db-file','db','file']
+    exec_modes = ['no-cache', 'manual', 'accurate', 'probabilistic']
+    prob_mode_strategies = ['counting', 'error']
 
     intpy_arg_parser = argparse.ArgumentParser(usage=usage_msg())
 
+    intpy_arg_parser.add_argument('-g',
+                                  '--glossary',
+                                  default=False,
+                                  action='store_true',
+                                  help='show details of SpeedUpy versions')
     
     intpy_arg_parser.add_argument('args',
                                    metavar='program arguments',
                                    nargs='*',
                                    type=str, 
                                    help='program arguments')
+        
+    intpy_arg_parser.add_argument('--exec-mode',
+                                  choices=exec_modes,
+                                  default=None,
+                                  nargs=1,
+                                  help='Defines how SpeeduPy will execute')
+    
+    intpy_arg_parser.add_argument('--strategy',
+                                  choices= prob_mode_strategies,
+                                  default=None,
+                                  nargs=1,
+                                  help='Defines SpeeduPy\'s policy for caching function calls when executing in probabilistic mode')
     
     intpy_arg_parser.add_argument('-m',
                                   '--memory',
@@ -82,18 +111,6 @@ def get_params():
                                    default=['md5'],
                                    help='SpeedUpy\'s mechanism of hashes: choose one of the following options: '+', '.join(hashes))
     
-    intpy_arg_parser.add_argument('-g',
-                                  '--glossary',
-                                  default=False,
-                                  action='store_true',
-                                  help='show details of SpeedUpy versions')
-   
-    intpy_arg_parser.add_argument('-0',
-                                  '--no-cache',
-                                  default=False,
-                                  action="store_true",
-                                  help='SpeedUpy\'s disable cache')
-
     intpy_arg_parser.add_argument('-M',
                                   '--marshalling',
                                    choices=marshals,
@@ -133,19 +150,16 @@ def get_params():
         sys.exit()
 
     argsp_exp_args = args.args
+
+    argsp_exec_mode = args.exec_mode
+    argsp_strategy = args.strategy
     
     argsp_m = args.memory
-
     argsp_s = args.storage
-
     argsp_M = args.marshalling
-
-    argsp_no_cache = args.no_cache
-
     argsp_hash = args.hash
 
     argsp_inputs = args.inputs
-
     argsp_outputs = args.outputs
 
     if str(argsp_m[0]) == 'help' or str(argsp_M[0]) == 'help' or str(argsp_hash[0]) == 'help' or str(argsp_s[0]) == 'help':
@@ -162,7 +176,7 @@ def get_params():
             print(storage_msg())
         sys.exit()
 
-    return argsp_exp_args, argsp_m, argsp_M, argsp_s, argsp_no_cache, argsp_hash, argsp_inputs, argsp_outputs
+    return argsp_exp_args, argsp_m, argsp_M, argsp_s, argsp_exec_mode, argsp_strategy, argsp_hash, argsp_inputs, argsp_outputs
 
 
 """
