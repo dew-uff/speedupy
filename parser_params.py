@@ -92,6 +92,12 @@ def get_params():
                                   nargs=1,
                                   help='defines SpeeduPy\'s policy for caching function calls when executing in probabilistic mode')
     
+    speedupy_arg_parser.add_argument('--min-num-exec',
+                                  default=20,
+                                  type=int,
+                                  nargs=1,
+                                  help='defines them minimum number of times SpeeduPy\'s must execute a function call before trying to cache it')
+    
     speedupy_arg_parser.add_argument('-m',
                                   '--memory',
                                    choices=memories,
@@ -151,6 +157,7 @@ def get_params():
 
     argsp_exec_mode = args.exec_mode
     argsp_strategy = args.strategy
+    argsp_min_num_exec = args.min_num_exec
     
     argsp_m = args.memory
     argsp_s = args.storage
@@ -174,7 +181,7 @@ def get_params():
             print(storage_msg())
         sys.exit()
 
-    return argsp_exp_args, argsp_m, argsp_M, argsp_s, argsp_exec_mode, argsp_strategy, argsp_hash, argsp_inputs, argsp_outputs
+    return argsp_exp_args, argsp_m, argsp_M, argsp_s, argsp_exec_mode, argsp_strategy, argsp_min_num_exec, argsp_hash, argsp_inputs, argsp_outputs
 
 
 """
