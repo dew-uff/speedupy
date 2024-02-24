@@ -3,51 +3,48 @@ import sys
 
 
 def usage_msg():
-    return "\nIntPy's Python command line arguments help:\n\n\
-To run your experiment with IntPy use:\n\
-$ python "+str(sys.argv[0])+" program_arguments [-h, --help] [-g, --glossary] [-m memory|help, --memory memory|help] [-0, --no-cache] [-H type|help, --hash type|help] [-M method|help, --marshalling method|help] [-s form|help, --storage form|help]\n\n\
-To run in the IntPy DEBUG mode use:\n\
-$ DEBUG=True python "+str(sys.argv[0])+" program_arguments [-h, --help] [-g, --glossary] [-m memory|help, --memory memory|help] [-0, --no-cache] [-H type|help, --hash type|help] [-M method|help, --marshalling method|help] [-s form|help, --storage form|help]\n\n\
+    return "\nSpeeduPy's command line arguments help:\n\n\
+To run your experiment with SpeeduPy use:\n\
+$ python "+str(sys.argv[0])+" program_arguments [-h, --help] [-g, --glossary] [-m memory|help, --memory memory|help] [-H type|help, --hash type|help] [-M method|help, --marshalling method|help] [-s form|help, --storage form|help]\n\n\
+To run in the SpeeduPy DEBUG mode use:\n\
+$ DEBUG=True python "+str(sys.argv[0])+" program_arguments [-h, --help] [-g, --glossary] [-m memory|help, --memory memory|help] [-H type|help, --hash type|help] [-M method|help, --marshalling method|help] [-s form|help, --storage form|help]\n\n\
 "
 def glossary_msg():
     return exec_mode_msg() + strategy_msg() + hashes_msg() + marshalling_msg() + storage_msg() + memory_msg()
 
 def exec_mode_msg():
-    return "Defines how SpeeduPy will execute:\n\
-            =>no-cache      : SpeeduPy will cache no functions\n\
-            =>manual        : SpeeduPy only caches the functions annotated by the user with @deterministic\n\
-            =>accurate      : SpeedUpy looks for statistically pure functions and only caches function calls that always returned the same output\n\
-            =>probabilistic : SpeedUpy looks for statistically pure functions and caches function calls that sometimes returned different outputs, according to the policy set on --strategy param\n"
+    return "\nExecution Mode - Defines how SpeeduPy will execute:\n\
+    =>no-cache      : SpeeduPy will cache no functions\n\
+    =>manual        : SpeeduPy only caches the functions annotated by the user with @deterministic\n\
+    =>accurate      : SpeeduPy looks for statistically pure functions and only caches function calls that always returned the same output\n\
+    =>probabilistic : SpeeduPy looks for statistically pure functions and caches function calls that sometimes returned different outputs, according to the policy set on --strategy param\n"
 
 def strategy_msg():
-    return "Defines SpeeduPy\'s policy for caching function calls when executing in probabilistic mode\n\
-            =>error    : SpeeduPy only caches function calls that introduce errors up to a user-specified limit\n\
-            =>counting : SpeeduPy only caches function calls whose most produced output occurred at least a minimum percentage of times defined by the user\n"
+    return "\nStrategy - Defines SpeeduPy\'s policy for caching function calls when executing in probabilistic mode\n\
+    =>error    : SpeeduPy only caches function calls that introduce errors up to a user-specified limit\n\
+    =>counting : SpeeduPy only caches function calls whose most produced output occurred at least a minimum percentage of times defined by the user\n"
 
 def hashes_msg():
     return "\nHashes: \n\
     =>md5   : is a cryptographic hash fuction with a better collision resistence and lower performance compared to the others.\n\
     =>murmur: is a modern non-cryptographic hash function with a low collision rate and high performance.\n\
     =>xxhash: is a modern non-cryptographic hash function with a lower collision resistence and better performance compered to murmur.\n\
-    usage: $ python "+str(sys.argv[0])+" program_arguments -H|--hash options\
-    \n"
+    usage: $ python "+str(sys.argv[0])+" program_arguments -H|--hash options\n"
 
 def marshalling_msg():
-    return "Marshalling:\n\
+    return "\nMarshalling:\n\
     =>Pickle:\n\
-    usage: $ python "+str(sys.argv[0])+" program_arguments -M|--marshalling options\n\
-    \n"
+    usage: $ python "+str(sys.argv[0])+" program_arguments -M|--marshalling options\n"
 
 def storage_msg():
-    return "Storage:\n\
+    return "\nStorage:\n\
     =>db-file: use database and file to store data.\n\
     =>db     : use database to store data\n\
     =>file   : use file to store data.\n\
-    usage: $ python "+str(sys.argv[0])+" program_arguments -s|--storage options\
-    \n"
+    usage: $ python "+str(sys.argv[0])+" program_arguments -s|--storage options\n"
 
 def memory_msg():
-    return "Memory forms:\n\
+    return "\nMemory forms:\n\
     =>ad      : original version with some bug fixes and instrumentation, all data are stored directly in the database.\n\
     =>1d-ow   : one dicionary (1d), only write (ow), 1st implementation of dictionary: new data is added to the dictionary only when cache miss occur and the function decorated with @deterministic is executed.\n\
     =>1d-ad   : one dicionary (1d), all data loaded at the begining (ad), 2nd implementation of dictionary (uses 1 dictionary): at the begining of the execution all the data cached is loaded to the dictonary before the user script starts to run.\n\
@@ -56,8 +53,7 @@ def memory_msg():
     =>2d-ad-f : two dicionaries (2d), all data loaded at the begining of a function(ad-f), 5th implementation of dictionary (uses 2 dictionaries): when @deterministic is executed a select query is created to the database to bring all results of the function decorated with @deterministic stored in the cache. A list of functions already inserted to the dictionary is maintained to avoid unecessary querys to the database. The results are then stored in the dictionary DATA_DICTIONARY. When cache miss occurs and a function decorated with @deterministic is processed, its result is stored in NEW_DATA_DICTIONARY. This way, only the elements of NEW_DATA_DICTIONARY are added to the database at the end of the execution.\n\
     =>2d-ad-ft: two dicionaries (2d), all data loaded at the begining of a function with a thread (ad-ft), 6th implementation of dictionary (uses 2 dictionaries): when @deterministic is executed a select query is created to the database to bring all results of the function decorated with @deterministic stored in the cache. A list of functions already inserted to the dictionary is maintained to avoid unecessary querys to the database. The results of the query are stored in the dictionary DATA_DICTIONARY by a thread. When cache miss occurs and a function decorated with @deterministic is processed, its result is stored in NEW_DATA_DICTIONARY. This way, only the elements of NEW_DATA_DICTIONARY are added to the database at the end of the execution.\n\
     =>2d-lz   : two dicionaries (2d), lazy mode (lz), 7th implementation of dictionary (uses 2 dictionaries): new data is added to DATA_DICTIONARY when cache hit occurs (LAZY approach) and new data is added to NEW_DATA_DICTIONARY when cache miss occur and the function decorated with @deterministic is executed.\n\
-    usage: $ python "+str(sys.argv[0])+" program_arguments -m|--memory options\n\
-    \n"
+    usage: $ python "+str(sys.argv[0])+" program_arguments -m|--memory options\n"
     
 
 def get_params():
@@ -68,73 +64,75 @@ def get_params():
     exec_modes = ['no-cache', 'manual', 'accurate', 'probabilistic']
     prob_mode_strategies = ['counting', 'error']
 
-    intpy_arg_parser = argparse.ArgumentParser(usage=usage_msg())
+    speedupy_arg_parser = argparse.ArgumentParser(usage=usage_msg())
 
-    intpy_arg_parser.add_argument('-g',
+    speedupy_arg_parser.add_argument('-g',
                                   '--glossary',
                                   default=False,
                                   action='store_true',
-                                  help='show details of SpeedUpy versions')
+                                  help='show all parameters options')
     
-    intpy_arg_parser.add_argument('args',
+    speedupy_arg_parser.add_argument('args',
                                    metavar='program arguments',
                                    nargs='*',
                                    type=str, 
                                    help='program arguments')
         
-    intpy_arg_parser.add_argument('--exec-mode',
+    speedupy_arg_parser.add_argument('--exec-mode',
                                   choices=exec_modes,
-                                  default=None,
+                                  metavar='',
                                   nargs=1,
-                                  help='Defines how SpeeduPy will execute')
+                                  default=None,
+                                  help='defines how SpeeduPy will execute')
     
-    intpy_arg_parser.add_argument('--strategy',
+    speedupy_arg_parser.add_argument('--strategy',
                                   choices= prob_mode_strategies,
+                                  metavar='',
                                   default=None,
                                   nargs=1,
-                                  help='Defines SpeeduPy\'s policy for caching function calls when executing in probabilistic mode')
+                                  help='defines SpeeduPy\'s policy for caching function calls when executing in probabilistic mode')
     
-    intpy_arg_parser.add_argument('-m',
+    speedupy_arg_parser.add_argument('-m',
                                   '--memory',
                                    choices=memories,
                                    metavar='',
                                    nargs=1,
                                    type=str,
                                    default=['2d-ad'],
-                                   help='IntPy\'s mechanism of persistence: choose one of the following options: '+', '.join(memories))
+                                   help='SpeeduPy\'s mechanism of persistence: choose one of the following options: '+', '.join(memories))
     
-    intpy_arg_parser.add_argument('-H',
+    speedupy_arg_parser.add_argument('-H',
                                   '--hash',
                                    choices=hashes,
                                    metavar='',
                                    nargs=1,
                                    default=['md5'],
-                                   help='SpeedUpy\'s mechanism of hashes: choose one of the following options: '+', '.join(hashes))
+                                   help='SpeeduPy\'s mechanism of hashes: choose one of the following options: '+', '.join(hashes))
     
-    intpy_arg_parser.add_argument('-M',
+    speedupy_arg_parser.add_argument('-M',
                                   '--marshalling',
                                    choices=marshals,
                                    metavar='',
                                    nargs=1,
                                    default=['pickle'],
-                                   help='SpeedUpy\'s mechanism of marshalling: choose one of the following options: '+', '.join(marshals))
+                                   help='SpeeduPy\'s mechanism of marshalling: choose one of the following options: '+', '.join(marshals))
     
-    intpy_arg_parser.add_argument('-s',
+    speedupy_arg_parser.add_argument('-s',
                                   '--storage',
                                    choices=storageOptions,
                                    metavar='',
                                    nargs=1,
                                    default=['db-file'],
-                                   help='SpeedUpy\'s mechanism of storage: choose one of the following options: '+', '.join(storageOptions))
+                                   help='SpeeduPy\'s mechanism of storage: choose one of the following options: '+', '.join(storageOptions))
     
-    intpy_arg_parser.add_argument('-i',
+    speedupy_arg_parser.add_argument('-i',
                                   '--inputs',
                                    metavar='FILE/FOLDER',
                                    nargs='*',
                                    default=[],
                                    help='specifies all input files/folders your experiment needs in order to execute correctly')
     
-    intpy_arg_parser.add_argument('-o',
+    speedupy_arg_parser.add_argument('-o',
                                   '--outputs',
                                    metavar='FILE/FOLDER',
                                    nargs='*',
@@ -142,7 +140,7 @@ def get_params():
                                    help='specifies all output files/folders your experiment generates')
 
     
-    args = intpy_arg_parser.parse_args()
+    args = speedupy_arg_parser.parse_args()
 
     
     if args.glossary:
