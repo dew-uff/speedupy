@@ -2,9 +2,6 @@ from services.revalidations.AbstractRevalidation import AbstractRevalidation
 from entities.Metadata import Metadata
 
 class NoRevalidation(AbstractRevalidation):
-    def __init__(self, exec_mode_name):
-        super().__init__(exec_mode_name)
-    
     def revalidation_in_current_execution(self, func_call_hash:str) -> bool:
         return False
     
