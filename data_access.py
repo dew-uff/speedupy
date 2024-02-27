@@ -11,6 +11,10 @@ from logger.log import debug, warn
 from constantes import Constantes
 from entities.Metadata import Metadata
 
+#TODO
+def get_func_call_prov_attr(a, b): pass
+def set_func_call_prov_attr(a, b, c): pass
+
 def _save(file_name):
     Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno("INSERT OR IGNORE INTO CACHE(cache_file) VALUES (?)", (file_name,))
 
