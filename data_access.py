@@ -10,8 +10,10 @@ from banco import Banco
 from logger.log import debug, warn
 from constantes import Constantes
 from entities.Metadata import Metadata
+from entities.FunctionCallProv import FunctionCallProv
 
 #TODO
+def get_func_call_prov(func_call_hash:str) -> FunctionCallProv: pass
 def get_func_call_prov_attr(a, b): pass
 def set_func_call_prov_attr(a, b, c): pass
 
