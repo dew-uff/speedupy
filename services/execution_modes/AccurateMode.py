@@ -6,3 +6,5 @@ class AccurateMode(AbstractExecutionMode):
         self.__func_call_prov = get_func_call_prov(func_call_hash)
         return len(self.__func_call_prov.outputs) == 1
     
+    def get_func_call_cache(self, func_call_hash:str):
+        return self.__func_call_prov.outputs[0]['value']
