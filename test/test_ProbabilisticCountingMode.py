@@ -1,9 +1,9 @@
 import unittest, os, sys
 from unittest.mock import patch
 
-current = os.path.realpath(__file__).split('test/')[0]
-print(f"current:{current}")
-sys.path.append(current)
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(current)
+sys.path.append(parent)
 
 from services.execution_modes.ProbabilisticCountingMode import ProbabilisticCountingMode
 from entities.FunctionCallProv import FunctionCallProv
