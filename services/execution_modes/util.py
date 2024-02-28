@@ -13,3 +13,4 @@ def _set_statistical_mode_helpers(func_call_prov:FunctionCallProv) -> None:
            func_call_prov.mode_rel_freq < output['freq']:
             func_call_prov.mode_rel_freq = output['freq']
             func_call_prov.mode_output = output['value']
+    func_call_prov.mode_rel_freq /= func_call_prov.total_num_exec
