@@ -1,11 +1,13 @@
 class FunctionCallProv():
-    def __init__(self, function_call_hash, outputs, total_num_exec, next_revalidation, mode_rel_freq, mode_output, mean_output, confidence_lv, confidence_low_limit, confidence_up_limit, confidence_error):
+    def __init__(self, function_call_hash, outputs, total_num_exec, next_revalidation, next_index_weighted_seq, mode_rel_freq, mode_output, weighted_output_seq, mean_output, confidence_lv, confidence_low_limit, confidence_up_limit, confidence_error):
         self.__function_call_hash = function_call_hash
         self.__outputs = outputs
         self.__total_num_exec = total_num_exec
         self.__next_revalidation = next_revalidation
+        self.__next_index_weighted_seq = next_index_weighted_seq
         self.__mode_rel_freq = mode_rel_freq
         self.__mode_output = mode_output
+        self.__weighted_output_seq = weighted_output_seq
         self.__mean_output = mean_output
         self.__confidence_lv = confidence_lv
         self.__confidence_low_limit = confidence_low_limit
@@ -37,6 +39,14 @@ class FunctionCallProv():
         self.__next_revalidation = next_revalidation
 
     @property
+    def next_index_weighted_seq(self):
+        return self.__next_index_weighted_seq
+
+    @next_index_weighted_seq.setter
+    def next_index_weighted_seq(self, next_index_weighted_seq):
+        self.__next_index_weighted_seq = next_index_weighted_seq
+
+    @property
     def mode_rel_freq(self):
         return self.__mode_rel_freq
 
@@ -51,6 +61,14 @@ class FunctionCallProv():
     @mode_output.setter
     def mode_output(self, mode_output):
         self.__mode_output = mode_output
+
+    @property
+    def weighted_output_seq(self):
+        return self.__weighted_output_seq
+
+    @weighted_output_seq.setter
+    def weighted_output_seq(self, weighted_output_seq):
+        self.__weighted_output_seq = weighted_output_seq
 
     @property
     def mean_output(self):
