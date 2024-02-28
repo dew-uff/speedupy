@@ -57,12 +57,13 @@ def memory_msg():
     
 
 def get_params():
+    exec_modes = ['no-cache', 'manual', 'accurate', 'probabilistic']
+    prob_mode_strategies = ['counting', 'error']
+    revalidations = ['none', 'fixed', 'adaptative']
     memories = ['help','ad', '1d-ow', '1d-ad', '2d-ad', '2d-ad-t', '2d-ad-f', '2d-ad-ft', '2d-lz']
     hashes = ['help','md5', 'murmur', 'xxhash']
     marshals = ['help','pickle']
     storageOptions = ['help','db-file','db','file']
-    exec_modes = ['no-cache', 'manual', 'accurate', 'probabilistic']
-    prob_mode_strategies = ['counting', 'error']
 
     speedupy_arg_parser = argparse.ArgumentParser(usage=usage_msg())
 
@@ -86,17 +87,43 @@ def get_params():
                                   help='defines how SpeeduPy will execute')
     
     speedupy_arg_parser.add_argument('--strategy',
-                                  choices= prob_mode_strategies,
+                                  choices=prob_mode_strategies,
                                   metavar='',
                                   default=None,
                                   nargs=1,
                                   help='defines SpeeduPy\'s policy for caching function calls when executing in probabilistic mode')
     
+    speedupy_arg_parser.add_argument('--revalidation',
+                                  choices=revalidations,
+                                  metavar='',
+                                  default=['adaptative'],
+                                  nargs=1,
+                                  help='defines if Speedupy should reexecute a function sometimes to validate that the function continues to be safe to cache. There are three possible variations for this algorithm, depending on the execution mode selected.')
+
     speedupy_arg_parser.add_argument('--min-num-exec',
                                   default=20,
+                                  metavar='',
                                   type=int,
                                   nargs=1,
                                   help='defines them minimum number of times SpeeduPy\'s must execute a function call before trying to cache it')
+    
+    speedupy_arg_parser.add_argument('--min-mode-occurrence',
+                                  default=0.8,
+                                  metavar='',
+                                  nargs=1,
+                                  help='used when "exec-mode=probabilistic strategy={counting, frequency}" is set. Defines the minimum frequency of appearances (in percentage) that the statistical mode must have for a function to be accelerated. The value informed must be between 0 and 1.')
+    
+    speedupy_arg_parser.add_argument('--confidence-level',
+                                  default=0.95,
+                                  metavar='',
+                                  nargs=1,
+                                  help='used when "exec-mode=probabilistic strategy=error" is set. Defines the confidence level used to estimate the margim of error and confidence interval of a function. The value informed must be between 0 and 1.')
+    
+    speedupy_arg_parser.add_argument('--max-error-per-function',
+                                  default=None,
+                                  metavar='',
+                                  nargs=1,
+                                  help='used when "exec-mode=probabilistic strategy=error" is set. Defines the maximum error the user considers acceptable for a function to introduce when it is cached. This error correspond to the margin of error of the confidence interval calculated. Notice, that an execution of a function can produce an output that is not inside the confidence interval, in which case the error produced by the function would be greater then the margin of error the confidence interval. The probability of this occurring is (1 - confidence_level).')
     
     speedupy_arg_parser.add_argument('-m',
                                   '--memory',
@@ -157,7 +184,11 @@ def get_params():
 
     argsp_exec_mode = args.exec_mode
     argsp_strategy = args.strategy
+    argsp_revalidation = args.revalidation
     argsp_min_num_exec = args.min_num_exec
+    argsp_min_mode_occurrence = args.min_mode_occurrence
+    argsp_confidence_level = args.confidence_level
+    argsp_max_error_per_function = args.max_error_per_function
     
     argsp_m = args.memory
     argsp_s = args.storage
@@ -181,7 +212,7 @@ def get_params():
             print(storage_msg())
         sys.exit()
 
-    return argsp_exp_args, argsp_m, argsp_M, argsp_s, argsp_exec_mode, argsp_strategy, argsp_min_num_exec, argsp_hash, argsp_inputs, argsp_outputs
+    return argsp_exp_args, argsp_m, argsp_M, argsp_s, argsp_exec_mode, argsp_strategy, argsp_revalidation, argsp_min_num_exec, argsp_min_mode_occurrence, argsp_confidence_level, argsp_max_error_per_function, argsp_hash, argsp_inputs, argsp_outputs
 
 
 """

@@ -27,7 +27,11 @@ class Constantes(metaclass=SingletonMeta):
         self.g_argsp_s, \
         self.g_argsp_exec_mode, \
         self.g_argsp_strategy, \
+        self.g_argsp_revalidation, \
         self.g_argsp_min_num_exec, \
+        self.g_argsp_min_mode_occurrence, \
+        self.g_argsp_confidence_level, \
+        self.g_argsp_max_error_per_function, \
         self.g_argsp_hash, \
         self.g_argsp_inputs, \
         self.g_argsp_outputs = get_params()
