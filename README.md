@@ -71,4 +71,4 @@ Finally, if you want to know more about a specific argument, use the "help" afte
 
 Figure 5: Use of the arguments's help.
 
-
+Para rodar a suite de testes, entre na pasta `/test` e execute o comando `python -m unittest`
