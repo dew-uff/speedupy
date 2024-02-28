@@ -1,8 +1,7 @@
 import unittest, unittest.mock, os, sys, ast
 
-current = os.path.dirname(os.path.realpath(__file__))
-parent = os.path.dirname(current)
-sys.path.append(parent)
+project_folder = os.path.realpath(__file__).split('test/')[0]
+sys.path.append(project_folder)
 
 from services.script_service import copy_script, add_common_decorator_imports_for_execution, add_start_inference_engine_import, add_execute_intpy_import, _get_module_name
 from constantes import Constantes

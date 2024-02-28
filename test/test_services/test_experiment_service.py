@@ -1,8 +1,7 @@
 import unittest, unittest.mock, os, sys, ast
 
-current = os.path.dirname(os.path.realpath(__file__))
-parent = os.path.dirname(current)
-sys.path.append(parent)
+project_folder = os.path.realpath(__file__).split('test/')[0]
+sys.path.append(project_folder)
 
 from services.experiment_service import _prepare_experiment_main_script_for_execution, prepare_experiment_main_script_for_inference
 from entities.Script import Script

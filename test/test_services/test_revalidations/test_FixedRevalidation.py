@@ -1,9 +1,8 @@
 import unittest, os, sys
 from unittest.mock import patch
 
-current = os.path.dirname(os.path.realpath(__file__))
-parent = os.path.dirname(current)
-sys.path.append(parent)
+project_folder = os.path.realpath(__file__).split('test/')[0]
+sys.path.append(project_folder)
 
 from services.revalidations.FixedRevalidation import FixedRevalidation
 
