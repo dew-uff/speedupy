@@ -1,3 +1,4 @@
+from typing import List, Dict
 from entities.FunctionCallProv import FunctionCallProv
 from data_access import get_func_call_prov
 
@@ -14,3 +15,9 @@ def _set_statistical_mode_helpers(func_call_prov:FunctionCallProv) -> None:
             func_call_prov.mode_rel_freq = output['freq']
             func_call_prov.mode_output = output['value']
     func_call_prov.mode_rel_freq /= func_call_prov.total_num_exec
+
+def function_output_dicts_2_array(func_outputs:List[Dict]) -> List:
+    data = []
+    for output in func_outputs:
+        data += output['freq'] * [output['value']]
+    return data

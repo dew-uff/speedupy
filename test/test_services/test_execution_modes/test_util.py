@@ -4,7 +4,7 @@ from unittest.mock import patch
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
-from services.execution_modes.util import func_call_mode_output_occurs_enough, _set_statistical_mode_helpers
+from services.execution_modes.util import func_call_mode_output_occurs_enough, _set_statistical_mode_helpers, function_output_dicts_2_array
 from entities.FunctionCallProv import FunctionCallProv
 
 class TestUtil(unittest.TestCase):
@@ -62,6 +62,23 @@ class TestUtil(unittest.TestCase):
         _set_statistical_mode_helpers(self.function_call_prov)
         self.assertEqual(self.function_call_prov.mode_output, 6.123)
         self.assertEqual(round(self.function_call_prov.mode_rel_freq, 9), 0.428571429)
+
+    def test_function_output_dicts_2_array_when_func_has_one_output_with_freq_one(self):
+        func_outputs = [{'value':10, 'freq': 1}]
+        array = function_output_dicts_2_array(func_outputs)
+        self.assertListEqual(array, [10])
+
+    def test_function_output_dicts_2_array_when_func_has_one_output_with_freq_greather_than_one(self):
+        func_outputs = [{'value':1.23, 'freq': 5}]
+        array = function_output_dicts_2_array(func_outputs)
+        self.assertListEqual(array, [1.23, 1.23, 1.23, 1.23, 1.23])
+        
+    def test_function_output_dicts_2_array_when_func_has_many_outputs(self):
+        func_outputs = [{'value':1.23, 'freq': 2},
+                        {'value':-4.76, 'freq': 5},
+                        {'value':223.6, 'freq': 10},]
+        array = function_output_dicts_2_array(func_outputs)
+        self.assertListEqual(array, [1.23, 1.23] + 5*[-4.76] + 10*[223.6])
 
 if __name__ == '__main__':
     unittest.main()
