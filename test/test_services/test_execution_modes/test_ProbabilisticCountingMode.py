@@ -1,5 +1,6 @@
 import unittest, os, sys
 from unittest.mock import patch
+from pickle import dumps
 
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
@@ -23,6 +24,27 @@ class TestProbabilisticCountingMode(unittest.TestCase):
         with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
             self.assertEqual(self.countingMode.get_func_call_cache('func_call_hash'), 'my_result')
             get_func_call_prov.assert_called_once()
+
+        self.function_call_prov.mode_output = [1, 4, 3]
+        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+            self.assertEqual(self.countingMode.get_func_call_cache('func_call_hash'), [1, 4, 3])
+            get_func_call_prov.assert_called_once()
+
+        self.function_call_prov.mode_output = {1, True, 'xyz'}
+        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+            self.assertEqual(self.countingMode.get_func_call_cache('func_call_hash'), {1, True, 'xyz'})
+            get_func_call_prov.assert_called_once()
+
+        self.function_call_prov.mode_output = MyClass()
+        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+            self.assertEqual(dumps(self.countingMode.get_func_call_cache('func_call_hash')),
+                             dumps(MyClass()))
+            get_func_call_prov.assert_called_once()
+
+class MyClass():
+    def __init__(self):
+        self.__x = 10
+        self.__y = 20
 
 if __name__ == '__main__':
     unittest.main()
