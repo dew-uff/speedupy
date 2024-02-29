@@ -1,10 +1,11 @@
 import unittest, os, sys
 from unittest.mock import patch
+from pickle import dumps
 
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
-from services.execution_modes.util import func_call_mode_output_occurs_enough, _set_statistical_mode_helpers, function_output_dicts_2_array
+from services.execution_modes.util import func_call_mode_output_occurs_enough, _set_statistical_mode_helpers, function_outputs_dict_2_array
 from entities.FunctionCallProv import FunctionCallProv
 
 class TestUtil(unittest.TestCase):
@@ -31,7 +32,7 @@ class TestUtil(unittest.TestCase):
             get_func_call_prov.assert_called_once()
 
     def test_set_statistical_mode_helpers_when_has_one_output(self):
-        self.function_call_prov._FunctionCallProv__outputs = [{'value': 10, 'freq': 5}]
+        self.function_call_prov._FunctionCallProv__outputs = {dumps(10): 5}
         self.function_call_prov.total_num_exec = 5
         self.function_call_prov.mode_output = None
         self.function_call_prov.mode_rel_freq = None
@@ -40,10 +41,10 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(self.function_call_prov.mode_rel_freq, 1)
 
     def test_set_statistical_mode_helpers_when_has_many_outputs(self):
-        self.function_call_prov._FunctionCallProv__outputs = [{'value': 10, 'freq': 5},
-                                                              {'value': 6.123, 'freq': 10},
-                                                              {'value': 1, 'freq': 5},
-                                                              {'value': -2, 'freq': 300}]
+        self.function_call_prov._FunctionCallProv__outputs = {dumps(10): 5,
+                                                              dumps(6.123): 10,
+                                                              dumps(1): 5,
+                                                              dumps(-2): 300}
         self.function_call_prov.total_num_exec = 320
         self.function_call_prov.mode_output = None
         self.function_call_prov.mode_rel_freq = None
@@ -52,10 +53,10 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(self.function_call_prov.mode_rel_freq, 0.9375)
 
     def test_set_statistical_mode_helpers_when_has_two_modes(self):
-        self.function_call_prov._FunctionCallProv__outputs = [{'value': 10, 'freq': 5},
-                                                              {'value': 6.123, 'freq': 30},
-                                                              {'value': 1, 'freq': 5},
-                                                              {'value': -2, 'freq': 30}]
+        self.function_call_prov._FunctionCallProv__outputs = {dumps(10): 5,
+                                                              dumps(6.123): 30,
+                                                              dumps(1): 5,
+                                                              dumps(-2): 30}
         self.function_call_prov.total_num_exec = 70
         self.function_call_prov.mode_output = None
         self.function_call_prov.mode_rel_freq = None
@@ -64,20 +65,20 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(round(self.function_call_prov.mode_rel_freq, 9), 0.428571429)
 
     def test_function_output_dicts_2_array_when_func_has_one_output_with_freq_one(self):
-        func_outputs = [{'value':10, 'freq': 1}]
-        array = function_output_dicts_2_array(func_outputs)
+        func_outputs = {dumps(10): 1}
+        array = function_outputs_dict_2_array(func_outputs)
         self.assertListEqual(array, [10])
 
     def test_function_output_dicts_2_array_when_func_has_one_output_with_freq_greather_than_one(self):
-        func_outputs = [{'value':1.23, 'freq': 5}]
-        array = function_output_dicts_2_array(func_outputs)
+        func_outputs = {dumps(1.23): 5}
+        array = function_outputs_dict_2_array(func_outputs)
         self.assertListEqual(array, [1.23, 1.23, 1.23, 1.23, 1.23])
         
     def test_function_output_dicts_2_array_when_func_has_many_outputs(self):
-        func_outputs = [{'value':1.23, 'freq': 2},
-                        {'value':-4.76, 'freq': 5},
-                        {'value':223.6, 'freq': 10},]
-        array = function_output_dicts_2_array(func_outputs)
+        func_outputs = {dumps(1.23): 2,
+                        dumps(-4.76): 5,
+                        dumps(223.6): 10}
+        array = function_outputs_dict_2_array(func_outputs)
         self.assertListEqual(array, [1.23, 1.23] + 5*[-4.76] + 10*[223.6])
 
 if __name__ == '__main__':

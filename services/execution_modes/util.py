@@ -1,4 +1,5 @@
 from typing import List, Dict
+from pickle import loads
 from entities.FunctionCallProv import FunctionCallProv
 from data_access import get_func_call_prov
 
@@ -9,15 +10,16 @@ def func_call_mode_output_occurs_enough(func_call_hash, min_freq):
     return func_call_prov.mode_rel_freq >= min_freq
 
 def _set_statistical_mode_helpers(func_call_prov:FunctionCallProv) -> None:
-    for output in func_call_prov.outputs:
+    for output, freq in func_call_prov.outputs.items():
         if func_call_prov.mode_rel_freq is None or \
-           func_call_prov.mode_rel_freq < output['freq']:
-            func_call_prov.mode_rel_freq = output['freq']
-            func_call_prov.mode_output = output['value']
+           func_call_prov.mode_rel_freq < freq:
+            func_call_prov.mode_rel_freq = freq
+            func_call_prov.mode_output = output
     func_call_prov.mode_rel_freq /= func_call_prov.total_num_exec
+    func_call_prov.mode_output = loads(func_call_prov.mode_output)
 
-def function_output_dicts_2_array(func_outputs:List[Dict]) -> List:
+def function_outputs_dict_2_array(func_outputs:Dict) -> List:
     data = []
-    for output in func_outputs:
-        data += output['freq'] * [output['value']]
+    for output, freq in func_outputs.items():
+        data += freq * [loads(output)]
     return data
