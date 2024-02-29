@@ -1,3 +1,4 @@
+from entities.Metadata import Metadata
 from services.execution_modes.AbstractExecutionMode import AbstractExecutionMode
 from services.execution_modes.util import function_outputs_dict_2_array
 from data_access import get_func_call_prov
@@ -45,3 +46,10 @@ class ProbabilisticErrorMode(AbstractExecutionMode):
             data = function_outputs_dict_2_array(self.__func_call_prov.outputs)
             self.__func_call_prov.mean_output = st.tmean(data)
         return self.__func_call_prov.mean_output
+
+    #TODO: TEST
+    def func_call_acted_as_expected(self, func_call_hash:str, metadata:Metadata):
+        func_call_prov = get_func_call_prov(func_call_hash)
+        low_limit = func_call_prov.mean_output - func_call_prov.confidence_error/2
+        up_limit = func_call_prov.mean_output + func_call_prov.confidence_error/2
+        return low_limit <= metadata.return_value and metadata.return_value <= up_limit

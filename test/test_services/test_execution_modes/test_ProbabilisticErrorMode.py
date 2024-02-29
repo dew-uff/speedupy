@@ -6,9 +6,10 @@ from pickle import dumps
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
-from services.execution_modes.ProbabilisticErrorMode import ProbabilisticErrorMode
+from entities.Metadata import Metadata
 from entities.FunctionCallProv import FunctionCallProv
 from constantes import Constantes
+from services.execution_modes.ProbabilisticErrorMode import ProbabilisticErrorMode
 
 class TestProbabilisticErrorMode(unittest.TestCase):
     def setUp(self):
@@ -234,6 +235,19 @@ class TestProbabilisticErrorMode(unittest.TestCase):
             self.assertEqual(self.errorMode.get_func_call_cache('func_call_hash'), 0.23)
             get_func_call_prov.assert_called_once()
             function_outputs_dict_2_array.assert_not_called()
+
+    def test_func_call_acted_as_expected_when_metadata_returned_value_outside_the_expected_interval(self): pass
+    def test_func_call_acted_as_expected_when_metadata_returned_value_right_in_the_upper_limit_expected(self): pass
+    def test_func_call_acted_as_expected_when_metadata_returned_value_right_in_the_lower_limit_expected(self): pass
+    def test_func_call_acted_as_expected_when_metadata_returned_value_inside_the_expected_interval(self): pass
+    def test_func_call_acted_as_expected_when_metadata_returned_value_inside_the_confidence_interval_but_outside_the_expected_interval(self): pass
+    def test_func_call_acted_as_expected_when_metadata_returned_value_outside_the_confidence_interval(self): pass
+        # metadata = Metadata('func_call_hash', [], {}, True, 0)
+        # self.function_call_prov.mean_output = 
+        # self.function_call_prov.confidence_error = 
+        # with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+        #     self.assertFalse(self.accurateMode.func_call_acted_as_expected('func_call_hash', metadata))
+        #     get_func_call_prov.assert_called_once()
 
 if __name__ == '__main__':
     unittest.main()
