@@ -10,7 +10,7 @@ class AdaptativeRevalidation(AbstractRevalidation):
     
     def calculate_next_revalidation(self, function_call_hash:str, metadata:Metadata) -> None:
         next_reval = self.__current_num_exec_til_reval
-        if self.__exec_mode.function_acted_as_expected(function_call_hash, metadata):
+        if self.__exec_mode.func_call_acted_as_expected(function_call_hash, metadata):
             next_reval *= (1 + self.__adaptative_factor)
         else:
             next_reval *= (1 - self.__adaptative_factor)
