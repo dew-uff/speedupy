@@ -1,13 +1,12 @@
-import unittest, os, sys, io, pickle
+import unittest, os, sys
 from unittest.mock import patch
-import scipy.stats as st
+from pickle import loads, dumps
 
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
 from services.execution_modes.ProbabilisticFrequencyMode import ProbabilisticFrequencyMode
 from entities.FunctionCallProv import FunctionCallProv
-from constantes import Constantes
 
 class TestProbabilisticFrequencyMode(unittest.TestCase):
     def setUp(self):
@@ -95,7 +94,7 @@ class TestProbabilisticFrequencyMode(unittest.TestCase):
     
     def test_calculate_weighted_output_seq_when_function_has_only_one_output_values(self):
         self.frequencyMode._ProbabilisticFrequencyMode__func_call_prov = self.function_call_prov
-        self.function_call_prov._FunctionCallProv__outputs = [{'value': 2, 'freq': 10}]
+        self.function_call_prov._FunctionCallProv__outputs = {dumps(2): 10}
         self.function_call_prov.mode_output = 2
         
         self.frequencyMode._calculate_weighted_output_seq()
@@ -103,8 +102,8 @@ class TestProbabilisticFrequencyMode(unittest.TestCase):
 
     def test_calculate_weighted_output_seq_when_function_has_only_two_output_values(self):
         self.frequencyMode._ProbabilisticFrequencyMode__func_call_prov = self.function_call_prov
-        self.function_call_prov._FunctionCallProv__outputs = [{'value': 1, 'freq': 6},
-                                                              {'value': 2, 'freq': 3},]
+        self.function_call_prov._FunctionCallProv__outputs = {dumps(1): 6,
+                                                              dumps(2): 3}
         self.function_call_prov.mode_output = 1
         
         self.frequencyMode._calculate_weighted_output_seq()
@@ -112,9 +111,9 @@ class TestProbabilisticFrequencyMode(unittest.TestCase):
     
     def test_calculate_weighted_output_seq_when_function_has_many_output_values_and_the_division_by_the_mode_output_freq_is_a_non_integer_division(self):
         self.frequencyMode._ProbabilisticFrequencyMode__func_call_prov = self.function_call_prov
-        self.function_call_prov._FunctionCallProv__outputs = [{'value': 1, 'freq': 6},
-                                                              {'value': 2, 'freq': 4},
-                                                              {'value': 3, 'freq': 3}]
+        self.function_call_prov._FunctionCallProv__outputs = {dumps(1): 6,
+                                                              dumps(2): 4,
+                                                              dumps(3): 3}
         self.function_call_prov.mode_output = 1
         
         self.frequencyMode._calculate_weighted_output_seq()
@@ -122,9 +121,9 @@ class TestProbabilisticFrequencyMode(unittest.TestCase):
 
     def test_calculate_weighted_output_seq_when_there_is_no_remaining_outputs_after_mode_is_completely_added_to_the_seq(self):
         self.frequencyMode._ProbabilisticFrequencyMode__func_call_prov = self.function_call_prov
-        self.function_call_prov._FunctionCallProv__outputs = [{'value': True, 'freq': 10},
-                                                              {'value': 'my_teste', 'freq': 5},
-                                                              {'value': -3.14, 'freq': 2}]
+        self.function_call_prov._FunctionCallProv__outputs = {dumps(True): 10,
+                                                              dumps('my_teste'): 5,
+                                                              dumps(-3.14): 2}
         self.function_call_prov.mode_output = True
         
         self.frequencyMode._calculate_weighted_output_seq()
@@ -132,9 +131,9 @@ class TestProbabilisticFrequencyMode(unittest.TestCase):
 
     def test_calculate_weighted_output_seq_when_there_is_one_remaining_output_after_mode_is_completely_added_to_the_seq(self):
         self.frequencyMode._ProbabilisticFrequencyMode__func_call_prov = self.function_call_prov
-        self.function_call_prov._FunctionCallProv__outputs = [{'value': False, 'freq': 6},
-                                                              {'value': [1, 2, 3], 'freq': 3},
-                                                              {'value': {1, 4, 2}, 'freq': 5}]
+        self.function_call_prov._FunctionCallProv__outputs = {dumps(False): 6,
+                                                              dumps([1, 2, 3]): 3,
+                                                              dumps({1, 4, 2}): 5}
         self.function_call_prov.mode_output = False
         
         self.frequencyMode._calculate_weighted_output_seq()
@@ -142,9 +141,9 @@ class TestProbabilisticFrequencyMode(unittest.TestCase):
     
     def test_calculate_weighted_output_seq_when_there_are_many_remaining_output_after_mode_is_completely_added_to_the_seq(self):
         self.frequencyMode._ProbabilisticFrequencyMode__func_call_prov = self.function_call_prov
-        self.function_call_prov._FunctionCallProv__outputs = [{'value': 2.23121, 'freq': 7},
-                                                              {'value': (1, 2, 3), 'freq': 5},
-                                                              {'value': MyClass(), 'freq': 6}]
+        self.function_call_prov._FunctionCallProv__outputs = {dumps(2.23121): 7,
+                                                              dumps((1, 2, 3)): 5,
+                                                              dumps(MyClass()): 6}
         self.function_call_prov.mode_output = 2.23121
         
         self.frequencyMode._calculate_weighted_output_seq()
@@ -155,8 +154,8 @@ class TestProbabilisticFrequencyMode(unittest.TestCase):
                         (1, 2, 3), MyClass(),
                         MyClass()]
         for i in range(len(expected_seq)):
-            self.assertEqual(pickle.dumps(self.function_call_prov.weighted_output_seq[i]),
-                             pickle.dumps(expected_seq[i]))
+            self.assertEqual(dumps(self.function_call_prov.weighted_output_seq[i]),
+                             dumps(expected_seq[i]))
 
 class MyClass():
     def __init__(self):
