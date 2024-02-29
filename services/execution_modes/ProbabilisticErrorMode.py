@@ -1,5 +1,5 @@
 from services.execution_modes.AbstractExecutionMode import AbstractExecutionMode
-from services.execution_modes.util import function_output_dicts_2_array
+from services.execution_modes.util import function_outputs_dict_2_array
 from data_access import get_func_call_prov
 from constantes import Constantes
 import scipy.stats as st
@@ -16,7 +16,7 @@ class ProbabilisticErrorMode(AbstractExecutionMode):
 
     #Implemented according to https://www.geeksforgeeks.org/how-to-calculate-confidence-intervals-in-python/
     def _set_necessary_helpers(self) -> None:
-        data = function_output_dicts_2_array(self.__func_call_prov.outputs)
+        data = function_outputs_dict_2_array(self.__func_call_prov.outputs)
         self.__func_call_prov.mean_output = st.tmean(data)
         self.__func_call_prov.confidence_lv = Constantes().g_argsp_confidence_level
         scale = st.sem(data)
@@ -42,6 +42,6 @@ class ProbabilisticErrorMode(AbstractExecutionMode):
     def get_func_call_cache(self, func_call_hash:str):
         self.__func_call_prov = get_func_call_prov(func_call_hash)
         if self.__func_call_prov.mean_output is None:
-            data = function_output_dicts_2_array(self.__func_call_prov.outputs)
+            data = function_outputs_dict_2_array(self.__func_call_prov.outputs)
             self.__func_call_prov.mean_output = st.tmean(data)
         return self.__func_call_prov.mean_output
