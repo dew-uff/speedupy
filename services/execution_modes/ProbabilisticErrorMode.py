@@ -3,8 +3,8 @@ from services.execution_modes.util import function_output_dicts_2_array
 from data_access import get_func_call_prov
 from constantes import Constantes
 import scipy.stats as st
+from math import isnan
 
-#TODO TEST
 class ProbabilisticErrorMode(AbstractExecutionMode):
     def func_call_can_be_cached(self, func_call_hash:str) -> bool:
         if Constantes().g_argsp_max_error_per_function is None: return True
@@ -16,7 +16,7 @@ class ProbabilisticErrorMode(AbstractExecutionMode):
 
     #Implemented according to https://www.geeksforgeeks.org/how-to-calculate-confidence-intervals-in-python/
     def _set_necessary_helpers(self) -> None:
-        data = self.function_output_dicts_2_array(self.__func_call_prov.outputs)
+        data = function_output_dicts_2_array(self.__func_call_prov.outputs)
         self.__func_call_prov.mean_output = st.tmean(data)
         self.__func_call_prov.confidence_lv = Constantes().g_argsp_confidence_level
         scale = st.sem(data)
@@ -32,6 +32,12 @@ class ProbabilisticErrorMode(AbstractExecutionMode):
         self.__func_call_prov.confidence_low_limit = interval[0]
         self.__func_call_prov.confidence_up_limit = interval[1]
         self.__func_call_prov.confidence_error = self.__func_call_prov.confidence_up_limit - self.__func_call_prov.mean_output
+        if isnan(self.__func_call_prov.confidence_low_limit) and \
+           isnan(self.__func_call_prov.confidence_up_limit) and \
+           isnan(self.__func_call_prov.confidence_error):
+            self.__func_call_prov.confidence_low_limit = self.__func_call_prov.mean_output
+            self.__func_call_prov.confidence_up_limit = self.__func_call_prov.mean_output
+            self.__func_call_prov.confidence_error = 0
 
     def get_func_call_cache(self, func_call_hash:str):
         self.__func_call_prov = get_func_call_prov(func_call_hash)
