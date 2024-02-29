@@ -7,6 +7,7 @@ sys.path.append(project_folder)
 
 from services.execution_modes.AccurateMode import AccurateMode
 from entities.FunctionCallProv import FunctionCallProv
+from entities.Metadata import Metadata
 
 class TestAccurateMode(unittest.TestCase):
     def setUp(self):
@@ -56,6 +57,53 @@ class TestAccurateMode(unittest.TestCase):
         with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
             self.assertEqual(dumps(self.accurateMode.get_func_call_cache('func_call_hash')),
                              dumps(MyClass()))
+            get_func_call_prov.assert_called_once()
+
+    def test_func_call_acted_as_expected_when_metadata_returned_a_second_output(self):
+        metadata = Metadata('func_call_hash', [], {}, True, 0)
+        self.function_call_prov._FunctionCallProv__outputs = {dumps(1):12}
+        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+            self.assertFalse(self.accurateMode.func_call_acted_as_expected('func_call_hash', metadata))
+            get_func_call_prov.assert_called_once()
+
+    def test_func_call_acted_as_expected_when_function_outputs_already_had_more_than_one_output(self):
+        metadata = Metadata('func_call_hash', [], {}, 1, 0)
+        self.function_call_prov._FunctionCallProv__outputs = {dumps(1):12,
+                                                              dumps(False): 3}
+        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+            self.assertFalse(self.accurateMode.func_call_acted_as_expected('func_call_hash', metadata))
+            get_func_call_prov.assert_called_once()
+
+    def test_func_call_acted_as_expected_when_function_acted_as_expected(self):
+        metadata = Metadata('func_call_hash', [], {}, 1, 0)
+        self.function_call_prov._FunctionCallProv__outputs = {dumps(1):12}
+        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+            self.assertTrue(self.accurateMode.func_call_acted_as_expected('func_call_hash', metadata))
+            get_func_call_prov.assert_called_once()
+
+    def test_func_call_acted_as_expected_when_function_acted_as_expected_with_different_data_types(self):
+        metadata = Metadata('func_call_hash', [], {}, True, 0)
+        self.function_call_prov._FunctionCallProv__outputs = {dumps(True):12}
+        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+            self.assertTrue(self.accurateMode.func_call_acted_as_expected('func_call_hash', metadata))
+            get_func_call_prov.assert_called_once()
+
+        metadata = Metadata('func_call_hash', [], {}, {1, 4, 'test', 7, MyClass()}, 0)
+        self.function_call_prov._FunctionCallProv__outputs = {dumps({1, 4, 'test', 7, MyClass()}):12}
+        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+            self.assertTrue(self.accurateMode.func_call_acted_as_expected('func_call_hash', metadata))
+            get_func_call_prov.assert_called_once()
+
+        metadata = Metadata('func_call_hash', [], {}, MyClass(), 0)
+        self.function_call_prov._FunctionCallProv__outputs = {dumps(MyClass()):12}
+        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+            self.assertTrue(self.accurateMode.func_call_acted_as_expected('func_call_hash', metadata))
+            get_func_call_prov.assert_called_once()
+
+        metadata = Metadata('func_call_hash', [], {}, (1, {2:False}, False, 7.123), 0)
+        self.function_call_prov._FunctionCallProv__outputs = {dumps((1, {2:False}, False, 7.123)):12}
+        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+            self.assertTrue(self.accurateMode.func_call_acted_as_expected('func_call_hash', metadata))
             get_func_call_prov.assert_called_once()
 
 class MyClass():
