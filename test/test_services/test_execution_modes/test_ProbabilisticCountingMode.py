@@ -7,6 +7,7 @@ sys.path.append(project_folder)
 
 from services.execution_modes.ProbabilisticCountingMode import ProbabilisticCountingMode
 from entities.FunctionCallProv import FunctionCallProv
+from entities.Metadata import Metadata
 
 class TestProbabilisticCountingMode(unittest.TestCase):
     def setUp(self):
@@ -39,6 +40,45 @@ class TestProbabilisticCountingMode(unittest.TestCase):
         with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
             self.assertEqual(dumps(self.countingMode.get_func_call_cache('func_call_hash')),
                              dumps(MyClass()))
+            get_func_call_prov.assert_called_once()
+
+    def test_func_call_acted_as_expected_when_metadata_returned_the_statistical_mode(self):
+        metadata = Metadata('func_call_hash', [], {}, True, 0)
+        self.function_call_prov.mode_output = True
+        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+            self.assertTrue(self.countingMode.func_call_acted_as_expected('func_call_hash', metadata))
+            get_func_call_prov.assert_called_once()
+
+    def test_func_call_acted_as_expected_when_metadata_did_not_return_the_statistical_mode(self):
+        metadata = Metadata('func_call_hash', [], {}, 1.5, 0)
+        self.function_call_prov.mode_output = 1
+        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+            self.assertFalse(self.countingMode.func_call_acted_as_expected('func_call_hash', metadata))
+            get_func_call_prov.assert_called_once()
+
+    def test_func_call_acted_as_expected_when_function_acted_as_expected_with_different_data_types(self):
+        metadata = Metadata('func_call_hash', [], {}, [{True:10}, {False:-2}], 0)
+        self.function_call_prov.mode_output = [{True:10}, {False:-2}]
+        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+            self.assertTrue(self.countingMode.func_call_acted_as_expected('func_call_hash', metadata))
+            get_func_call_prov.assert_called_once()
+
+        metadata = Metadata('func_call_hash', [], {}, {1, 4, 'test', 7, MyClass()}, 0)
+        self.function_call_prov.mode_output = {1, 4, 'test', 7, MyClass()}
+        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+            self.assertTrue(self.countingMode.func_call_acted_as_expected('func_call_hash', metadata))
+            get_func_call_prov.assert_called_once()
+
+        metadata = Metadata('func_call_hash', [], {}, MyClass(), 0)
+        self.function_call_prov.mode_output = MyClass()
+        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+            self.assertTrue(self.countingMode.func_call_acted_as_expected('func_call_hash', metadata))
+            get_func_call_prov.assert_called_once()
+
+        metadata = Metadata('func_call_hash', [], {}, (1, {2:False}, False, 7.123), 0)
+        self.function_call_prov.mode_output = (1, {2:False}, False, 7.123)
+        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+            self.assertTrue(self.countingMode.func_call_acted_as_expected('func_call_hash', metadata))
             get_func_call_prov.assert_called_once()
 
 class MyClass():
