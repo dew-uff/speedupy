@@ -60,6 +60,7 @@ def _create_database():
     _create_table_METADATA(conexaoBanco)
     _create_table_SIMULATED_FUNCTION_CALLS(conexaoBanco)
     _create_table_DONT_CACHE_FUNCTION_CALLS(conexaoBanco)
+    _create_table_FUNCTION_CALLS_PROV(conexaoBanco)
     conexaoBanco.fecharConexao()
 
 
@@ -107,6 +108,26 @@ def _create_table_SIMULATED_FUNCTION_CALLS(banco: Banco):
     id INTEGER PRIMARY KEY AUTOINCREMENT,\
     function_call_hash TEXT NOT NULL,\
     returns_2_freq BLOB NOT NULL\
+    );"
+
+    banco.executarComandoSQLSemRetorno(stmt)
+
+def _create_table_FUNCTION_CALLS_PROV(banco: Banco):
+    stmt = "CREATE TABLE FUNCTION_CALLS_PROV(\
+    id INTEGER PRIMARY KEY AUTOINCREMENT,\
+    function_call_hash TEXT NOT NULL,\
+    outputs BLOB NOT NULL,\
+    total_num_exec INTEGER NOT NULL,\
+    next_revalidation INTEGER NOT NULL,\
+    next_index_weighted_seq INTEGER NOT NULL,\
+    mode_rel_freq REAL NOT NULL,\
+    mode_output BLOB NOT NULL,\
+    weighted_output_seq BLOB NOT NULL,\
+    mean_output BLOB NOT NULL,\
+    confidence_lv REAL NOT NULL,\
+    confidence_low_limit REAL NOT NULL,\
+    confidence_up_limit REAL NOT NULL,\
+    confidence_error REAL NOT NULL\
     );"
 
     banco.executarComandoSQLSemRetorno(stmt)
