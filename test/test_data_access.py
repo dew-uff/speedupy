@@ -6,8 +6,9 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 from constantes import Constantes
-from data_access import get_already_classified_functions, get_id, add_to_metadata, add_to_dont_cache_function_calls, add_to_simulated_function_calls, _save_new_metadata, _save_new_dont_cache_function_calls, _save_new_simulated_function_calls, _populate_dont_cache_function_calls_list, _populate_simulated_function_calls_dict, remove_metadata, get_all_saved_metadata_of_a_function_group_by_function_call_hash, get_function_call_return_freqs
+from data_access import get_already_classified_functions, get_id, add_to_metadata, add_to_dont_cache_function_calls, add_to_simulated_function_calls, _save_new_metadata, _save_new_dont_cache_function_calls, _save_new_simulated_function_calls, _populate_dont_cache_function_calls_list, _populate_simulated_function_calls_dict, _populate_function_calls_prov_dict, remove_metadata, get_all_saved_metadata_of_a_function_group_by_function_call_hash, get_function_call_return_freqs
 from entities.Metadata import Metadata
+from entities.FunctionCallProv import FunctionCallProv
 
 class TestDataAccess(unittest.TestCase):
     @classmethod
@@ -18,6 +19,7 @@ class TestDataAccess(unittest.TestCase):
         cls.create_table_SIMULATED_FUNCTION_CALLS()
         cls.create_table_METADATA()
         cls.create_table_DONT_CACHE_FUNCTION_CALLS()
+        cls.create_table_FUNCTION_CALLS_PROV()
 
     @classmethod
     def tearDownClass(cls):
@@ -61,6 +63,27 @@ class TestDataAccess(unittest.TestCase):
                 function_call_hash TEXT NOT NULL\
                 );"
         Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql)
+
+    @classmethod
+    def create_table_FUNCTION_CALLS_PROV(cls):
+        sql = "CREATE TABLE FUNCTION_CALLS_PROV(\
+               id INTEGER PRIMARY KEY AUTOINCREMENT,\
+               function_call_hash TEXT NOT NULL,\
+               outputs BLOB NOT NULL,\
+               total_num_exec INTEGER NOT NULL,\
+               next_revalidation INTEGER NOT NULL,\
+               next_index_weighted_seq INTEGER NOT NULL,\
+               mode_rel_freq REAL NOT NULL,\
+               mode_output BLOB NOT NULL,\
+               weighted_output_seq BLOB NOT NULL,\
+               mean_output BLOB NOT NULL,\
+               confidence_lv REAL NOT NULL,\
+               confidence_low_limit REAL NOT NULL,\
+               confidence_up_limit REAL NOT NULL,\
+               confidence_error REAL NOT NULL\
+               );"
+        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql)
+
 
     def setUp(self):
         Constantes().g_argsp_hash = ["md5"]
@@ -453,6 +476,13 @@ class TestDataAccess(unittest.TestCase):
         
         ret_2_freq = get_function_call_return_freqs("func_hash", (1,), {'a':False})
         self.assertDictEqual(ret_2_freq, {'a':0.5, 'b':0.5})
+
+    def test_populate_function_calls_prov_dict_when_table_is_empty(self):
+        _populate_function_calls_prov_dict()
+        self.assertDictEqual(Constantes().FUNCTION_CALLS_PROV, {})
+
+    def test_populate_function_calls_prov_dict_when_table_has_one_record(self):pass
+    def test_populate_function_calls_prov_dict_when_table_has_many_records(self): pass
 
 if __name__ == '__main__':
     unittest.main()
