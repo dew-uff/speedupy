@@ -47,7 +47,6 @@ class ProbabilisticErrorMode(AbstractExecutionMode):
             self.__func_call_prov.mean_output = st.tmean(data)
         return self.__func_call_prov.mean_output
 
-    #TODO: TEST
     def func_call_acted_as_expected(self, func_call_hash:str, metadata:Metadata):
         func_call_prov = get_func_call_prov(func_call_hash)
         low_limit = func_call_prov.mean_output - func_call_prov.confidence_error/2

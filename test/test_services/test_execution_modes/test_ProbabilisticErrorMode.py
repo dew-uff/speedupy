@@ -236,18 +236,69 @@ class TestProbabilisticErrorMode(unittest.TestCase):
             get_func_call_prov.assert_called_once()
             function_outputs_dict_2_array.assert_not_called()
 
-    def test_func_call_acted_as_expected_when_metadata_returned_value_outside_the_expected_interval(self): pass
-    def test_func_call_acted_as_expected_when_metadata_returned_value_right_in_the_upper_limit_expected(self): pass
-    def test_func_call_acted_as_expected_when_metadata_returned_value_right_in_the_lower_limit_expected(self): pass
-    def test_func_call_acted_as_expected_when_metadata_returned_value_inside_the_expected_interval(self): pass
-    def test_func_call_acted_as_expected_when_metadata_returned_value_inside_the_confidence_interval_but_outside_the_expected_interval(self): pass
-    def test_func_call_acted_as_expected_when_metadata_returned_value_outside_the_confidence_interval(self): pass
-        # metadata = Metadata('func_call_hash', [], {}, True, 0)
-        # self.function_call_prov.mean_output = 
-        # self.function_call_prov.confidence_error = 
-        # with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
-        #     self.assertFalse(self.accurateMode.func_call_acted_as_expected('func_call_hash', metadata))
-        #     get_func_call_prov.assert_called_once()
+    def test_func_call_acted_as_expected_when_metadata_returned_value_outside_the_expected_interval(self):
+        metadata = Metadata('func_call_hash', [], {}, 9, 0)
+        self.function_call_prov.mean_output = 10
+        self.function_call_prov.confidence_error = 0.572
+        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+            self.assertFalse(self.errorMode.func_call_acted_as_expected('func_call_hash', metadata))
+            get_func_call_prov.assert_called_once()
+
+    def test_func_call_acted_as_expected_when_metadata_returned_value_right_in_the_upper_limit_expected(self):
+        metadata = Metadata('func_call_hash', [], {}, 10.152, 0)
+        self.function_call_prov.mean_output = 10
+        self.function_call_prov.confidence_error = 0.304
+        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+            self.assertTrue(self.errorMode.func_call_acted_as_expected('func_call_hash', metadata))
+            get_func_call_prov.assert_called_once()
+
+    def test_func_call_acted_as_expected_when_metadata_returned_value_little_higher_than_the_upper_limit_expected(self):
+        metadata = Metadata('func_call_hash', [], {}, 10.1521, 0)
+        self.function_call_prov.mean_output = 10
+        self.function_call_prov.confidence_error = 0.304
+        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+            self.assertFalse(self.errorMode.func_call_acted_as_expected('func_call_hash', metadata))
+            get_func_call_prov.assert_called_once()
+        
+    def test_func_call_acted_as_expected_when_metadata_returned_value_right_in_the_lower_limit_expected(self):
+        metadata = Metadata('func_call_hash', [], {}, 2.889, 0)
+        self.function_call_prov.mean_output = 3
+        self.function_call_prov.confidence_error = 0.222
+        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+            self.assertTrue(self.errorMode.func_call_acted_as_expected('func_call_hash', metadata))
+            get_func_call_prov.assert_called_once()
+
+    def test_func_call_acted_as_expected_when_metadata_returned_value_little_lower_than_the_lower_limit_expected(self):
+        metadata = Metadata('func_call_hash', [], {}, 2.8889, 0)
+        self.function_call_prov.mean_output = 3
+        self.function_call_prov.confidence_error = 0.222
+        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+            self.assertFalse(self.errorMode.func_call_acted_as_expected('func_call_hash', metadata))
+            get_func_call_prov.assert_called_once()
+
+    def test_func_call_acted_as_expected_when_metadata_returned_value_inside_the_expected_interval(self):
+        metadata = Metadata('func_call_hash', [], {}, 3.1, 0)
+        self.function_call_prov.mean_output = 3
+        self.function_call_prov.confidence_error = 0.222
+        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+            self.assertTrue(self.errorMode.func_call_acted_as_expected('func_call_hash', metadata))
+            get_func_call_prov.assert_called_once()
+        
+    def test_func_call_acted_as_expected_when_metadata_returned_value_inside_the_confidence_interval_but_outside_the_expected_interval(self):
+        metadata = Metadata('func_call_hash', [], {}, 3.2, 0)
+        self.function_call_prov.mean_output = 3
+        self.function_call_prov.confidence_error = 0.222
+        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+            self.assertFalse(self.errorMode.func_call_acted_as_expected('func_call_hash', metadata))
+            get_func_call_prov.assert_called_once()
+        
+    def test_func_call_acted_as_expected_when_metadata_returned_value_outside_the_confidence_interval(self):
+        metadata = Metadata('func_call_hash', [], {}, 2, 0)
+        self.function_call_prov.mean_output = 3
+        self.function_call_prov.confidence_error = 0.222
+        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+            self.assertFalse(self.errorMode.func_call_acted_as_expected('func_call_hash', metadata))
+            get_func_call_prov.assert_called_once()
 
 if __name__ == '__main__':
     unittest.main()
