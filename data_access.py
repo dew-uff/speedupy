@@ -424,24 +424,23 @@ def _populate_simulated_function_calls_dict():
     for func_call_hash, returns_2_freq in resp:
         Constantes().SIMULATED_FUNCTION_CALLS[func_call_hash] = pickle.loads(returns_2_freq)
 
-#TODO: TEST
 def _populate_function_calls_prov_dict():
     sql = "SELECT function_call_hash, outputs, total_num_exec, next_revalidation, next_index_weighted_seq, mode_rel_freq, mode_output, weighted_output_seq, mean_output, confidence_lv, confidence_low_limit, confidence_up_limit, confidence_error FROM FUNCTION_CALLS_PROV"
     resp = Constantes().CONEXAO_BANCO.executarComandoSQLSelect(sql)
     Constantes().FUNCTION_CALLS_PROV = {}
     for reg in resp:
-        function_call_hash = reg[1]
-        outputs = pickle.loads(reg[2])
-        total_num_exec = int(reg[3])
-        next_revalidation = int(reg[4])
-        next_index_weighted_seq = int(reg[5])
-        mode_rel_freq = float(reg[6])
-        mode_output = pickle.loads(reg[7])
-        weighted_output_seq = pickle.loads(reg[8])
-        mean_output = pickle.loads(reg[9])
-        confidence_lv = float(reg[10])
-        confidence_low_limit = float(reg[11])
-        confidence_up_limit = float(reg[12])
-        confidence_error = float(reg[13])
+        function_call_hash = reg[0]
+        outputs = pickle.loads(reg[1])
+        total_num_exec = int(reg[2])
+        next_revalidation = int(reg[3])
+        next_index_weighted_seq = int(reg[4])
+        mode_rel_freq = float(reg[5])
+        mode_output = pickle.loads(reg[6])
+        weighted_output_seq = pickle.loads(reg[7])
+        mean_output = pickle.loads(reg[8])
+        confidence_lv = float(reg[9])
+        confidence_low_limit = float(reg[10])
+        confidence_up_limit = float(reg[11])
+        confidence_error = float(reg[12])
         Constantes().FUNCTION_CALLS_PROV[function_call_hash] = FunctionCallProv(function_call_hash, 
                                                                                 outputs, total_num_exec, next_revalidation, next_index_weighted_seq,mode_rel_freq, mode_output, weighted_output_seq, mean_output, confidence_lv, confidence_low_limit, confidence_up_limit, confidence_error)

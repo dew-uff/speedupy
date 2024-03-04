@@ -1,6 +1,6 @@
 from typing import List, Tuple, Dict
-import unittest, unittest.mock, os, sys, hashlib, mmh3, xxhash, pickle
-
+import unittest, unittest.mock, os, sys, hashlib, mmh3, xxhash
+from pickle import dumps, loads
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
@@ -92,7 +92,7 @@ class TestDataAccess(unittest.TestCase):
         Constantes().SIMULATED_FUNCTION_CALLS = {}
 
     def tearDown(self):
-        for table in ["CLASSIFIED_FUNCTIONS", "SIMULATED_FUNCTION_CALLS", "METADATA", "DONT_CACHE_FUNCTION_CALLS"]:
+        for table in ["CLASSIFIED_FUNCTIONS", "SIMULATED_FUNCTION_CALLS", "METADATA", "DONT_CACHE_FUNCTION_CALLS", "FUNCTION_CALLS_PROV"]:
             Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(f"DELETE FROM {table} WHERE id IS NOT NULL;")
     
     def assert_metadata_returned_is_correct(self, returned_metadata:List[Metadata], expected_metadata:List[Metadata]) -> None:
@@ -110,9 +110,9 @@ class TestDataAccess(unittest.TestCase):
         self.assertEqual(len(resp), len(metadata_expected))
         for i in range(len(resp)):
             md = metadata_expected[i]
-            s_args = pickle.dumps(md.args)
-            s_kwargs = pickle.dumps(md.kwargs)
-            s_return = pickle.dumps(md.return_value)
+            s_args = dumps(md.args)
+            s_kwargs = dumps(md.kwargs)
+            s_return = dumps(md.return_value)
             self.assertTupleEqual(resp[i], (md.function_hash, s_args, s_kwargs, s_return, md.execution_time))
 
     def manually_add_metadata(self, metadata:List[Metadata]) -> None:
@@ -121,15 +121,15 @@ class TestDataAccess(unittest.TestCase):
         sql_params = []
         for md in metadata:
             sql += " (?, ?, ?, ?, ?),"
-            s_args = pickle.dumps(md.args)
-            s_kwargs = pickle.dumps(md.kwargs)
-            s_return = pickle.dumps(md.return_value)
+            s_args = dumps(md.args)
+            s_kwargs = dumps(md.kwargs)
+            s_return = dumps(md.return_value)
             sql_params += [md.function_hash, s_args, s_kwargs, s_return, md.execution_time]
         sql = sql[:-1] #Removendo vírgula final!
         Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
 
     def manually_get_id(self, f_source, f_args, f_kwargs, hash_algorithm=['md5']):
-        f_call_hash = pickle.dumps(f_args) + pickle.dumps(f_kwargs)
+        f_call_hash = dumps(f_args) + dumps(f_kwargs)
         f_call_hash = str(f_call_hash) + f_source
         if hash_algorithm == ['md5']:
             f_call_hash = hashlib.md5(f_call_hash.encode('utf')).hexdigest()
@@ -138,6 +138,31 @@ class TestDataAccess(unittest.TestCase):
         elif hash_algorithm == ['xxhash']:
             f_call_hash = xxhash.xxh128_hexdigest(f_call_hash.encode('utf'))
         return f_call_hash
+    
+    def manually_insert_function_calls_prov(self, function_calls_prov:List[FunctionCallProv]):
+        sql = "INSERT INTO FUNCTION_CALLS_PROV(function_call_hash, outputs, total_num_exec, next_revalidation, next_index_weighted_seq, mode_rel_freq, mode_output, weighted_output_seq, mean_output, confidence_lv, confidence_low_limit, confidence_up_limit, confidence_error) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        for fp in function_calls_prov:
+            sql_params = [fp.function_call_hash, dumps(fp.outputs), fp.total_num_exec, fp.next_revalidation, fp.next_index_weighted_seq, fp.mode_rel_freq, dumps(fp.mode_output), dumps(fp.weighted_output_seq), dumps(fp.mean_output), fp.confidence_lv, fp.confidence_low_limit, fp.confidence_up_limit, fp.confidence_error]
+            Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
+
+    def assert_function_calls_prov_dict_correctly_populated(self, expected_func_calls_prov):
+        self.assertEqual(len(Constantes().FUNCTION_CALLS_PROV), len(expected_func_calls_prov))
+        for i in range(len(expected_func_calls_prov)):
+            p1 = expected_func_calls_prov[i]
+            p2 = Constantes().FUNCTION_CALLS_PROV[p1.function_call_hash]
+            self.assertEqual(p1.function_call_hash, p2.function_call_hash)
+            self.assertEqual(p1.outputs, p2.outputs)
+            self.assertEqual(p1.total_num_exec, p2.total_num_exec)
+            self.assertEqual(p1.next_revalidation, p2.next_revalidation)
+            self.assertEqual(p1.next_index_weighted_seq, p2.next_index_weighted_seq)
+            self.assertEqual(p1.mode_rel_freq, p2.mode_rel_freq)
+            self.assertEqual(p1.mode_output, p2.mode_output)
+            self.assertEqual(p1.weighted_output_seq, p2.weighted_output_seq)
+            self.assertEqual(p1.mean_output, p2.mean_output)
+            self.assertEqual(p1.confidence_lv, p2.confidence_lv)
+            self.assertEqual(p1.confidence_low_limit, p2.confidence_low_limit)
+            self.assertEqual(p1.confidence_up_limit, p2.confidence_up_limit)
+            self.assertEqual(p1.confidence_error, p2.confidence_error)
     
     def test_get_already_classified_functions_with_zero_classified_functions(self):
         functions = get_already_classified_functions()
@@ -322,9 +347,9 @@ class TestDataAccess(unittest.TestCase):
         sql = 'SELECT function_call_hash, returns_2_freq FROM SIMULATED_FUNCTION_CALLS'
         resp = Constantes().CONEXAO_BANCO.executarComandoSQLSelect(sql)
         self.assertEqual(len(resp), 3)
-        self.assertTupleEqual(resp[0], ('fc1_hash', pickle.dumps({10:2, 8:3, 7:5})))
-        self.assertTupleEqual(resp[1], ('fc2_hash', pickle.dumps({True:100, False:3, None:10})))
-        self.assertTupleEqual(resp[2], ('fc3_hash', pickle.dumps({(1, 2):10, 'TESTE':3})))
+        self.assertTupleEqual(resp[0], ('fc1_hash', dumps({10:2, 8:3, 7:5})))
+        self.assertTupleEqual(resp[1], ('fc2_hash', dumps({True:100, False:3, None:10})))
+        self.assertTupleEqual(resp[2], ('fc3_hash', dumps({(1, 2):10, 'TESTE':3})))
 
     
 
@@ -375,9 +400,9 @@ class TestDataAccess(unittest.TestCase):
     
     def test_remove_metadata_passing_0_metadata(self):
         f_hash = 'func_hash'
-        s_args = pickle.dumps((1, 2,))
-        s_kwargs = pickle.dumps({'a':True})
-        s_return = pickle.dumps(-88)
+        s_args = dumps((1, 2,))
+        s_kwargs = dumps({'a':True})
+        s_return = dumps(-88)
         sql = 'INSERT INTO METADATA(id, function_hash, args, kwargs, return_value, execution_time) VALUES '
         sql_params = []
         for i in range(3):
@@ -394,9 +419,9 @@ class TestDataAccess(unittest.TestCase):
 
     def test_remove_metadata_passing_3_metadata(self):
         f_hash = 'func_hash'
-        s_args = pickle.dumps((1, 2,))
-        s_kwargs = pickle.dumps({'a':True})
-        s_return = pickle.dumps(-88)
+        s_args = dumps((1, 2,))
+        s_kwargs = dumps({'a':True})
+        s_return = dumps(-88)
         sql = 'INSERT INTO METADATA(id, function_hash, args, kwargs, return_value, execution_time) VALUES '
         sql_params = []
         for i in range(6):
@@ -445,7 +470,7 @@ class TestDataAccess(unittest.TestCase):
         hash = 'func_call_hash'
         returns_2_freq = {10:0.3, False:0.6}
         sql = "INSERT INTO SIMULATED_FUNCTION_CALLS(function_call_hash, returns_2_freq) VALUES (?, ?)"
-        sql_params = [hash, pickle.dumps(returns_2_freq)]
+        sql_params = [hash, dumps(returns_2_freq)]
         Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
         _populate_simulated_function_calls_dict()
         self.assertDictEqual(Constantes().SIMULATED_FUNCTION_CALLS, {hash:returns_2_freq})
@@ -458,9 +483,9 @@ class TestDataAccess(unittest.TestCase):
         hash3 = 'func_call_hash3'
         returns_2_freq3 = {5:0.8, 'teste':0.2}
         sql = "INSERT INTO SIMULATED_FUNCTION_CALLS(function_call_hash, returns_2_freq) VALUES (?, ?), (?, ?), (?, ?)"
-        sql_params = [hash1, pickle.dumps(returns_2_freq1),
-                      hash2, pickle.dumps(returns_2_freq2),
-                      hash3, pickle.dumps(returns_2_freq3)]
+        sql_params = [hash1, dumps(returns_2_freq1),
+                      hash2, dumps(returns_2_freq2),
+                      hash3, dumps(returns_2_freq3)]
         Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
         _populate_simulated_function_calls_dict()
         self.assertDictEqual(Constantes().SIMULATED_FUNCTION_CALLS, {hash1:returns_2_freq1,
@@ -481,8 +506,19 @@ class TestDataAccess(unittest.TestCase):
         _populate_function_calls_prov_dict()
         self.assertDictEqual(Constantes().FUNCTION_CALLS_PROV, {})
 
-    def test_populate_function_calls_prov_dict_when_table_has_one_record(self):pass
-    def test_populate_function_calls_prov_dict_when_table_has_many_records(self): pass
+    def test_populate_function_calls_prov_dict_when_table_has_one_record(self):
+        provenience = [FunctionCallProv('func_call_hash', {dumps(False): 10}, 10, 3, 0, 1, False, 10*[False], 2, 0.95, 1, 2.27, 0.123)]
+        self.manually_insert_function_calls_prov(provenience)
+        _populate_function_calls_prov_dict()
+        self.assert_function_calls_prov_dict_correctly_populated(provenience)
+
+    def test_populate_function_calls_prov_dict_when_table_has_many_records(self):
+        provenience = [FunctionCallProv('func_call_hash', {dumps(False): 10}, 10, 3, 0, 1, False, 10*[False], 2, 0.95, 1, 2.27, 0.123),
+                       FunctionCallProv('func_call_hash2', {dumps(12.124): 3}, 3, 3, 0, 1, 12.124, [12.124], 2, 0.80, 123, -3, 0.777),
+                       FunctionCallProv('func_call_hash3', {dumps({1, 2, 3}): 1, dumps([1, -6, False]):4}, 5, 3, 0, 0.8, [1, -6, False], 4*[[1, -6, False]] + [{1, 2, 3}], 15, 1, 6, -4, 8)]
+        self.manually_insert_function_calls_prov(provenience)
+        _populate_function_calls_prov_dict()
+        self.assert_function_calls_prov_dict_correctly_populated(provenience)
 
 if __name__ == '__main__':
     unittest.main()
