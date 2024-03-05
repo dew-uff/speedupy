@@ -36,13 +36,11 @@ class Constantes(metaclass=SingletonMeta):
         self.g_argsp_inputs, \
         self.g_argsp_outputs = get_params()
 
-        self.FOLDER_NAME = ".intpy"
+        self.FOLDER_NAME = ".speedupy"
         self.CACHE_FOLDER_NAME = os.path.join(self.FOLDER_NAME, "cache")
-        self.BD_PATH = os.path.join(self.FOLDER_NAME, "intpy.db")
-        
-        self.TEMP_FOLDER = '.intpy_temp'
-        self.EXP_FUNCTIONS_FILENAME = os.path.join(self.TEMP_FOLDER, 'functions_intpy.json')
-        self.EXP_SERIALIZED_FILENAME = os.path.join(self.TEMP_FOLDER, 'experiment_intpy.pickle')
+        self.BD_PATH = os.path.join(self.FOLDER_NAME, "speedupy.db")        
+        self.EXP_FUNCTIONS_FILENAME = os.path.join(self.FOLDER_NAME, 'functions_speedupy.json')
+        self.EXP_SERIALIZED_FILENAME = os.path.join(self.FOLDER_NAME, 'experiment_speedupy.pickle')
         
         self.__CONEXAO_BANCO = None
         self.DATA_DICTIONARY = {}
@@ -63,22 +61,6 @@ class Constantes(metaclass=SingletonMeta):
         self.MAX_ERROR_RATE = 0.2
         self.MIN_TIME_TO_CACHE = 1
         self.MIN_TIME_TO_SIMULATE_FUNC_CALL = 10
-
-    def set_paths_for_executing_inside_main_folder(self):
-        self.FOLDER_NAME = ".intpy"
-        self.CACHE_FOLDER_NAME = os.path.join(self.FOLDER_NAME, "cache")
-        self.BD_PATH = os.path.join(self.FOLDER_NAME, "intpy.db")
-        
-        self.EXP_FUNCTIONS_FILENAME = os.path.join(self.TEMP_FOLDER, 'functions_intpy.json')
-        self.EXP_SERIALIZED_FILENAME = os.path.join(self.TEMP_FOLDER, 'experiment_intpy.pickle')
-        
-    def set_paths_for_executing_inside_temp_folder(self):
-        self.FOLDER_NAME = os.path.join("..", ".intpy")
-        self.CACHE_FOLDER_NAME = os.path.join(self.FOLDER_NAME, "cache")
-        self.BD_PATH = os.path.join(self.FOLDER_NAME, "intpy.db")
-        
-        self.EXP_FUNCTIONS_FILENAME = 'functions_intpy.json'
-        self.EXP_SERIALIZED_FILENAME = 'experiment_intpy.pickle'
 
     @property
     def CONEXAO_BANCO(self):
