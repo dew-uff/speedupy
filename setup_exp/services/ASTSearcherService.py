@@ -1,6 +1,6 @@
 import ast
 
-class ASTSearcher(ast.NodeVisitor):
+class ASTSearcherService(ast.NodeVisitor):
     """This class searches for all imports ('import ...', 'from ...  import ... ' and implicitly __init__.py imports) and all functions declared by the user on a file"""
     def __init__(self, AST):
         self.__AST = AST

@@ -4,16 +4,16 @@ import unittest, unittest.mock, os, sys, ast
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
-from services.ASTSearcher import ASTSearcher
+from setup_exp.services.ASTSearcherService import ASTSearcherService
 
-class TestASTSearcher(unittest.TestCase):
+class TestASTSearcherService(unittest.TestCase):
     def getAST(self, nome_script:str) -> ast.Module:
         with open(nome_script, 'rt') as f:
             fileAST = ast.parse(f.read())
         return fileAST
 
     def assert_resultados_astSearch_search(self, fileAST:ast.Module, expected_imports:List, expected_funcs:Dict[str, ast.FunctionDef]):
-        astSearcher = ASTSearcher(fileAST)
+        astSearcher = ASTSearcherService(fileAST)
         astSearcher.search()
         self.assertListEqual(astSearcher.import_commands, expected_imports)
         self.assertDictEqual(astSearcher.functions, expected_funcs)
