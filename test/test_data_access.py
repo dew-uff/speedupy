@@ -7,7 +7,7 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 from constantes import Constantes
-from data_access import get_already_classified_functions, get_id, add_to_metadata, add_to_dont_cache_function_calls, add_to_simulated_function_calls, _save_new_metadata, _save_new_dont_cache_function_calls, _save_new_simulated_function_calls, _populate_dont_cache_function_calls_list, _populate_simulated_function_calls_dict, _populate_function_calls_prov_dict, remove_metadata, get_all_saved_metadata_of_a_function_group_by_function_call_hash, get_function_call_return_freqs
+from data_access import get_already_classified_functions, get_id, add_to_metadata, add_to_dont_cache_function_calls, add_to_simulated_function_calls, _save_new_metadata, _save_new_dont_cache_function_calls, _save_new_simulated_function_calls, _populate_dont_cache_function_calls_list, _populate_simulated_function_calls_dict, _populate_function_calls_prov_dict, remove_metadata, get_all_saved_metadata_of_a_function_group_by_function_call_hash, get_function_call_return_freqs, update_function_call_prov
 from entities.Metadata import Metadata
 from entities.FunctionCallProv import FunctionCallProv
 
@@ -116,6 +116,25 @@ class TestDataAccess(unittest.TestCase):
             s_kwargs = dumps(md.kwargs)
             s_return = dumps(md.return_value)
             self.assertTupleEqual(resp[i], (md.function_hash, s_args, s_kwargs, s_return, md.execution_time))
+
+    def assert_FUNCTION_CALLS_PROV_equals_expected(self, expected_dict:Dict):
+        self.assertListEqual(list(Constantes().NEW_FUNCTION_CALLS_PROV.keys()),
+                             list(expected_dict.keys()))
+        for fc_hash in expected_dict:
+            fc_prov_1 = Constantes().NEW_FUNCTION_CALLS_PROV[fc_hash]
+            fc_prov_2 = expected_dict[fc_hash]
+            attrs = ['function_call_hash', 'outputs', 'total_num_exec', 'next_revalidation', 'next_index_weighted_seq', 'mode_rel_freq', 'mode_output', 'weighted_output_seq', 'mean_output', 'confidence_lv', 'confidence_low_limit', 'confidence_up_limit', 'confidence_error']
+            for a in attrs:
+                value1 = getattr(fc_prov_1, a)
+                value2 = getattr(fc_prov_2, a)
+                if value1 is None:
+                    self.assertIsNone(value2)
+                elif isinstance(value1, dict):
+                    self.assertDictEqual(value1, value2)
+                elif isinstance(value1, list):
+                    self.assertListEqual(value1, value2)
+                else:
+                    self.assertEqual(value1, value2)
 
     def manually_add_metadata(self, metadata:List[Metadata]) -> None:
         sql = "INSERT INTO METADATA(function_hash, args, kwargs, return_value, execution_time) \
@@ -530,6 +549,66 @@ class TestDataAccess(unittest.TestCase):
         self.manually_insert_function_calls_prov(provenience)
         _populate_function_calls_prov_dict()
         self.assert_function_calls_prov_dict_correctly_populated(provenience)
+    
+    def test_update_function_call_prov_when_we_have_metadata_from_many_function_calls(self):
+        md1 = Metadata('hash_1', (False, 10), {'test':True}, False, 0.523)
+        md2 = Metadata('hash_2', (1,), {}, 10.2, 0.523)
+        md3 = Metadata('hash_2', (1,), {}, -6, 0.523)
+        Constantes().METADATA = {'fc_hash_1': [md1], 'fc_hash_2': [md2, md3]}
+        Constantes().FUNCTION_CALLS_PROV = {}
+        Constantes().NEW_FUNCTION_CALLS_PROV = {}
+        update_function_call_prov('fc_hash_2')
+        new_fc_prov = FunctionCallProv('fc_hash_2', outputs={dumps(10.2):1, dumps(-6):1}, total_num_exec=2)
+        self.assert_FUNCTION_CALLS_PROV_equals_expected({'fc_hash_2': new_fc_prov})
+
+    def test_update_function_call_prov_when_function_call_prov_is_new(self):
+        md = Metadata('hash_3', (1,), {}, 10, 0.523)
+        Constantes().METADATA = {'fc_hash_3': [md]}
+        Constantes().FUNCTION_CALLS_PROV = {'fc_hash_1': FunctionCallProv('fc_hash_1'),
+                                            'fc_hash_2': FunctionCallProv('fc_hash_2')}
+        Constantes().NEW_FUNCTION_CALLS_PROV = {}
+        update_function_call_prov('fc_hash_3')
+        new_fc_prov = FunctionCallProv('fc_hash_3', outputs={dumps(10):1}, total_num_exec=1)
+        self.assert_FUNCTION_CALLS_PROV_equals_expected({'fc_hash_3': new_fc_prov})
+
+    def test_update_function_call_prov_when_function_call_prov_already_exists_but_was_not_updated_yet(self):
+        md = Metadata('hash_1', (1,), {}, False, 0.523)
+        Constantes().METADATA = {'fc_hash_1': [md]}
+        Constantes().FUNCTION_CALLS_PROV = {'fc_hash_1': FunctionCallProv('fc_hash_1', outputs={dumps(False):10}, total_num_exec=10),
+                                            'fc_hash_2': FunctionCallProv('fc_hash_2')}
+        Constantes().NEW_FUNCTION_CALLS_PROV = {}
+        update_function_call_prov('fc_hash_1')
+        new_fc_prov = FunctionCallProv('fc_hash_1', outputs={dumps(False):11}, total_num_exec=11)
+        self.assert_FUNCTION_CALLS_PROV_equals_expected({'fc_hash_1': new_fc_prov})
+
+    def test_update_function_call_prov_when_function_call_prov_already_exists_and_it_was_already_updated(self):
+        md = Metadata('hash_2', (1,), {}, False, 0.523)
+        Constantes().METADATA = {'fc_hash_2': [md]}
+        Constantes().FUNCTION_CALLS_PROV = {'fc_hash_1': FunctionCallProv('fc_hash_1', outputs={dumps(False):10}, total_num_exec=10)}
+        Constantes().NEW_FUNCTION_CALLS_PROV = {'fc_hash_2': FunctionCallProv('fc_hash_2', outputs={dumps(2.6):3}, total_num_exec=3)}
+        update_function_call_prov('fc_hash_2')
+        new_fc_prov = FunctionCallProv('fc_hash_2', outputs={dumps(2.6):3, dumps(False):1}, total_num_exec=4)
+        self.assert_FUNCTION_CALLS_PROV_equals_expected({'fc_hash_2': new_fc_prov})
+
+    def test_update_function_call_prov_when_metadata_output_is_new(self):
+        md = Metadata('hash_1', (1,), {}, 4, 0.523)
+        Constantes().METADATA = {'fc_hash_1': [md]}
+        Constantes().FUNCTION_CALLS_PROV = {'fc_hash_1': FunctionCallProv('fc_hash_1', outputs={dumps(False):10}, total_num_exec=10),
+                                            'fc_hash_2': FunctionCallProv('fc_hash_2')}
+        Constantes().NEW_FUNCTION_CALLS_PROV = {}
+        update_function_call_prov('fc_hash_1')
+        new_fc_prov = FunctionCallProv('fc_hash_1', outputs={dumps(False):10, dumps(4):1}, total_num_exec=11)
+        self.assert_FUNCTION_CALLS_PROV_equals_expected({'fc_hash_1': new_fc_prov})
+
+    def test_update_function_call_prov_when_metadata_output_already_exists(self):
+        md = Metadata('hash_1', (1,), {}, 'My result', 0.523)
+        Constantes().METADATA = {'fc_hash_1': [md]}
+        Constantes().FUNCTION_CALLS_PROV = {'fc_hash_1': FunctionCallProv('fc_hash_1', outputs={dumps('My result'):2}, total_num_exec=2),
+                                            'fc_hash_2': FunctionCallProv('fc_hash_2')}
+        Constantes().NEW_FUNCTION_CALLS_PROV = {}
+        update_function_call_prov('fc_hash_1')
+        new_fc_prov = FunctionCallProv('fc_hash_1', outputs={dumps('My result'):3}, total_num_exec=3)
+        self.assert_FUNCTION_CALLS_PROV_equals_expected({'fc_hash_1': new_fc_prov})
 
 if __name__ == '__main__':
     unittest.main()

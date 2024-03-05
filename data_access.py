@@ -272,7 +272,36 @@ def add_to_simulated_function_calls(fun_hash:str, fun_args:List, fun_kwargs:Dict
     fun_call_hash = get_id(fun_hash, fun_args, fun_kwargs)    
     Constantes().NEW_SIMULATED_FUNCTION_CALLS[fun_call_hash] = returns_2_freq
 
-def update_function_calls_prov(): pass
+def update_all_function_calls_prov() -> None:
+    for func_call_hash in Constantes().METADATA: update_function_call_prov(func_call_hash)
+
+def update_function_call_prov(func_call_hash:str) -> None:
+    for metadata in Constantes().METADATA[func_call_hash]:
+        if func_call_hash in Constantes().FUNCTION_CALLS_PROV:
+            fc_prov = Constantes().FUNCTION_CALLS_PROV.pop(func_call_hash)
+            Constantes().NEW_FUNCTION_CALLS_PROV[func_call_hash] = fc_prov
+
+        if func_call_hash not in Constantes().NEW_FUNCTION_CALLS_PROV:
+            fc_prov = FunctionCallProv(func_call_hash, {}, 0, None, None, None, None, None, None, None, None, None, None)
+            Constantes().NEW_FUNCTION_CALLS_PROV[func_call_hash] = fc_prov
+
+        fc_prov = Constantes().NEW_FUNCTION_CALLS_PROV[func_call_hash]
+        serial_return = pickle.dumps(metadata.return_value)
+        if serial_return not in fc_prov.outputs:
+            fc_prov.outputs[serial_return] = 0
+        fc_prov.outputs[serial_return] += 1
+        fc_prov.total_num_exec += 1
+        fc_prov.next_revalidation = None
+        fc_prov.next_index_weighted_seq = 0
+
+        fc_prov.mode_rel_freq = None
+        fc_prov.mode_output = None
+        fc_prov.weighted_output_seq = None
+        fc_prov.mean_output = None
+        fc_prov.confidence_lv = None
+        fc_prov.confidence_low_limit = None
+        fc_prov.confidence_up_limit = None
+        fc_prov.confidence_error = None
 
 def close_data_access():
     __save_new_cache_data()
