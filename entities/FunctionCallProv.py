@@ -1,5 +1,5 @@
 class FunctionCallProv():
-    def __init__(self, function_call_hash, outputs, total_num_exec, next_revalidation, next_index_weighted_seq, mode_rel_freq, mode_output, weighted_output_seq, mean_output, confidence_lv, confidence_low_limit, confidence_up_limit, confidence_error):
+    def __init__(self, function_call_hash, outputs={}, total_num_exec=0, next_revalidation=None, next_index_weighted_seq=0, mode_rel_freq=None, mode_output=None, weighted_output_seq=None, mean_output=None, confidence_lv=None, confidence_low_limit=None, confidence_up_limit=None, confidence_error=None):
         self.__function_call_hash = function_call_hash
         self.__outputs = outputs
         self.__total_num_exec = total_num_exec
