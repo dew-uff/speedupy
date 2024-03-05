@@ -260,7 +260,9 @@ def add_to_cache(fun_name, fun_args, fun_return, fun_source, argsp_v):
 
 def add_to_metadata(fun_hash:str, fun_args:List, fun_kwargs:Dict, fun_return, exec_time:float) -> None:
     md = Metadata(fun_hash, fun_args, fun_kwargs, fun_return, exec_time)
-    Constantes().METADATA.append(md)
+    func_call_hash = get_id(fun_hash, fun_args, fun_kwargs)
+    if func_call_hash not in Constantes().METADATA: Constantes().METADATA[func_call_hash] = [] 
+    Constantes().METADATA[func_call_hash].append(md)
 
 def add_to_dont_cache_function_calls(fun_hash:str, fun_args:List, fun_kwargs:Dict) -> None:
     fun_call_hash = get_id(fun_hash, fun_args, fun_kwargs)    
@@ -269,6 +271,8 @@ def add_to_dont_cache_function_calls(fun_hash:str, fun_args:List, fun_kwargs:Dic
 def add_to_simulated_function_calls(fun_hash:str, fun_args:List, fun_kwargs:Dict, returns_2_freq:Dict) -> None:
     fun_call_hash = get_id(fun_hash, fun_args, fun_kwargs)    
     Constantes().NEW_SIMULATED_FUNCTION_CALLS[fun_call_hash] = returns_2_freq
+
+def update_function_calls_prov(): pass
 
 def close_data_access():
     __save_new_cache_data()
@@ -307,13 +311,14 @@ def __save_new_cache_data():
 
 def _save_new_metadata() -> None:
     debug("saving metadata")
-    for md in Constantes().METADATA:
-        s_args = pickle.dumps(md.args)
-        s_kwargs = pickle.dumps(md.kwargs)
-        s_return = pickle.dumps(md.return_value)
-        sql = f"INSERT INTO METADATA(function_hash, args, kwargs, return_value, execution_time) VALUES (?, ?, ?, ?, ?)"
-        sql_params = [md.function_hash, s_args, s_kwargs, s_return, md.execution_time]
-        Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
+    for func_call_md in Constantes().METADATA.values():
+        for md in func_call_md:
+            s_args = pickle.dumps(md.args)
+            s_kwargs = pickle.dumps(md.kwargs)
+            s_return = pickle.dumps(md.return_value)
+            sql = f"INSERT INTO METADATA(function_hash, args, kwargs, return_value, execution_time) VALUES (?, ?, ?, ?, ?)"
+            sql_params = [md.function_hash, s_args, s_kwargs, s_return, md.execution_time]
+            Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(sql, sql_params)
 
 def _save_new_dont_cache_function_calls() -> None:
     debug("saving don't cache function calls")

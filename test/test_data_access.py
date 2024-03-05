@@ -1,5 +1,6 @@
 from typing import List, Tuple, Dict
 import unittest, unittest.mock, os, sys, hashlib, mmh3, xxhash
+from unittest.mock import patch
 from pickle import dumps, loads
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
@@ -95,14 +96,15 @@ class TestDataAccess(unittest.TestCase):
         for table in ["CLASSIFIED_FUNCTIONS", "SIMULATED_FUNCTION_CALLS", "METADATA", "DONT_CACHE_FUNCTION_CALLS", "FUNCTION_CALLS_PROV"]:
             Constantes().CONEXAO_BANCO.executarComandoSQLSemRetorno(f"DELETE FROM {table} WHERE id IS NOT NULL;")
     
-    def assert_metadata_returned_is_correct(self, returned_metadata:List[Metadata], expected_metadata:List[Metadata]) -> None:
+    def assert_metadata_returned_is_correct(self, returned_metadata:Dict[str, List[Metadata]], expected_metadata:Dict[str, Metadata]) -> None:
         self.assertEqual(len(returned_metadata), len(expected_metadata))
-        for i in range(len(expected_metadata)):
-            self.assertEqual(returned_metadata[i].function_hash, expected_metadata[i].function_hash)
-            self.assertEqual(returned_metadata[i].args, expected_metadata[i].args)
-            self.assertEqual(returned_metadata[i].kwargs, expected_metadata[i].kwargs)
-            self.assertEqual(returned_metadata[i].return_value, expected_metadata[i].return_value)
-            self.assertEqual(returned_metadata[i].execution_time, expected_metadata[i].execution_time)
+        for fc_hash, fc_md in expected_metadata.items():
+            for i in range(len(fc_md)):
+                self.assertEqual(returned_metadata[fc_hash][i].function_hash, fc_md[i].function_hash)
+                self.assertEqual(returned_metadata[fc_hash][i].args, fc_md[i].args)
+                self.assertEqual(returned_metadata[fc_hash][i].kwargs, fc_md[i].kwargs)
+                self.assertEqual(returned_metadata[fc_hash][i].return_value, fc_md[i].return_value)
+                self.assertEqual(returned_metadata[fc_hash][i].execution_time, fc_md[i].execution_time)
 
     def assert_METADATA_table_records_are_correct(self, metadata_expected:List[Metadata]):
         sql = f"SELECT function_hash, args, kwargs, return_value, execution_time FROM METADATA"
@@ -225,24 +227,27 @@ class TestDataAccess(unittest.TestCase):
         self.assertEqual(hash, expected)
 
     def test_add_to_metadata(self):
-        self.assertListEqual(Constantes().METADATA, [])
+        self.assertDictEqual(Constantes().METADATA, {})
+
         hash = "hash_func_1"
         args = [1, True]
         kwargs = {'a':10, 'b': 'teste', 'c':[1, -2, 3.26]}
         ret = 10
         exec_time = 2.125123
+        f_call_hash_1 = self.manually_get_id(hash, args, kwargs)
         md1 = Metadata(hash, args, kwargs, ret, exec_time)
         add_to_metadata(hash, args, kwargs, ret, exec_time)
-        self.assert_metadata_returned_is_correct(Constantes().METADATA, [md1])
+        self.assert_metadata_returned_is_correct(Constantes().METADATA, {f_call_hash_1:[md1]})
 
         hash = 'hash_func_2'
         args = []
         kwargs = {'a':-3, 'c':{1, -2, 3.26}}
         ret = True
         exec_time = 5.23151
+        f_call_hash_2 = self.manually_get_id(hash, args, kwargs)
         md2 = Metadata(hash, args, kwargs, ret, exec_time)
         add_to_metadata(hash, args, kwargs, ret, exec_time)
-        self.assert_metadata_returned_is_correct(Constantes().METADATA, [md1, md2])
+        self.assert_metadata_returned_is_correct(Constantes().METADATA, {f_call_hash_1:[md1], f_call_hash_2:[md2]})
 
     def test_add_to_dont_cache_function_calls(self):
         self.assertListEqual(Constantes().NEW_DONT_CACHE_FUNCTION_CALLS, [])
@@ -280,38 +285,44 @@ class TestDataAccess(unittest.TestCase):
                                                                         fc_hash2:returns_2_freq2})
 
     def test_save_new_metadata_with_only_one_metadata_record(self):
+        f_call_hash = self.manually_get_id('func_hash', [], {})
         md = Metadata('func_hash', [], {}, 3.7, 2.125123)
-        Constantes().METADATA = [md]
+        Constantes().METADATA = {f_call_hash:[md]}
         _save_new_metadata()
         self.assert_METADATA_table_records_are_correct([md])
 
     def test_save_new_metadata_when_function_has_only_args(self):
+        f_call_hash = self.manually_get_id('func_hash', [1, True, 'abc'], {})
         md = Metadata('func_hash', [1, True, 'abc'], {}, 10, 1.214)
-        Constantes().METADATA = [md]
+        Constantes().METADATA = {f_call_hash:[md]}
         _save_new_metadata()
         self.assert_METADATA_table_records_are_correct([md])
 
     def test_save_new_metadata_when_function_has_only_kwargs(self):
+        f_call_hash = self.manually_get_id('func_hash', [], {'a':10, 'b':True, 'c':(1,)})
         md = Metadata('func_hash', [], {'a':10, 'b':True, 'c':(1,)}, 10, 1.0)
-        Constantes().METADATA = [md]
+        Constantes().METADATA = {f_call_hash:[md]}
         _save_new_metadata()
         self.assert_METADATA_table_records_are_correct([md])
 
     def test_save_new_metadata_when_function_has_args_and_kwargs(self):
+        f_call_hash = self.manually_get_id('func_hash', [{'1':1, '0':0}, True, 'abc'], {'a':10, 'b':True, 'c':(1,)})
         md = Metadata('func_hash', [{'1':1, '0':0}, True, 'abc'], {'a':10, 'b':True, 'c':(1,)}, 10, 1.0)
-        Constantes().METADATA = [md]
+        Constantes().METADATA = {f_call_hash:[md]}
         _save_new_metadata()
         self.assert_METADATA_table_records_are_correct([md])
 
     def test_save_new_metadata_when_function_has_one_arg_and_one_kwarg(self):
+        f_call_hash = self.manually_get_id('func_hash', [True], {'a':-7.5})
         md = Metadata('func_hash', [True], {'a':-7.5}, 10, 1.0)
-        Constantes().METADATA = [md]
+        Constantes().METADATA = {f_call_hash:[md]}
         _save_new_metadata()
         self.assert_METADATA_table_records_are_correct([md])
 
     def test_save_new_metadata_when_function_has_many_args_and_kwargs(self):
+        f_call_hash = self.manually_get_id('func_hash', [True, False, 88], {'a':-7.5, 'b':{1, 2, 10}, 'c':[5, -2]})
         md = Metadata('func_hash', [True, False, 88], {'a':-7.5, 'b':{1, 2, 10}, 'c':[5, -2]}, 10, 1.0)
-        Constantes().METADATA = [md]
+        Constantes().METADATA = {f_call_hash:[md]}
         _save_new_metadata()
         self.assert_METADATA_table_records_are_correct([md])
 
@@ -374,7 +385,7 @@ class TestDataAccess(unittest.TestCase):
         f_call_hash = self.manually_get_id('func_hash', [-3.2, [(1,)], {'teste'}], {'content':False})
         self.assertEqual(len(metadata), 1)
         self.assertIn(f_call_hash, metadata)
-        self.assert_metadata_returned_is_correct(metadata[f_call_hash], [md3])
+        self.assert_metadata_returned_is_correct(metadata, {f_call_hash:[md3]})
     
     def test_get_all_saved_metadata_of_a_function_when_there_are_many_metadata_records_of_different_function_calls_for_the_function_passed(self):
         md1 = Metadata('hash1', [10, True], {'text':'Teste'}, True, 10.2)
@@ -393,10 +404,10 @@ class TestDataAccess(unittest.TestCase):
         expected_f_call_hashes = [f_call_hash1, f_call_hash2, f_call_hash3, f_call_hash4]
         self.assertEqual(len(metadata), 4)
         self.assertListEqual(list(metadata.keys()), expected_f_call_hashes)
-        self.assert_metadata_returned_is_correct(metadata[f_call_hash1], [md2, md3])
-        self.assert_metadata_returned_is_correct(metadata[f_call_hash2], [md4])
-        self.assert_metadata_returned_is_correct(metadata[f_call_hash3], [md5])
-        self.assert_metadata_returned_is_correct(metadata[f_call_hash4], [md6])
+        self.assert_metadata_returned_is_correct(metadata, {f_call_hash1:[md2, md3],
+                                                            f_call_hash2:[md4],
+                                                            f_call_hash3:[md5],
+                                                            f_call_hash4:[md6]})
     
     def test_remove_metadata_passing_0_metadata(self):
         f_hash = 'func_hash'
