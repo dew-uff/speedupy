@@ -6,9 +6,18 @@ sys.path.append(project_folder)
 
 from entities.Script import Script
 from entities.Experiment import Experiment
-from services.FunctionCalledDetector import FunctionCalledDetector
+from setup_exp.services.FunctionCalledDetectorService import FunctionCalledDetectorService
 
-class TestFunctionCalledDetector(unittest.TestCase):
+class TestFunctionCalledDetectorService(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.orig_work_dir = os.getcwd()
+        os.chdir(os.path.dirname(__file__))
+
+    @classmethod
+    def tearDownClass(cls):
+        os.chdir(cls.orig_work_dir)
+    
     def tearDown(self):
         files_and_folders = ['script_test.py', 
                              'script_test_2.py',
@@ -35,7 +44,7 @@ class TestFunctionCalledDetector(unittest.TestCase):
         experiment.add_script(script)
         experiment.set_main_script(script)
 
-        self.functionCalledDetector = FunctionCalledDetector(script, experiment)
+        self.functionCalledDetector = FunctionCalledDetectorService(script, experiment)
         self.assertIsNone(self.functionCalledDetector.find_function_called('random.randint'))
         self.assertIsNone(self.functionCalledDetector.find_function_called('random.random'))
         self.assertIsNone(self.functionCalledDetector.find_function_called('exists'))
@@ -53,7 +62,7 @@ class TestFunctionCalledDetector(unittest.TestCase):
         experiment.add_script(script)
         experiment.set_main_script(script)
 
-        self.functionCalledDetector = FunctionCalledDetector(script, experiment)
+        self.functionCalledDetector = FunctionCalledDetectorService(script, experiment)
         self.assertIsNone(self.functionCalledDetector.find_function_called('func1'))
         self.assertIsNone(self.functionCalledDetector.find_function_called('func2'))
         self.assertIsNone(self.functionCalledDetector.find_function_called('func21'))
@@ -92,7 +101,7 @@ class TestFunctionCalledDetector(unittest.TestCase):
         experiment.add_script(script3)
         experiment.set_main_script(script1)
 
-        self.functionCalledDetector = FunctionCalledDetector(script1, experiment)
+        self.functionCalledDetector = FunctionCalledDetectorService(script1, experiment)
         self.assertEqual(self.functionCalledDetector.find_function_called('func1'), script1.AST.body[2])
         self.assertEqual(self.functionCalledDetector.find_function_called('script_test_2.func2'), script2.AST.body[0])
         self.assertEqual(self.functionCalledDetector.find_function_called('folder3.subfolder3.script_test_3.func3'), script3.AST.body[0])
@@ -130,7 +139,7 @@ class TestFunctionCalledDetector(unittest.TestCase):
         experiment.add_script(script3)
         experiment.set_main_script(script1)
 
-        self.functionCalledDetector = FunctionCalledDetector(script1, experiment)
+        self.functionCalledDetector = FunctionCalledDetectorService(script1, experiment)
         self.assertEqual(self.functionCalledDetector.find_function_called('func1'), script1.AST.body[2])
         self.assertEqual(self.functionCalledDetector.find_function_called('func2'), script2.AST.body[0])
         self.assertEqual(self.functionCalledDetector.find_function_called('script_test_3.func3'), script3.AST.body[0])
@@ -168,7 +177,7 @@ class TestFunctionCalledDetector(unittest.TestCase):
         experiment.add_script(script3)
         experiment.set_main_script(script1)
 
-        self.functionCalledDetector = FunctionCalledDetector(script1, experiment)
+        self.functionCalledDetector = FunctionCalledDetectorService(script1, experiment)
         self.assertEqual(self.functionCalledDetector.find_function_called('func1'), script1.AST.body[2])
         self.assertEqual(self.functionCalledDetector.find_function_called('st2.func2'), script2.AST.body[0])
         self.assertEqual(self.functionCalledDetector.find_function_called('st3.func3'), script3.AST.body[0])
@@ -206,7 +215,7 @@ class TestFunctionCalledDetector(unittest.TestCase):
         experiment.add_script(script3)
         experiment.set_main_script(script1)
 
-        self.functionCalledDetector = FunctionCalledDetector(script1, experiment)
+        self.functionCalledDetector = FunctionCalledDetectorService(script1, experiment)
         self.assertEqual(self.functionCalledDetector.find_function_called('func1'), script1.AST.body[2])
         self.assertEqual(self.functionCalledDetector.find_function_called('f2'), script2.AST.body[0])
         self.assertEqual(self.functionCalledDetector.find_function_called('st3.func3'), script3.AST.body[0])
@@ -258,7 +267,7 @@ class TestFunctionCalledDetector(unittest.TestCase):
         experiment.add_script(scriptsubsubsub2)
         experiment.set_main_script(script1)
 
-        self.functionCalledDetector = FunctionCalledDetector(scriptsubsub2, experiment)
+        self.functionCalledDetector = FunctionCalledDetectorService(scriptsubsub2, experiment)
         self.assertEqual(self.functionCalledDetector.find_function_called('f2'), script2.AST.body[0])
         self.assertEqual(self.functionCalledDetector.find_function_called('fsub2'), scriptsub2.AST.body[0])
         self.assertEqual(self.functionCalledDetector.find_function_called('f3sub2'), scriptsubsubsub2.AST.body[0])

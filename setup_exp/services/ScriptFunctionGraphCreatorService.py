@@ -3,14 +3,14 @@ import ast
 from entities.Experiment import Experiment
 from entities.FunctionGraph import FunctionGraph
 from entities.Script import Script
-from services.FunctionCalledDetector import FunctionCalledDetector
+from setup_exp.services.FunctionCalledDetectorService import FunctionCalledDetectorService
 
-class ScriptFunctionGraphCreator(ast.NodeVisitor):
+class ScriptFunctionGraphCreatorService(ast.NodeVisitor):
     def __init__(self, main_script:Script, dependency_scripts_names:List[str], experiment:Experiment):
         self.__experiment = experiment
         self.__script = main_script
         self.__script_function_graph = FunctionGraph(main_script, dependency_scripts_names, experiment)
-        self.__function_call_detector = FunctionCalledDetector(self.__script, self.__experiment)
+        self.__function_call_detector = FunctionCalledDetectorService(self.__script, self.__experiment)
         
 
     def create_function_graph(self) -> FunctionGraph:

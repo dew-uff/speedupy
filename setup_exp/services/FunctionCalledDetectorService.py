@@ -4,7 +4,7 @@ from entities.Experiment import Experiment
 from util import is_an_user_defined_script, script_name_to_script_path, import_command_to_imported_scripts_names, get_original_name_of_function_imported_with_import_from, get_original_name_of_script_imported, get_import_command_of_function
 from entities.Script import Script
 
-class FunctionCalledDetector():
+class FunctionCalledDetectorService():
     def __init__(self, script:Script, experiment:Experiment):
         self.__script = script
         self.__experiment = experiment
