@@ -1,30 +1,25 @@
-import unittest, unittest.mock, os, sys, copy
+import unittest, unittest.mock, os, sys
 
-current = os.path.dirname(os.path.realpath(__file__))
-parent = os.path.dirname(current)
-sys.path.append(parent)
+project_folder = os.path.realpath(__file__).split('test/')[0]
+sys.path.append(project_folder)
 
 import os
 from banco import Banco
+from setup_exp.environment import _create_database, _create_cache_folder, _create_folder, _cache_folder_exists, _db_exists, _folder_exists, _env_exists, init_env
 
-from logger.log import debug
-from environment import _create_database, _create_cache_folder, _create_folder, _cache_folder_exists, _db_exists, _folder_exists, _env_exists, init_env
 class TestEnvironment(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.FOLDER_NAME = ".intpy"
+        cls.FOLDER_NAME = ".speedupy"
         cls.CACHE_FOLDER_NAME = cls.FOLDER_NAME + "/cache"
 
     def tearDown(self):
-        os.system("rm -rf .intpy/")
-
-    def tearDown(self):
-        os.system("rm -rf .intpy/")
+        os.system("rm -rf .speedupy/")
     
     def assert_db_exists(self):
-        self.assertTrue(os.path.exists('.intpy/intpy.db'))
-        expeceted_result = {('sqlite_sequence',), ('CACHE',), ('METADATA',), ('DONT_CACHE_FUNCTION_CALLS',), ('SIMULATED_FUNCTION_CALLS',), ('FUNCTION_CALLS_PROV',)}
-        conexaoBanco = Banco('.intpy/intpy.db')
+        self.assertTrue(os.path.exists('.speedupy/speedupy.db'))
+        expeceted_result = {('sqlite_sequence',), ('CACHE',), ('FUNCTION_CALLS_PROV',)}
+        conexaoBanco = Banco('.speedupy/speedupy.db')
         resp = conexaoBanco.executarComandoSQLSelect("SELECT tbl_name FROM sqlite_master WHERE type = 'table'")
         self.assertSetEqual(set(resp), expeceted_result)
 
@@ -37,7 +32,7 @@ class TestEnvironment(unittest.TestCase):
 
     def test_db_exists_when_db_exists(self):
         os.mkdir(self.FOLDER_NAME)
-        with open('.intpy/intpy.db', 'wt'): pass
+        with open('.speedupy/speedupy.db', 'wt'): pass
         self.assertTrue(_db_exists())
     
     def test_db_exists_when_db_does_not_exist(self):
@@ -52,7 +47,7 @@ class TestEnvironment(unittest.TestCase):
 
     def test_env_exists_when_env_exists(self):
         os.makedirs(self.CACHE_FOLDER_NAME)
-        with open('.intpy/intpy.db', 'wt'): pass
+        with open('.speedupy/speedupy.db', 'wt'): pass
         self.assertTrue(_env_exists())
     
     def test_env_exists_when_env_partially_not_exist(self):
@@ -64,7 +59,7 @@ class TestEnvironment(unittest.TestCase):
 
     def test_create_database(self):
         os.mkdir(self.FOLDER_NAME)
-        self.assertFalse(os.path.exists('.intpy/intpy.db'))
+        self.assertFalse(os.path.exists('.speedupy/speedupy.db'))
         _create_database()
         self.assert_db_exists()
 

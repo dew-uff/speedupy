@@ -4,7 +4,7 @@ sys.path.append(os.path.dirname(__file__))
 from constantes import Constantes
 from entities.Experiment import Experiment
 from services.experiment_service import create_experiment, copy_experiment, create_experiment_function_graph, decorate_experiment_functions_for_execution, get_experiment_functions_hashes
-from environment import init_speedupy_env
+from setup_exp.environment import init_env
 from util import save_json_file, serialize_to_file
 
 def check_python_version():
@@ -16,7 +16,7 @@ def validate_main_script_specified():
         raise Exception('Please specify only the main script of your experiment!\nCommand: python setup.py MAIN_SCRIPT.py')
 
 def setup_experiment(main_script_path:str) -> Experiment:
-    init_speedupy_env()
+    init_env()
     experiment = create_experiment(main_script_path)
     exp_func_graph = create_experiment_function_graph(experiment)
     functions2hashes = get_experiment_functions_hashes(exp_func_graph)
