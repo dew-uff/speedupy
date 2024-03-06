@@ -5,9 +5,9 @@ sys.path.append(project_folder)
 
 import os
 from banco import Banco
-from setup_exp.environment import _create_database, _create_cache_folder, _create_folder, _cache_folder_exists, _db_exists, _folder_exists, _env_exists, init_env
+from setup_exp.services.environment_service import _create_database, _create_cache_folder, _create_folder, _cache_folder_exists, _db_exists, _folder_exists, _env_exists, init_env
 
-class TestEnvironment(unittest.TestCase):
+class TestEnvironmentService(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.FOLDER_NAME = ".speedupy"
