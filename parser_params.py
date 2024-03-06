@@ -1,16 +1,15 @@
 import argparse
 import sys
 
+def help_msg() -> str:
+    return tool_options_msg() + exec_mode_msg() + strategy_msg() + hashes_msg() + storage_msg() + memory_msg()
 
-def usage_msg():
+def tool_options_msg():
     return "\nSpeeduPy's command line arguments help:\n\n\
-To run your experiment with SpeeduPy use:\n\
-$ python "+str(sys.argv[0])+" program_arguments [-h, --help] [-g, --glossary] [-m memory|help, --memory memory|help] [-H type|help, --hash type|help] [-M method|help, --marshalling method|help] [-s form|help, --storage form|help]\n\n\
-To run in the SpeeduPy DEBUG mode use:\n\
-$ DEBUG=True python "+str(sys.argv[0])+" program_arguments [-h, --help] [-g, --glossary] [-m memory|help, --memory memory|help] [-H type|help, --hash type|help] [-M method|help, --marshalling method|help] [-s form|help, --storage form|help]\n\n\
-"
-def glossary_msg():
-    return exec_mode_msg() + strategy_msg() + hashes_msg() + marshalling_msg() + storage_msg() + memory_msg()
+    To run your experiment with SpeeduPy use:\n\
+    $ python "+str(sys.argv[0])+" program_arguments [-h, --help] [-m memory, --memory memory] [-H type, --hash type] [-s form, --storage form]\n\n\
+    To run in the SpeeduPy DEBUG mode use:\n\
+    $ DEBUG=True python "+str(sys.argv[0])+" program_arguments [-h, --help] [-m memory, --memory memory] [-H type, --hash type] [-s form, --storage form]\n\n"
 
 def exec_mode_msg():
     return "\nExecution Mode - Defines how SpeeduPy will execute:\n\
@@ -22,7 +21,8 @@ def exec_mode_msg():
 def strategy_msg():
     return "\nStrategy - Defines SpeeduPy\'s policy for caching function calls when executing in probabilistic mode\n\
     =>error    : SpeeduPy only caches function calls that introduce errors up to a user-specified limit\n\
-    =>counting : SpeeduPy only caches function calls whose most produced output occurred at least a minimum percentage of times defined by the user\n"
+    =>counting : SpeeduPy only caches function calls whose most produced output occurred at least a minimum percentage of times defined by the user. The output that appeared most times will always be returned.\n\
+    =>frequency : SpeeduPy only caches function calls whose most produced output occurred at least a minimum percentage of times defined by the user. Speedupy will return a sequence of the outputs obtained on the previous execution of the function. The outputs will appear at the same frequencies they were obtained when the function was executed.\n"
 
 def hashes_msg():
     return "\nHashes: \n\
@@ -30,11 +30,6 @@ def hashes_msg():
     =>murmur: is a modern non-cryptographic hash function with a low collision rate and high performance.\n\
     =>xxhash: is a modern non-cryptographic hash function with a lower collision resistence and better performance compered to murmur.\n\
     usage: $ python "+str(sys.argv[0])+" program_arguments -H|--hash options\n"
-
-def marshalling_msg():
-    return "\nMarshalling:\n\
-    =>Pickle:\n\
-    usage: $ python "+str(sys.argv[0])+" program_arguments -M|--marshalling options\n"
 
 def storage_msg():
     return "\nStorage:\n\
@@ -55,23 +50,15 @@ def memory_msg():
     =>2d-lz   : two dicionaries (2d), lazy mode (lz), 7th implementation of dictionary (uses 2 dictionaries): new data is added to DATA_DICTIONARY when cache hit occurs (LAZY approach) and new data is added to NEW_DATA_DICTIONARY when cache miss occur and the function decorated with @deterministic is executed.\n\
     usage: $ python "+str(sys.argv[0])+" program_arguments -m|--memory options\n"
     
-
 def get_params():
     exec_modes = ['no-cache', 'manual', 'accurate', 'probabilistic']
-    prob_mode_strategies = ['counting', 'error']
+    prob_mode_strategies = ['counting', 'error', 'frequency']
     revalidations = ['none', 'fixed', 'adaptative']
     memories = ['help','ad', '1d-ow', '1d-ad', '2d-ad', '2d-ad-t', '2d-ad-f', '2d-ad-ft', '2d-lz']
     hashes = ['help','md5', 'murmur', 'xxhash']
-    marshals = ['help','pickle']
     storageOptions = ['help','db-file','db','file']
 
-    speedupy_arg_parser = argparse.ArgumentParser(usage=usage_msg())
-
-    speedupy_arg_parser.add_argument('-g',
-                                  '--glossary',
-                                  default=False,
-                                  action='store_true',
-                                  help='show all parameters options')
+    speedupy_arg_parser = argparse.ArgumentParser(usage=help_msg())
     
     speedupy_arg_parser.add_argument('args',
                                    metavar='program arguments',
@@ -142,14 +129,6 @@ def get_params():
                                    default=['md5'],
                                    help='SpeeduPy\'s mechanism of hashes: choose one of the following options: '+', '.join(hashes))
     
-    speedupy_arg_parser.add_argument('-M',
-                                  '--marshalling',
-                                   choices=marshals,
-                                   metavar='',
-                                   nargs=1,
-                                   default=['pickle'],
-                                   help='SpeeduPy\'s mechanism of marshalling: choose one of the following options: '+', '.join(marshals))
-    
     speedupy_arg_parser.add_argument('-s',
                                   '--storage',
                                    choices=storageOptions,
@@ -158,29 +137,11 @@ def get_params():
                                    default=['db-file'],
                                    help='SpeeduPy\'s mechanism of storage: choose one of the following options: '+', '.join(storageOptions))
     
-    speedupy_arg_parser.add_argument('-i',
-                                  '--inputs',
-                                   metavar='FILE/FOLDER',
-                                   nargs='*',
-                                   default=[],
-                                   help='specifies all input files/folders your experiment needs in order to execute correctly')
-    
-    speedupy_arg_parser.add_argument('-o',
-                                  '--outputs',
-                                   metavar='FILE/FOLDER',
-                                   nargs='*',
-                                   default=[],
-                                   help='specifies all output files/folders your experiment generates')
-
-    
     args = speedupy_arg_parser.parse_args()
-
     
-    if args.glossary:
-        print(glossary_msg())
-        sys.exit()
-
-    argsp_exp_args = args.args
+    argsp_m = args.memory
+    argsp_hash = args.hash
+    argsp_s = args.storage
 
     argsp_exec_mode = args.exec_mode
     argsp_strategy = args.strategy
@@ -190,29 +151,7 @@ def get_params():
     argsp_confidence_level = args.confidence_level
     argsp_max_error_per_function = args.max_error_per_function
     
-    argsp_m = args.memory
-    argsp_s = args.storage
-    argsp_M = args.marshalling
-    argsp_hash = args.hash
-
-    argsp_inputs = args.inputs
-    argsp_outputs = args.outputs
-
-    if str(argsp_m[0]) == 'help' or str(argsp_M[0]) == 'help' or str(argsp_hash[0]) == 'help' or str(argsp_s[0]) == 'help':
-        if str(argsp_m[0]) == 'help':
-            print(memory_msg())
-            
-        if str(argsp_M[0]) == 'help':
-            print(marshalling_msg())
-
-        if str(argsp_hash[0]) == 'help':
-            print(hashes_msg())
-
-        if str(argsp_s[0]) == 'help':
-            print(storage_msg())
-        sys.exit()
-
-    return argsp_exp_args, argsp_m, argsp_M, argsp_s, argsp_exec_mode, argsp_strategy, argsp_revalidation, argsp_min_num_exec, argsp_min_mode_occurrence, argsp_confidence_level, argsp_max_error_per_function, argsp_hash, argsp_inputs, argsp_outputs
+    return argsp_m, argsp_hash, argsp_s, argsp_exec_mode, argsp_strategy, argsp_revalidation, argsp_min_num_exec, argsp_min_mode_occurrence, argsp_confidence_level, argsp_max_error_per_function
 
 
 """
