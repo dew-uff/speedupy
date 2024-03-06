@@ -32,7 +32,7 @@ def __create_user_defined_imported_scripts_function_graphs(u_def_imported_script
     for script_name in u_def_imported_scripts:
         create_script_function_graph(experiment.scripts[script_name], experiment)
 
-def decorate_script_functions_for_execution(script:Script) -> bool:
+def decorate_script_functions(script:Script) -> bool:
     """This function decorates all functions of a script that can be decorated with @maybe_deterministic. It returns True if at least one function was decorated. If no functions were marked with @maybe_deterministic, this function returns False."""
     script_decorated = False
     for function in script.functions.values():

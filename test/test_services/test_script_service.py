@@ -4,7 +4,7 @@ from unittest.mock import patch
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
-from services.script_service import overwrite_decorated_script, add_decorator_import, add_start_inference_engine_import, decorate_script_functions_for_execution, _get_module_name
+from services.script_service import overwrite_decorated_script, add_decorator_import, add_start_inference_engine_import, decorate_script_functions, _get_module_name
 from constantes import Constantes
 from entities.Script import Script
 from entities.FunctionGraph import FunctionGraph
@@ -57,7 +57,7 @@ class TestScriptService(unittest.TestCase):
                      'main':fileAST.body[2]}
         self.script = Script('script_test.py', fileAST, [], functions)
         with patch('services.script_service.decorate_function', return_value=False):
-            self.assertFalse(decorate_script_functions_for_execution(self.script))
+            self.assertFalse(decorate_script_functions(self.script))
 
     def test_decorate_script_functions_for_execution_when_a_function_was_decorated(self):
         with open('script_test.py', 'wt') as f:
@@ -67,7 +67,7 @@ class TestScriptService(unittest.TestCase):
         functions = {'main':fileAST.body[0]}
         self.script = Script('script_test.py', fileAST, [], functions)
         with patch('services.script_service.decorate_function', return_value=True):
-            self.assertTrue(decorate_script_functions_for_execution(self.script))
+            self.assertTrue(decorate_script_functions(self.script))
 
     def test_decorate_script_functions_for_execution_when_many_functions_were_decorated(self):
         with open('script_test.py', 'wt') as f:
@@ -83,7 +83,7 @@ class TestScriptService(unittest.TestCase):
                      'main':fileAST.body[2]}
         self.script = Script('script_test.py', fileAST, [], functions)
         with patch('services.script_service.decorate_function', return_value=True):
-            self.assertTrue(decorate_script_functions_for_execution(self.script))
+            self.assertTrue(decorate_script_functions(self.script))
 
     def test_overwrite_decorated_script_without_changing_its_AST(self):
         with open('script_test.py', 'wt') as f:
