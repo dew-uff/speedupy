@@ -84,12 +84,12 @@ class TestFunctionService(unittest.TestCase):
             functions[func].qualname = func
         
         self.assertEqual(len(functions['main'].decorator_list), 1)
-        decorate_function(functions['main'])
+        self.assertFalse(decorate_function(functions['main']))
         self.assertEqual(len(functions['main'].decorator_list), 1)
         for func in functions:
             if func == 'main': continue
             self.assertEqual(len(functions[func].decorator_list), 0)
-            decorate_function(functions[func])
+            self.assertTrue(decorate_function(functions[func]))
             self.assertEqual(len(functions[func].decorator_list), 1)
             self.assertEqual(functions[func].decorator_list[0].id, 'maybe_deterministic')
     
@@ -114,7 +114,7 @@ class TestFunctionService(unittest.TestCase):
         for func in functions:
             self.assertEqual(len(functions[func].decorator_list), 1)
             old_decorator = functions[func].decorator_list[0]
-            decorate_function(functions[func])
+            self.assertFalse(decorate_function(functions[func]))
             self.assertEqual(len(functions[func].decorator_list), 1)
             self.assertEqual(old_decorator, functions[func].decorator_list[0])
     
@@ -137,9 +137,12 @@ class TestFunctionService(unittest.TestCase):
             functions[func].qualname = func
 
         for func in functions:
-            decorate_function(functions[func])
+            ret = decorate_function(functions[func])
             self.assertEqual(len(functions[func].decorator_list), 1)
-            if func in ['f1', 'main']: continue
+            if func in ['f1', 'main']:
+                self.assertFalse(ret)
+                continue
+            else: self.assertTrue(ret)
             self.assertEqual(functions[func].decorator_list[0].id, 'maybe_deterministic')
         self.assertEqual(functions['f1'].decorator_list[0].id, 'deterministic')
         self.assertEqual(functions['main'].decorator_list[0].id, 'initialize_speedupy')
