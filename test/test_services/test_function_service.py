@@ -9,7 +9,7 @@ from hashlib import md5
 from entities.Script import Script
 from entities.Experiment import Experiment
 from entities.Metadata import Metadata
-from services.function_service import decorate_function, _get_args_and_kwargs_func_call, _get_num_executions_needed, _try_execute_func, _is_statistically_deterministic_function, _get_metadata_statistics, _should_be_simulated, _classify_function
+from services.function_service import decorate_main_function, decorate_function, _get_args_and_kwargs_func_call, _get_num_executions_needed, _try_execute_func, _is_statistically_deterministic_function, _get_metadata_statistics, _should_be_simulated, _classify_function
 from constantes import Constantes
 
 class TestFunctionService(unittest.TestCase):
@@ -34,11 +34,43 @@ class TestFunctionService(unittest.TestCase):
             fileAST = ast.parse(f.read())
         return fileAST
     
+    def test_decorate_main_function_when_it_is_not_decorated(self):
+        with open('script_test.py', 'wt') as f:
+            f.write('def main():\n\trandom.randint()\n')
+        fileAST = self.getAST('script_test.py')
+        functions = {'main':fileAST.body[0]}
+        script = Script('script_test.py', fileAST, [], functions)
+        experiment = Experiment(os.path.dirname(__file__))
+        experiment.add_script(script)
+        for func in functions:
+            functions[func].qualname = func
+        
+        self.assertEqual(len(functions['main'].decorator_list), 0)
+        decorate_main_function(functions['main'])
+        self.assertEqual(len(functions['main'].decorator_list), 1)
+        self.assertEqual(functions[func].decorator_list[0].id, 'initialize_speedupy')
+
+    def test_decorate_main_function_when_it_is_already_decorated(self):
+        with open('script_test.py', 'wt') as f:
+            f.write('@initialize_speedupy\ndef main():\n\trandom.randint()\n')
+        fileAST = self.getAST('script_test.py')
+        functions = {'main':fileAST.body[0]}
+        script = Script('script_test.py', fileAST, [], functions)
+        experiment = Experiment(os.path.dirname(__file__))
+        experiment.add_script(script)
+        for func in functions:
+            functions[func].qualname = func
+        
+        self.assertEqual(len(functions['main'].decorator_list), 1)
+        decorate_main_function(functions['main'])
+        self.assertEqual(len(functions['main'].decorator_list), 1)
+        self.assertEqual(functions[func].decorator_list[0].id, 'initialize_speedupy')
+
     def test_decorate_function_all_functions_except_main(self):
         with open('script_test.py', 'wt') as f:
             f.write('def f1():\n\trandom.randint()\n')
             f.write('def f2():\n\tdef f21():\n\t\tdef f211():\n\t\t\treturn "f211"\n\t\treturn "f21"\n\treturn "f2"\n')
-            f.write('@initialize_intpy(__file__)\ndef main():\n\trandom.randint()\n')
+            f.write('@initialize_speedupy\ndef main():\n\trandom.randint()\n')
         fileAST = self.getAST('script_test.py')
         functions = {'f1':fileAST.body[0],
                      'f2':fileAST.body[1],
@@ -66,7 +98,7 @@ class TestFunctionService(unittest.TestCase):
             f.write('@deterministic\ndef f1():\n\trandom.randint()\n')
             f.write('@maybe_deterministic\ndef f2():\n\treturn "f2"\n')
             f.write('@deterministic\ndef f3(a):\n\treturn a ** 3\n')
-            f.write('@initialize_intpy(__file__)\ndef main():\n\trandom.randint()\n')
+            f.write('@initialize_speedupy\ndef main():\n\trandom.randint()\n')
 
         fileAST = self.getAST('script_test.py')
         functions = {'f1':fileAST.body[0],
@@ -91,7 +123,7 @@ class TestFunctionService(unittest.TestCase):
             f.write('@deterministic\ndef f1():\n\trandom.randint()\n')
             f.write('def f2():\n\treturn "f2"\n')
             f.write('def f3(a):\n\treturn a ** 3\n')
-            f.write('@initialize_intpy(__file__)\ndef main():\n\trandom.randint()\n')
+            f.write('@initialize_speedupy\ndef main():\n\trandom.randint()\n')
 
         fileAST = self.getAST('script_test.py')
         functions = {'f1':fileAST.body[0],
@@ -110,7 +142,7 @@ class TestFunctionService(unittest.TestCase):
             if func in ['f1', 'main']: continue
             self.assertEqual(functions[func].decorator_list[0].id, 'maybe_deterministic')
         self.assertEqual(functions['f1'].decorator_list[0].id, 'deterministic')
-        self.assertEqual(functions['main'].decorator_list[0].func.id, 'initialize_intpy')
+        self.assertEqual(functions['main'].decorator_list[0].id, 'initialize_speedupy')
         
     def test_get_args_and_kwargs_func_call(self):
         args = (1, True, (1, 2), 'teste')
