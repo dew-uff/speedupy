@@ -1,5 +1,5 @@
 import os
-from typing import List, Dict
+from typing import List, Dict, Set
 
 from entities.Script import Script
 from entities.Experiment import Experiment
@@ -7,7 +7,7 @@ from entities.FunctionGraph import FunctionGraph
 from data_access import get_id
 from services.script_service import create_script, create_script_function_graph, decorate_script_functions, overwrite_decorated_script, add_decorator_import, classify_script_functions
 from services.function_service import decorate_main_function
-from util import get_all_init_scripts_implicitly_imported, is_an_user_defined_script
+from util import is_an_user_defined_script, get_script_path
 
 def create_experiment(user_script_path:str) -> Experiment:
     experiment_base_dir, user_script_name = os.path.split(user_script_path)
@@ -30,10 +30,22 @@ def __update_scripts_to_be_analized(script:Script, scripts_analized:List[str], s
         if __script_needs_to_be_analyzed(imp_script, experiment_base_dir, scripts_analized):
             scripts_to_be_analized.append(imp_script)
 
-            init_scripts = get_all_init_scripts_implicitly_imported(imp_script, experiment_base_dir)
+            init_scripts = _get_all_init_scripts_implicitly_imported(imp_script, experiment_base_dir)
             for i_script in init_scripts:
                 if __script_needs_to_be_analyzed(i_script, experiment_base_dir,scripts_analized):
                     scripts_to_be_analized.append(i_script)
+
+def _get_all_init_scripts_implicitly_imported(imported_script:str, experiment_base_dir:str) -> Set[str]:
+    init_scripts_implicitly_imported = set()
+    if(imported_script.rfind(os.sep) != -1):
+        current_init_script_path = imported_script[0:imported_script.rfind(os.sep) + 1] + "__init__.py"
+        while(current_init_script_path != "__init__.py"):
+            if(os.path.exists(get_script_path(current_init_script_path, experiment_base_dir))):
+                init_scripts_implicitly_imported.add(current_init_script_path)
+            current_init_script_path = current_init_script_path.split(os.sep)
+            current_init_script_path.pop(-2)
+            current_init_script_path = os.sep.join(current_init_script_path)
+    return init_scripts_implicitly_imported
 
 def __script_needs_to_be_analyzed(script:str, experiment_base_dir:str, scripts_analized:List[str]) -> bool:
     return is_an_user_defined_script(script, experiment_base_dir) and \
