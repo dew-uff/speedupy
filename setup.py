@@ -4,11 +4,7 @@ sys.path.append(os.path.dirname(__file__))
 from constantes import Constantes
 from services.experiment_service import create_experiment, overwrite_decorated_experiment, create_experiment_function_graph, decorate_experiment_functions, get_experiment_functions_hashes
 from setup_exp.environment import init_env
-from util import save_json_file, serialize_to_file
-
-def check_python_version():
-    if sys.version_info[0] != 3 or sys.version_info[1] < 9:
-        raise Exception('Requires python 3.9+')
+from util import save_json_file, serialize_to_file, check_python_version
     
 def validate_main_script_specified():
     if len(sys.argv) != 2:

@@ -1,6 +1,10 @@
 from typing import Union, List, Dict
-import os, ast, json, pickle
+import os, ast, json, pickle, sys
 from copy import deepcopy
+
+def check_python_version():
+    if sys.version_info[0] != 3 or sys.version_info[1] < 9:
+        raise Exception('Requires python 3.9+')
 
 def is_an_user_defined_script(imported_script:str, experiment_base_dir:str) -> bool:
     return os.path.exists(get_script_path(imported_script, experiment_base_dir)) and imported_script.find("intpy") == -1
