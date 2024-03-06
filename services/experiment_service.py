@@ -1,12 +1,12 @@
-import os, ast
+import os
 from typing import List, Dict
 
 from entities.Script import Script
 from entities.Experiment import Experiment
 from entities.FunctionGraph import FunctionGraph
-from data_access import get_already_classified_functions, get_id
-from services.script_service import create_script, create_script_function_graph, decorate_script_functions_for_execution, copy_script, add_common_decorator_imports_for_execution, classify_script_functions, add_start_inference_engine_import, add_execute_intpy_import
-from services.function_service import is_initialize_intpy_decorator, is_execute_intpy_decorator
+from data_access import get_id
+from services.script_service import create_script, create_script_function_graph, decorate_script_functions, overwrite_decorated_script, add_decorator_import, classify_script_functions
+from services.function_service import decorate_main_function
 from util import get_all_init_scripts_implicitly_imported, is_an_user_defined_script
 
 def create_experiment(user_script_path:str) -> Experiment:
@@ -55,38 +55,21 @@ def get_experiment_functions_hashes(experiment_function_graph:FunctionGraph) -> 
         functions2hashes[vertice.qualname] = hash
     return functions2hashes
 
-def decorate_experiment_functions_for_execution(experiment:Experiment) -> None:
+def decorate_experiment_functions(experiment:Experiment) -> None:
+    _prepare_experiment_main_function_for_execution(experiment)
     for script in experiment.scripts.values():
-        add_common_decorator_imports_for_execution(script)
-        decorate_script_functions_for_execution(script)
-    _prepare_experiment_main_script_for_execution(experiment)
+        script_decorated = decorate_script_functions(script)
+        if script_decorated:
+            add_decorator_import(script, 'maybe_deterministic')
 
-def _prepare_experiment_main_script_for_execution(experiment:Experiment):
+def _prepare_experiment_main_function_for_execution(experiment:Experiment):
     main_script = experiment.main_script
-    add_execute_intpy_import(main_script)
-    for func in main_script.functions.values():
-        for decorator in func.decorator_list:
-            if is_initialize_intpy_decorator(decorator):
-                func.decorator_list.remove(decorator)
-                func.decorator_list.append(ast.Name(id='execute_intpy', ctx=ast.Load()))
-                return
-            
-def prepare_experiment_main_script_for_inference(experiment:Experiment):
-    main_script = experiment.main_script
-    add_start_inference_engine_import(main_script)
-    for func in main_script.functions.values():
-        for decorator in func.decorator_list:
-            if is_execute_intpy_decorator(decorator):
-                func.decorator_list.remove(decorator)
-                func.decorator_list.append(ast.Name(id='start_inference_engine', ctx=ast.Load()))
-                return
+    add_decorator_import(main_script, 'initialize_speedupy')
+    decorate_main_function(main_script.functions['main'])
 
-def update_main_script_file(experiment:Experiment) -> None:
-    copy_script(experiment.main_script)
-
-def copy_experiment(experiment:Experiment):
+def overwrite_decorated_experiment(experiment:Experiment):
     for script in experiment.scripts.values():
-        copy_script(script)
+        overwrite_decorated_script(script)
 
 def classify_experiment_functions(experiment:Experiment, functions_2_hashes:Dict[str, str]) -> None:
     for script in experiment.scripts.values():
