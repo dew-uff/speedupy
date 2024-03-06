@@ -1,41 +1,12 @@
 import os
 import threading
-from threading import Lock
 
 from banco import Banco
-from parser_params import get_params
-
-class SingletonMeta(type):
-    """
-    Classe thread-safe para implementar Singleton.
-    """
-    _instances = {}
-    _lock: Lock = Lock()
-    def __call__(cls, *args, **kwargs):
-        with cls._lock:
-            if cls not in cls._instances:
-                instance = super().__call__(*args, **kwargs)
-                cls._instances[cls] = instance
-        return cls._instances[cls]
-
+from SingletonMeta import SingletonMeta
+from execute_exp.SpeeduPySettings import SpeeduPySettings
 
 class Constantes(metaclass=SingletonMeta):
     def __init__(self):
-        self.g_argsp_exp_args,\
-        self.g_argsp_m, \
-        self.g_argsp_M, \
-        self.g_argsp_s, \
-        self.g_argsp_exec_mode, \
-        self.g_argsp_strategy, \
-        self.g_argsp_revalidation, \
-        self.g_argsp_min_num_exec, \
-        self.g_argsp_min_mode_occurrence, \
-        self.g_argsp_confidence_level, \
-        self.g_argsp_max_error_per_function, \
-        self.g_argsp_hash, \
-        self.g_argsp_inputs, \
-        self.g_argsp_outputs = get_params()
-
         self.FOLDER_NAME = ".speedupy"
         self.CACHE_FOLDER_NAME = os.path.join(self.FOLDER_NAME, "cache")
         self.BD_PATH = os.path.join(self.FOLDER_NAME, "speedupy.db")        
@@ -64,7 +35,7 @@ class Constantes(metaclass=SingletonMeta):
 
     @property
     def CONEXAO_BANCO(self):
-        if self.g_argsp_m != ['v01x'] and self.__CONEXAO_BANCO is None:
+        if SpeeduPySettings().g_argsp_m != ['v01x'] and self.__CONEXAO_BANCO is None:
             try:
                 self.__CONEXAO_BANCO = Banco(self.BD_PATH)
             except: #Need for unit testing!
