@@ -1,24 +1,22 @@
+import time
+from functools import wraps
+from typing import Callable, List, Dict, Optional
 import sys, os, random
 sys.path.append(os.path.dirname(__file__))
 
 from constantes import Constantes
-
-import time
-from functools import wraps
-from typing import Callable, List, Dict, Optional
-
+from execute_exp.SpeeduPySettings import SpeeduPySettings
 from logger.log import debug
-from util import get_content_json_file
+from util import get_content_json_file, check_python_version
 from data_access import get_cache_data, get_function_call_return_freqs, add_to_cache, close_data_access, init_data_access, add_to_metadata, get_id
 
-def execute_intpy(f):
+def initialize_speedupy(f):
     @wraps(f)
     def wrapper(*method_args, **method_kwargs):
-        Constantes().set_paths_for_executing_inside_temp_folder()
         init_data_access()
         _get_experiment_function_hashes()
         f(*method_args, **method_kwargs)
-        if Constantes().g_argsp_m != ['v01x']:
+        if SpeeduPySettings().g_argsp_m != ['v01x']:
             close_data_access()
     return wrapper
 
@@ -77,7 +75,7 @@ def deterministic(f):
 
 def _get_cache(func, args):
     fun_hash = Constantes().FUNCTIONS_2_HASHES[func.__qualname__]
-    return get_cache_data(func.__name__, args, fun_hash, Constantes().g_argsp_m)
+    return get_cache_data(func.__name__, args, fun_hash, SpeeduPySettings().g_argsp_m)
 
 def _get_function_call_return_freqs(f, args:List, kwargs:Dict) -> Optional[Dict]:
     f_hash = Constantes().FUNCTIONS_2_HASHES[f.__qualname__]
@@ -100,15 +98,18 @@ def _execute_func(f, self, *method_args, **method_kwargs):
 def _cache_data(func, fun_args, fun_return):
     debug("adding cache entry for {0}({1})".format(func.__name__, fun_args))
     fun_hash = Constantes().FUNCTIONS_2_HASHES[func.__qualname__]
-    add_to_cache(func.__name__, fun_args, fun_return, fun_hash, Constantes().g_argsp_m)
+    add_to_cache(func.__name__, fun_args, fun_return, fun_hash, SpeeduPySettings().g_argsp_m)
 
 def _save_metadata(func, fun_args, fun_kwargs, fun_return, elapsed_time):
     debug("adding metadata for {0}({1})".format(func.__name__, fun_args))
     fun_hash = Constantes().FUNCTIONS_2_HASHES[func.__qualname__]
     add_to_metadata(fun_hash, fun_args, fun_kwargs, fun_return, elapsed_time)
 
-if Constantes().g_argsp_exec_mode == 'no-cache':
-    def execute_intpy(f):
+
+check_python_version()
+
+if SpeeduPySettings().g_argsp_exec_mode == 'no-cache':
+    def initialize_speedupy(f):
         return f
 
     def deterministic(f):
@@ -117,6 +118,6 @@ if Constantes().g_argsp_exec_mode == 'no-cache':
     def maybe_deterministic(f):
         return f
 
-elif Constantes().g_argsp_exec_mode == 'manual':
+elif SpeeduPySettings().g_argsp_exec_mode == 'manual':
     def maybe_deterministic(f):
         return f
