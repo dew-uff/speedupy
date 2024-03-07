@@ -10,7 +10,6 @@ from entities.Metadata import Metadata
 from entities.FunctionCallProv import FunctionCallProv
 from SingletonMeta import SingletonMeta
 from util import get_content_json_file
-from data_access_util import deserialize
 from execute_exp.memory_architectures.AbstractMemArch import AbstractMemArch
 
 class DataAccessConstants(metaclass=SingletonMeta):
@@ -80,17 +79,6 @@ def get_function_call_return_freqs(fun_source:str, fun_args:Tuple, fun_kwargs:Di
         return Constantes().SIMULATED_FUNCTION_CALLS[func_call_hash]
     except KeyError:
         return None
-
-def add_new_data_to_CACHED_DATA_DICTIONARY(list_file_names):
-    for file_name in list_file_names:
-        file_name = file_name[0].replace(".ipcache", "")
-        
-        result = deserialize(file_name)
-        if(result is None):
-            continue
-        else:
-            with Constantes().CACHED_DATA_DICTIONARY_SEMAPHORE:
-                Constantes().DATA_DICTIONARY[file_name] = result
 
 def add_to_metadata(fun_hash:str, fun_args:List, fun_kwargs:Dict, fun_return, exec_time:float) -> None:
     md = Metadata(fun_hash, fun_args, fun_kwargs, fun_return, exec_time)

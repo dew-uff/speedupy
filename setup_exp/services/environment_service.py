@@ -65,8 +65,9 @@ def _create_table_CACHE(banco: Banco):
 
     stmt = "CREATE TABLE IF NOT EXISTS CACHE (\
     id INTEGER PRIMARY KEY AUTOINCREMENT,\
-    cache_file TEXT UNIQUE,\
-    fun_name TEXT\
+    func_call_hash TEXT UNIQUE,\
+    func_output BLOB,\
+    func_name TEXT\
     );"
 
     banco.executarComandoSQLSemRetorno(stmt)
