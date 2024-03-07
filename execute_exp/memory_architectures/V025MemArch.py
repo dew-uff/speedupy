@@ -1,13 +1,13 @@
 from execute_exp.memory_architectures.AbstractMemArch import AbstractMemArch
-from data_access_util import get_file_name, serialize
-from storage import get_fun_name, save_fun_name, get_all_data_of_func_storage
+from execute_exp.storages.storage import Storage
 
 #TODO: TEST
 class V025MemArch(AbstractMemArch):
-    def __init__(self):
+    def __init__(self, storage:Storage):
+        #Os valores de NEW_DATA_DICTIONARY são as tuplas (retorno_da_funcao, nome_da_funcao)
+        super().__init__(storage)
         self.__FUNCTIONS_ALREADY_SELECTED_FROM_DB = []
         self.__DATA_DICTIONARY = {}
-        #Os valores de NEW_DATA_DICTIONARY são as tuplas (retorno_da_funcao, nome_da_funcao)
         self.__NEW_DATA_DICTIONARY = {}
 
     def get_initial_cache_entries(self):  pass        
@@ -19,7 +19,7 @@ class V025MemArch(AbstractMemArch):
             if(func_call_hash in self.__NEW_DATA_DICTIONARY):
                 return self.__NEW_DATA_DICTIONARY[func_call_hash][0]
         else:
-            self.__DATA_DICTIONARY = get_all_data_of_func_storage(func_name)
+            self.__DATA_DICTIONARY = self.__storage.get_cached_data_of_a_function(func_name)
             self.__FUNCTIONS_ALREADY_SELECTED_FROM_DB.append(func_name)
             if(func_call_hash in self.__DATA_DICTIONARY):
                 return self.__DATA_DICTIONARY[func_call_hash]
@@ -29,6 +29,6 @@ class V025MemArch(AbstractMemArch):
         self.__NEW_DATA_DICTIONARY[func_call_hash] = (func_return, func_name)
     
     def save_new_cache_entries(self):
-        for func_call_hash, func_return in self.__NEW_DATA_DICTIONARY.items():
-            serialize(func_return[0], func_call_hash)
-            save_fun_name(get_file_name(func_call_hash), func_return[1])
+        for func_call_hash, func_data in self.__NEW_DATA_DICTIONARY.items():
+            self.__storage.save_cache_data_of_a_function_call(func_call_hash, func_data[0],
+                                                              func_name=func_data[1])

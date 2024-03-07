@@ -1,24 +1,19 @@
 from execute_exp.memory_architectures.AbstractMemArch import AbstractMemArch
-from data_access_util import get_file_name, deserialize, serialize
-from storage import get_storage, save_storage
-from constantes import Constantes
-from banco import Banco
+from execute_exp.storages.storage import Storage
 
 #TODO: TEST
 class V01MemArch(AbstractMemArch):
+    def __init__(self, storage:Storage):
+        super().__init__(storage)
+
     def get_initial_cache_entries(self): pass
     
     def get_cache_entry(self, func_call_hash:str):
-        Constantes().CONEXAO_BANCO = Banco(Constantes().BD_PATH)
-        list_file_name = get_storage(get_file_name(func_call_hash))
-        Constantes().CONEXAO_BANCO.fecharConexao()
-        return deserialize(func_call_hash) if len(list_file_name) == 1 else None
+        return self.__storage.get_cached_data_of_a_function_call(func_call_hash,
+                                                                 use_isolated_connection=True)
     
     def create_cache_entry(self, func_call_hash:str, func_return):
-        Constantes().CONEXAO_BANCO = Banco(Constantes().BD_PATH)
-        serialize(func_return, func_call_hash)
-        save_storage(get_file_name(func_call_hash))
-        Constantes().CONEXAO_BANCO.salvarAlteracoes()
-        Constantes().CONEXAO_BANCO.fecharConexao()
+        self.__storage.save_cache_data_of_a_function_call(func_call_hash, func_return,
+                                                          use_isolated_connection=True)
         
     def save_new_cache_entries(self): pass
