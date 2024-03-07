@@ -3,7 +3,7 @@ import ast, time
 from constantes import Constantes
 from data_access import get_all_saved_metadata_of_a_function_group_by_function_call_hash
 from entities.Metadata import Metadata
-from data_access import add_to_cache, add_to_simulated_function_calls, add_to_dont_cache_function_calls, remove_metadata
+from data_access import create_cache_entry, add_to_simulated_function_calls, add_to_dont_cache_function_calls, remove_metadata
 
 def decorate_main_function(main_function:ast.FunctionDef) -> None:
     for decorator in main_function.decorator_list:
@@ -110,7 +110,7 @@ def _is_statistically_deterministic_function(error_rate:float, mean_exec_time:fl
            mean_exec_time >= Constantes().MIN_TIME_TO_CACHE
         
 def classify_as_statistically_deterministic_function(fun_name, fun_args, fun_return, fun_source) -> None:
-    add_to_cache(fun_name, fun_args, fun_return, fun_source, Constantes().g_argsp_m)
+    create_cache_entry(fun_name, fun_args, fun_return, fun_source, Constantes().g_argsp_m)
 
 def _should_be_simulated(mean_exec_time:float) -> bool:
     return mean_exec_time >= Constantes().MIN_TIME_TO_SIMULATE_FUNC_CALL

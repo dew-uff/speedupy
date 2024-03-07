@@ -4,30 +4,47 @@ from typing import Callable, List, Dict, Optional
 import sys, os, random
 sys.path.append(os.path.dirname(__file__))
 
-from constantes import Constantes
+from SingletonMeta import SingletonMeta
 from execute_exp.SpeeduPySettings import SpeeduPySettings
 from logger.log import debug
-from util import get_content_json_file, check_python_version
-from data_access import get_cache_data, get_function_call_return_freqs, add_to_cache, close_data_access, init_data_access, add_to_metadata, get_id
+from util import check_python_version
+from data_access import get_cache_entry, get_function_call_return_freqs, create_cache_entry, close_data_access, init_data_access, add_to_metadata, get_id
+
+from data_access import DataAccessConstants
 
 def initialize_speedupy(f):
     @wraps(f)
     def wrapper(*method_args, **method_kwargs):
         init_data_access()
-        _get_experiment_function_hashes()
         f(*method_args, **method_kwargs)
-        if SpeeduPySettings().g_argsp_m != ['v01x']:
-            close_data_access()
+        close_data_access()
     return wrapper
 
-def _get_experiment_function_hashes():
-    Constantes().FUNCTIONS_2_HASHES = get_content_json_file(Constantes().EXP_FUNCTIONS_FILENAME)
-
+#TODO: CORRIGIR IMPLEMENTAÇÃO
 def maybe_deterministic(f):
     @wraps(f)
     def wrapper(*method_args, **method_kwargs):
         debug("calling {0}".format(f.__name__))
-        c = _get_cache(f, method_args)
+
+        # if revalidation.execucao_de_revalidacao():
+        #     Executa função + Coleta metadados!
+        #     revalidation.calcular_proxima_revalidacao()
+        #     atualizar_dados_BD_com_metadados()
+        # else:
+        #     if (num_exec_BD < num_exec_min) and \
+        #        (num_exec_BD + num_exec_metadados >= num_exec_min):
+        #         atualizar_dados_BD_com_metadados()
+        #     if num_exec_BD >= num_exec_min:
+        #         if exec_mode.pode_acelerar_funcao():
+        #             Acelera! (exec_mode.get_func_call_cache)
+        #             revalidation.decrementar_cont_prox_revalidacao()
+        #         else:
+        #             Executa função!
+        #     else:
+        #         Executa função + Coleta Metadados!
+
+
+        c = _get_cache_entry(f, method_args)
         returns_2_freq = _get_function_call_return_freqs(f, method_args, method_kwargs)
         if _cache_exists(c):
             debug("cache hit for {0}({1})".format(f.__name__, *method_args))
@@ -53,33 +70,28 @@ def _simulate_func_exec(returns_2_freq:Dict):
         if sorted_num <= sum:
             return value
 
+#TODO: CORRIGIR IMPLEMENTAÇÃO
 def _function_call_maybe_deterministic(func: Callable, func_args:List, func_kwargs:Dict) -> bool:
-    func_hash = Constantes().FUNCTIONS_2_HASHES[func.__qualname__]
+    func_hash = DataAccessConstants().FUNCTIONS_2_HASHES[func.__qualname__]
     func_call_hash = get_id(func_hash, func_args, func_kwargs)
-    return func_call_hash not in Constantes().DONT_CACHE_FUNCTION_CALLS
+    #return func_call_hash not in Constantes().DONT_CACHE_FUNCTION_CALLS
+    return True
 
+#TODO: VERIFICAR SE ESTÁ FUNCIONANDO CONFORME ESPERADO!
 def deterministic(f):
     @wraps(f)
     def wrapper(*method_args, **method_kwargs):
         debug("calling {0}".format(f.__name__))
-        c = _get_cache(f, method_args)
+        c = _get_cache_entry(f, method_args)
         if not _cache_exists(c):
             debug("cache miss for {0}({1})".format(f.__name__, *method_args))
             return_value, _ = _execute_func(f, *method_args, **method_kwargs)
-            _cache_data(f, method_args, return_value)
+            _create_cache_entry(f, method_args, return_value)
             return return_value
         else:
             debug("cache hit for {0}({1})".format(f.__name__, *method_args))
             return c
     return wrapper
-
-def _get_cache(func, args):
-    fun_hash = Constantes().FUNCTIONS_2_HASHES[func.__qualname__]
-    return get_cache_data(func.__name__, args, fun_hash, SpeeduPySettings().g_argsp_m)
-
-def _get_function_call_return_freqs(f, args:List, kwargs:Dict) -> Optional[Dict]:
-    f_hash = Constantes().FUNCTIONS_2_HASHES[f.__qualname__]
-    return get_function_call_return_freqs(f_hash, args, kwargs)
 
 def _cache_exists(cache) -> bool:
     return cache is not None
@@ -95,14 +107,22 @@ def _execute_func(f, self, *method_args, **method_kwargs):
     debug("{0} took {1} to run".format(f.__name__, elapsed_time))
     return result_value, elapsed_time
 
-def _cache_data(func, fun_args, fun_return):
+def _get_cache_entry(func, args):
+    fun_hash = DataAccessConstants().FUNCTIONS_2_HASHES[func.__qualname__]
+    return get_cache_entry(func.__name__, args, fun_hash, SpeeduPySettings().g_argsp_m)
+
+def _get_function_call_return_freqs(f, args:List, kwargs:Dict) -> Optional[Dict]:
+    f_hash = DataAccessConstants().FUNCTIONS_2_HASHES[f.__qualname__]
+    return get_function_call_return_freqs(f_hash, args, kwargs)
+
+def _create_cache_entry(func, fun_args, fun_return):
     debug("adding cache entry for {0}({1})".format(func.__name__, fun_args))
-    fun_hash = Constantes().FUNCTIONS_2_HASHES[func.__qualname__]
-    add_to_cache(func.__name__, fun_args, fun_return, fun_hash, SpeeduPySettings().g_argsp_m)
+    fun_hash = DataAccessConstants().FUNCTIONS_2_HASHES[func.__qualname__]
+    create_cache_entry(func.__name__, fun_args, fun_return, fun_hash, SpeeduPySettings().g_argsp_m)
 
 def _save_metadata(func, fun_args, fun_kwargs, fun_return, elapsed_time):
     debug("adding metadata for {0}({1})".format(func.__name__, fun_args))
-    fun_hash = Constantes().FUNCTIONS_2_HASHES[func.__qualname__]
+    fun_hash = DataAccessConstants().FUNCTIONS_2_HASHES[func.__qualname__]
     add_to_metadata(fun_hash, fun_args, fun_kwargs, fun_return, elapsed_time)
 
 
