@@ -1,5 +1,5 @@
 from execute_exp.memory_architectures.AbstractMemArch import AbstractMemArch
-from execute_exp.storages.storage import Storage
+from execute_exp.storages.Storage import Storage
 
 #TODO: TEST
 class V01MemArch(AbstractMemArch):
