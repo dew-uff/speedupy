@@ -4,15 +4,15 @@ from unittest.mock import patch, Mock
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
-from services.revalidations.AdaptativeRevalidation import AdaptativeRevalidation
+from execute_exp.services.revalidations.AdaptativeRevalidation import AdaptativeRevalidation
 from services.execution_modes.AbstractExecutionMode import AbstractExecutionMode
 from entities.FunctionCallProv import FunctionCallProv
 
 class TestAdaptativeRevalidation(unittest.TestCase):
     def setUp(self):
         self.execution_mode = Mock(AbstractExecutionMode)
-        self.get_function_call_prov_entry_namespace = 'services.revalidations.AbstractRevalidation.get_function_call_prov_entry'
-        self.create_or_update_function_call_prov_entry_namespace = 'services.revalidations.AbstractRevalidation.create_or_update_function_call_prov_entry'
+        self.get_function_call_prov_entry_namespace = 'execute_exp.services.revalidations.AbstractRevalidation.get_function_call_prov_entry'
+        self.create_or_update_function_call_prov_entry_namespace = 'execute_exp.services.revalidations.AbstractRevalidation.create_or_update_function_call_prov_entry'
         self.fc_prov = FunctionCallProv('', {})
 
     def test_calculate_next_revalidation_when_adaptative_factor_is_0_and_function_acts_as_expected(self):

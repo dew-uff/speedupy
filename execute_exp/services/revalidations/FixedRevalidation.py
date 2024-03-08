@@ -1,4 +1,4 @@
-from services.revalidations.AbstractRevalidation import AbstractRevalidation
+from execute_exp.services.revalidations.AbstractRevalidation import AbstractRevalidation
 from entities.Metadata import Metadata
 
 class FixedRevalidation(AbstractRevalidation):

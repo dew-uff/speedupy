@@ -4,14 +4,14 @@ from unittest.mock import patch
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
-from services.revalidations.AbstractRevalidation import AbstractRevalidation
+from execute_exp.services.revalidations.AbstractRevalidation import AbstractRevalidation
 from entities.FunctionCallProv import FunctionCallProv
 
 class TestAbstractRevalidation(unittest.TestCase):
     def setUp(self):
         self.abstractRevalidation = AbstractRevalidation()
-        self.get_function_call_prov_entry_namespace = 'services.revalidations.AbstractRevalidation.get_function_call_prov_entry'
-        self.create_or_update_function_call_prov_entry_namespace = 'services.revalidations.AbstractRevalidation.create_or_update_function_call_prov_entry'
+        self.get_function_call_prov_entry_namespace = 'execute_exp.services.revalidations.AbstractRevalidation.get_function_call_prov_entry'
+        self.create_or_update_function_call_prov_entry_namespace = 'execute_exp.services.revalidations.AbstractRevalidation.create_or_update_function_call_prov_entry'
         self.fc_prov = FunctionCallProv('', {})
     
     def test_revalidation_in_current_execution_when_revalidation_will_occur(self):

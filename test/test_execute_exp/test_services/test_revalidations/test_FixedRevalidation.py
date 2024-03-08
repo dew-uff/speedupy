@@ -4,12 +4,12 @@ from unittest.mock import patch
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
-from services.revalidations.FixedRevalidation import FixedRevalidation
+from execute_exp.services.revalidations.FixedRevalidation import FixedRevalidation
 from entities.FunctionCallProv import FunctionCallProv
 class TestFixedRevalidation(unittest.TestCase):
     def setUp(self):
-        self.get_function_call_prov_entry_namespace = 'services.revalidations.AbstractRevalidation.get_function_call_prov_entry'
-        self.create_or_update_function_call_prov_entry_namespace = 'services.revalidations.AbstractRevalidation.create_or_update_function_call_prov_entry'
+        self.get_function_call_prov_entry_namespace = 'execute_exp.services.revalidations.AbstractRevalidation.get_function_call_prov_entry'
+        self.create_or_update_function_call_prov_entry_namespace = 'execute_exp.services.revalidations.AbstractRevalidation.create_or_update_function_call_prov_entry'
         self.fc_prov = FunctionCallProv('', {})
 
     def test_calculate_next_revalidation(self):
