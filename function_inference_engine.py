@@ -7,7 +7,7 @@ from constantes import Constantes
 from entities.Experiment import Experiment
 from services.experiment_service import classify_experiment_functions
 from util import get_content_json_file, deserialize_from_file
-from data_access import close_data_access
+from execute_exp.data_access import close_data_access
 
 def start_inference_engine(f):
     @wraps(f)

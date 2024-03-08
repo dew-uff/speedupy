@@ -4,18 +4,17 @@ from typing import Callable, List, Dict, Optional
 import sys, os, random
 sys.path.append(os.path.dirname(__file__))
 
-from SingletonMeta import SingletonMeta
 from execute_exp.SpeeduPySettings import SpeeduPySettings
 from logger.log import debug
 from util import check_python_version
-from data_access import get_cache_entry, get_function_call_return_freqs, create_cache_entry, close_data_access, init_data_access, add_to_metadata, get_id
+from execute_exp.data_access import get_cache_entry, get_function_call_return_freqs, create_cache_entry, close_data_access, init_data_access, add_to_metadata, get_id
 
-from data_access import DataAccessConstants
+from execute_exp.data_access import DataAccessConstants
 
 def initialize_speedupy(f):
     @wraps(f)
     def wrapper(*method_args, **method_kwargs):
-        init_data_access()
+        DataAccessConstants().init_data_access()
         f(*method_args, **method_kwargs)
         close_data_access()
     return wrapper

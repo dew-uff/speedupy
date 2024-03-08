@@ -2,7 +2,7 @@ from typing import Dict, Tuple, List
 
 from services.execution_modes.AbstractExecutionMode import AbstractExecutionMode
 from services.execution_modes.util import func_call_mode_output_occurs_enough
-from data_access import get_func_call_prov
+from execute_exp.data_access import get_function_call_prov_entry
 from constantes import Constantes
 from copy import deepcopy
 from math import ceil
@@ -15,7 +15,7 @@ class ProbabilisticFrequencyMode(AbstractExecutionMode):
                                                    Constantes().g_argsp_min_mode_occurrence)
 
     def get_func_call_cache(self, func_call_hash:str):
-        self.__func_call_prov = get_func_call_prov(func_call_hash)
+        self.__func_call_prov = get_function_call_prov_entry(func_call_hash)
         if self.__func_call_prov.weighted_output_seq is None:
             self._calculate_weighted_output_seq()
         index = self.__func_call_prov.next_index_weighted_seq

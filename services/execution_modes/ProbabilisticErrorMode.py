@@ -1,7 +1,7 @@
 from entities.Metadata import Metadata
 from services.execution_modes.AbstractExecutionMode import AbstractExecutionMode
 from services.execution_modes.util import function_outputs_dict_2_array
-from data_access import get_func_call_prov
+from execute_exp.data_access import get_function_call_prov_entry
 from constantes import Constantes
 import scipy.stats as st
 from math import isnan
@@ -9,7 +9,7 @@ from math import isnan
 class ProbabilisticErrorMode(AbstractExecutionMode):
     def func_call_can_be_cached(self, func_call_hash:str) -> bool:
         if Constantes().g_argsp_max_error_per_function is None: return True
-        self.__func_call_prov = get_func_call_prov(func_call_hash)
+        self.__func_call_prov = get_function_call_prov_entry(func_call_hash)
         if self.__func_call_prov.confidence_lv is None or \
            self.__func_call_prov.confidence_lv != Constantes().g_argsp_confidence_level:
             self._set_necessary_helpers()
@@ -41,14 +41,14 @@ class ProbabilisticErrorMode(AbstractExecutionMode):
             self.__func_call_prov.confidence_error = 0
 
     def get_func_call_cache(self, func_call_hash:str):
-        self.__func_call_prov = get_func_call_prov(func_call_hash)
+        self.__func_call_prov = get_function_call_prov_entry(func_call_hash)
         if self.__func_call_prov.mean_output is None:
             data = function_outputs_dict_2_array(self.__func_call_prov.outputs)
             self.__func_call_prov.mean_output = st.tmean(data)
         return self.__func_call_prov.mean_output
 
     def func_call_acted_as_expected(self, func_call_hash:str, metadata:Metadata):
-        func_call_prov = get_func_call_prov(func_call_hash)
+        func_call_prov = get_function_call_prov_entry(func_call_hash)
         low_limit = func_call_prov.mean_output - func_call_prov.confidence_error/2
         up_limit = func_call_prov.mean_output + func_call_prov.confidence_error/2
         return low_limit <= metadata.return_value and metadata.return_value <= up_limit

@@ -4,7 +4,7 @@ from typing import List, Dict, Set
 from entities.Script import Script
 from entities.Experiment import Experiment
 from entities.FunctionGraph import FunctionGraph
-from data_access import get_id
+from execute_exp.data_access import get_id
 from services.script_service import create_script, create_script_function_graph, decorate_script_functions, overwrite_decorated_script, add_decorator_import, classify_script_functions
 from services.function_service import decorate_main_function
 from util import is_an_user_defined_script, get_script_path

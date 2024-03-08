@@ -1,9 +1,9 @@
 from typing import List, Dict, Union, Tuple, Optional
 import ast, time
 from constantes import Constantes
-from data_access import get_all_saved_metadata_of_a_function_group_by_function_call_hash
+from execute_exp.data_access import get_all_saved_metadata_of_a_function_group_by_function_call_hash
 from entities.Metadata import Metadata
-from data_access import create_cache_entry, add_to_simulated_function_calls, add_to_dont_cache_function_calls, remove_metadata
+from execute_exp.data_access import create_cache_entry, add_to_simulated_function_calls, add_to_dont_cache_function_calls, remove_metadata
 
 def decorate_main_function(main_function:ast.FunctionDef) -> None:
     for decorator in main_function.decorator_list:
