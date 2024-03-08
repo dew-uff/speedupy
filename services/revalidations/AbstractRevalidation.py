@@ -1,7 +1,6 @@
 from execute_exp.data_access import get_function_call_prov_entry, create_or_update_function_call_prov_entry
 from entities.Metadata import Metadata
 
-#TODO: TEST
 class AbstractRevalidation():
     def revalidation_in_current_execution(self, func_call_hash:str) -> bool:
         fc_prov = get_function_call_prov_entry(func_call_hash)
