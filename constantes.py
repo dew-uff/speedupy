@@ -14,19 +14,6 @@ class Constantes(metaclass=SingletonMeta):
         self.EXP_SERIALIZED_FILENAME = os.path.join(self.FOLDER_NAME, 'experiment_speedupy.pickle')
         
         self.__CONEXAO_BANCO = None
-        self.DATA_DICTIONARY = {}
-        self.NEW_DATA_DICTIONARY = {}
-        self.FUNCTIONS_ALREADY_SELECTED_FROM_DB = []
-        self.CACHED_DATA_DICTIONARY_SEMAPHORE = threading.Semaphore()
-        self.METADATA = {}
-        self.DONT_CACHE_FUNCTION_CALLS = []
-        self.NEW_DONT_CACHE_FUNCTION_CALLS = []
-        self.SIMULATED_FUNCTION_CALLS = {}
-        self.NEW_SIMULATED_FUNCTION_CALLS = {}
-        self.FUNCTION_CALLS_PROV = {}
-        self.NEW_FUNCTION_CALLS_PROV = {}
-
-        self.FUNCTIONS_2_HASHES = {}
 
         self.NUM_EXEC_MIN_PARA_INFERENCIA = 20
         self.MAX_ERROR_RATE = 0.2
