@@ -43,6 +43,7 @@ class DBStorage(Storage):
         func_output = pickle.loads(result[0][0])
         return func_output
 
+    #TODO: ATUALIZAR CONFORME NOVA ASSINATURA DO MÉTODO DA SUPERCLASSE. AGORA, RECEBE-SE TODO O CONJUNTO DE DADOS AO INVÉS DE APENAS UM DADO POR VEZ!
     @_set_db_connection
     def save_cache_data_of_a_function_call(self, func_call_hash:str, func_output, func_name=None, use_isolated_connection=False):
         func_output = pickle.dumps(func_output)
