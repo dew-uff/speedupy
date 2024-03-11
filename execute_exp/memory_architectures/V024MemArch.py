@@ -1,6 +1,6 @@
 import threading
 from execute_exp.memory_architectures.AbstractMemArch import AbstractMemArch
-from execute_exp.storages.Storage import Storage
+from execute_exp.services.storages.Storage import Storage
 
 #TODO: TEST
 class V024MemArch(AbstractMemArch):

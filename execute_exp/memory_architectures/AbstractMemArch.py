@@ -1,4 +1,4 @@
-from execute_exp.storages.Storage import Storage
+from execute_exp.services.storages.Storage import Storage
 
 class AbstractMemArch():
     def __init__(self, storage:Storage):

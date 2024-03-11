@@ -1,7 +1,7 @@
 import pickle
 from typing import Dict
 
-from execute_exp.storages.Storage import Storage
+from execute_exp.services.storages.Storage import Storage
 from constantes import Constantes
 from banco import Banco
 
