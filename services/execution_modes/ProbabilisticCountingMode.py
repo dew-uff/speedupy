@@ -14,7 +14,6 @@ class ProbabilisticCountingMode(AbstractExecutionMode):
         self.__func_call_prov = get_function_call_prov_entry(func_call_hash)
         return self.__func_call_prov.mode_output
 
-    #TODO: TEST
     def func_call_acted_as_expected(self, func_call_hash:str, metadata:Metadata):
         func_call_prov = get_function_call_prov_entry(func_call_hash)
         return dumps(metadata.return_value) == dumps(func_call_prov.mode_output)
