@@ -5,7 +5,7 @@ from pickle import dumps
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
-from services.execution_modes.ProbabilisticCountingMode import ProbabilisticCountingMode
+from execute_exp.services.execution_modes.ProbabilisticCountingMode import ProbabilisticCountingMode
 from entities.FunctionCallProv import FunctionCallProv
 from entities.Metadata import Metadata
 
@@ -13,7 +13,7 @@ class TestProbabilisticCountingMode(unittest.TestCase):
     def setUp(self):
         self.countingMode = ProbabilisticCountingMode()
         self.function_call_prov = FunctionCallProv(None, None, None, None, None, None, None, None, None, None, None, None, None)
-        self.get_function_call_prov_entry_namespace = 'services.execution_modes.ProbabilisticCountingMode.get_function_call_prov_entry'
+        self.get_function_call_prov_entry_namespace = 'execute_exp.services.execution_modes.ProbabilisticCountingMode.get_function_call_prov_entry'
     
     def test_get_func_call_cache_with_different_output_types(self):
         self.function_call_prov.mode_output = 12

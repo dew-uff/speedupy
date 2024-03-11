@@ -1,5 +1,5 @@
 from entities.Metadata import Metadata
-from services.execution_modes.AbstractExecutionMode import AbstractExecutionMode
+from execute_exp.services.execution_modes.AbstractExecutionMode import AbstractExecutionMode
 from execute_exp.data_access import get_function_call_prov_entry
 from pickle import loads, dumps
 

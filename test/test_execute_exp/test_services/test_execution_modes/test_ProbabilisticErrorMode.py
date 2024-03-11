@@ -9,15 +9,15 @@ sys.path.append(project_folder)
 from entities.Metadata import Metadata
 from entities.FunctionCallProv import FunctionCallProv
 from execute_exp.SpeeduPySettings import SpeeduPySettings
-from services.execution_modes.ProbabilisticErrorMode import ProbabilisticErrorMode
+from execute_exp.services.execution_modes.ProbabilisticErrorMode import ProbabilisticErrorMode
 
 class TestProbabilisticErrorMode(unittest.TestCase):
     def setUp(self):
         self.errorMode = ProbabilisticErrorMode()
         self.function_call_prov = FunctionCallProv(None, None, None, None, None, None, None, None, None, None, None, None, None)
-        self.get_function_call_prov_entry_namespace = 'services.execution_modes.ProbabilisticErrorMode.get_function_call_prov_entry'
-        self.set_necessary_helpers_namespace = 'services.execution_modes.ProbabilisticErrorMode.ProbabilisticErrorMode._set_necessary_helpers'
-        self.function_outputs_dict_2_array_namespace = 'services.execution_modes.ProbabilisticErrorMode.function_outputs_dict_2_array'
+        self.get_function_call_prov_entry_namespace = 'execute_exp.services.execution_modes.ProbabilisticErrorMode.get_function_call_prov_entry'
+        self.set_necessary_helpers_namespace = 'execute_exp.services.execution_modes.ProbabilisticErrorMode.ProbabilisticErrorMode._set_necessary_helpers'
+        self.function_outputs_dict_2_array_namespace = 'execute_exp.services.execution_modes.ProbabilisticErrorMode.function_outputs_dict_2_array'
     
     def test_func_call_can_be_cached_when_function_error_helper_is_none_and_user_set_max_error_per_function(self):
         def set_confidence_error():

@@ -1,11 +1,11 @@
 import unittest, os, sys
-from pickle import dumps, loads
+from pickle import dumps
 from unittest.mock import patch
 
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
-from services.execution_modes.AccurateMode import AccurateMode
+from execute_exp.services.execution_modes.AccurateMode import AccurateMode
 from entities.FunctionCallProv import FunctionCallProv
 from entities.Metadata import Metadata
 
@@ -13,7 +13,7 @@ class TestAccurateMode(unittest.TestCase):
     def setUp(self):
         self.accurateMode = AccurateMode()
         self.function_call_prov = FunctionCallProv(None, None, None, None, None, None, None, None, None, None, None, None, None)
-        self.get_function_call_prov_entry_namespace = 'services.execution_modes.AccurateMode.get_function_call_prov_entry'
+        self.get_function_call_prov_entry_namespace = 'execute_exp.services.execution_modes.AccurateMode.get_function_call_prov_entry'
     
     def test_func_call_can_be_cached_when_func_has_one_output(self):
         self.function_call_prov._FunctionCallProv__outputs = {dumps(1):12}

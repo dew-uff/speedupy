@@ -5,13 +5,13 @@ from pickle import dumps
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
-from services.execution_modes.util import func_call_mode_output_occurs_enough, _set_statistical_mode_helpers, function_outputs_dict_2_array
+from execute_exp.services.execution_modes.util import func_call_mode_output_occurs_enough, _set_statistical_mode_helpers, function_outputs_dict_2_array
 from entities.FunctionCallProv import FunctionCallProv
 
 class TestUtil(unittest.TestCase):
     def setUp(self):
         self.function_call_prov = FunctionCallProv(None, None, None, None, None, None, None, None, None, None, None, None, None)
-        self.get_function_call_prov_entry_namespace = 'services.execution_modes.util.get_function_call_prov_entry'
+        self.get_function_call_prov_entry_namespace = 'execute_exp.services.execution_modes.util.get_function_call_prov_entry'
 
     def test_func_call_mode_output_occurs_enough_when_function_occurs_more_than_necessary(self):
         self.function_call_prov.mode_rel_freq = 0.8
