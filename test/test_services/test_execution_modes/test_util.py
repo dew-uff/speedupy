@@ -11,23 +11,23 @@ from entities.FunctionCallProv import FunctionCallProv
 class TestUtil(unittest.TestCase):
     def setUp(self):
         self.function_call_prov = FunctionCallProv(None, None, None, None, None, None, None, None, None, None, None, None, None)
-        self.get_func_call_prov_namespace = 'services.execution_modes.util.get_func_call_prov'
+        self.get_function_call_prov_entry_namespace = 'services.execution_modes.util.get_function_call_prov_entry'
 
     def test_func_call_mode_output_occurs_enough_when_function_occurs_more_than_necessary(self):
         self.function_call_prov.mode_rel_freq = 0.8
-        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+        with patch(self.get_function_call_prov_entry_namespace, return_value=self.function_call_prov) as get_func_call_prov:
             self.assertTrue(func_call_mode_output_occurs_enough('func_call_hash', 0.5))
             get_func_call_prov.assert_called_once()
 
     def test_func_call_mode_output_occurs_enough_when_function_occurs_exactly_the_necessary_percentage(self):
         self.function_call_prov.mode_rel_freq = 0.7
-        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+        with patch(self.get_function_call_prov_entry_namespace, return_value=self.function_call_prov) as get_func_call_prov:
             self.assertTrue(func_call_mode_output_occurs_enough('func_call_hash', 0.7))
             get_func_call_prov.assert_called_once()
 
     def test_func_call_mode_output_occurs_enough_when_function_occurs_less_than_necessary(self):
         self.function_call_prov.mode_rel_freq = 0.1
-        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+        with patch(self.get_function_call_prov_entry_namespace, return_value=self.function_call_prov) as get_func_call_prov:
             self.assertFalse(func_call_mode_output_occurs_enough('func_call_hash', 0.6))
             get_func_call_prov.assert_called_once()
 
