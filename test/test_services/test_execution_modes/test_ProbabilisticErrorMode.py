@@ -8,14 +8,14 @@ sys.path.append(project_folder)
 
 from entities.Metadata import Metadata
 from entities.FunctionCallProv import FunctionCallProv
-from constantes import Constantes
+from execute_exp.SpeeduPySettings import SpeeduPySettings
 from services.execution_modes.ProbabilisticErrorMode import ProbabilisticErrorMode
 
 class TestProbabilisticErrorMode(unittest.TestCase):
     def setUp(self):
         self.errorMode = ProbabilisticErrorMode()
         self.function_call_prov = FunctionCallProv(None, None, None, None, None, None, None, None, None, None, None, None, None)
-        self.get_func_call_prov_namespace = 'services.execution_modes.ProbabilisticErrorMode.get_func_call_prov'
+        self.get_function_call_prov_entry_namespace = 'services.execution_modes.ProbabilisticErrorMode.get_function_call_prov_entry'
         self.set_necessary_helpers_namespace = 'services.execution_modes.ProbabilisticErrorMode.ProbabilisticErrorMode._set_necessary_helpers'
         self.function_outputs_dict_2_array_namespace = 'services.execution_modes.ProbabilisticErrorMode.function_outputs_dict_2_array'
     
@@ -25,10 +25,10 @@ class TestProbabilisticErrorMode(unittest.TestCase):
         
         self.function_call_prov.confidence_error = None
         self.function_call_prov.confidence_lv = None
-        Constantes().g_argsp_max_error_per_function = 0.2
-        Constantes().g_argsp_confidence_level = 0.95
+        SpeeduPySettings().g_argsp_max_error_per_function = 0.2
+        SpeeduPySettings().g_argsp_confidence_level = 0.95
         with patch(self.set_necessary_helpers_namespace, side_effect=set_confidence_error) as set_necessary_helpers, \
-             patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+             patch(self.get_function_call_prov_entry_namespace, return_value=self.function_call_prov) as get_func_call_prov:
             self.assertTrue(self.errorMode.func_call_can_be_cached('func_call_hash'))
             get_func_call_prov.assert_called_once()
             set_necessary_helpers.assert_called_once()
@@ -36,10 +36,10 @@ class TestProbabilisticErrorMode(unittest.TestCase):
     def test_func_call_can_be_cached_when_function_error_helper_is_none_and_user_does_not_set_max_error_per_function(self):
         self.function_call_prov.confidence_error = None
         self.function_call_prov.confidence_lv = None
-        Constantes().g_argsp_max_error_per_function = None
-        Constantes().g_argsp_confidence_level = 0.95
+        SpeeduPySettings().g_argsp_max_error_per_function = None
+        SpeeduPySettings().g_argsp_confidence_level = 0.95
         with patch(self.set_necessary_helpers_namespace) as set_necessary_helpers, \
-             patch(self.get_func_call_prov_namespace) as get_func_call_prov:
+             patch(self.get_function_call_prov_entry_namespace) as get_func_call_prov:
             self.assertTrue(self.errorMode.func_call_can_be_cached('func_call_hash'))
             get_func_call_prov.assert_not_called()
             set_necessary_helpers.assert_not_called()
@@ -50,10 +50,10 @@ class TestProbabilisticErrorMode(unittest.TestCase):
         
         self.function_call_prov.confidence_error = 0.6
         self.function_call_prov.confidence_lv = 0.99
-        Constantes().g_argsp_max_error_per_function = 0.2
-        Constantes().g_argsp_confidence_level = 0.95
+        SpeeduPySettings().g_argsp_max_error_per_function = 0.2
+        SpeeduPySettings().g_argsp_confidence_level = 0.95
         with patch(self.set_necessary_helpers_namespace, side_effect=set_confidence_error) as set_necessary_helpers, \
-             patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+             patch(self.get_function_call_prov_entry_namespace, return_value=self.function_call_prov) as get_func_call_prov:
             self.assertTrue(self.errorMode.func_call_can_be_cached('func_call_hash'))
             get_func_call_prov.assert_called_once()
             set_necessary_helpers.assert_called_once()
@@ -61,10 +61,10 @@ class TestProbabilisticErrorMode(unittest.TestCase):
     def test_func_call_can_be_cached_when_function_error_helper_is_calculated_with_the_same_confidence_level(self):
         self.function_call_prov.confidence_error = 0.3
         self.function_call_prov.confidence_lv = 0.95
-        Constantes().g_argsp_max_error_per_function = 0.2
-        Constantes().g_argsp_confidence_level = 0.95
+        SpeeduPySettings().g_argsp_max_error_per_function = 0.2
+        SpeeduPySettings().g_argsp_confidence_level = 0.95
         with patch(self.set_necessary_helpers_namespace) as set_necessary_helpers, \
-             patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+             patch(self.get_function_call_prov_entry_namespace, return_value=self.function_call_prov) as get_func_call_prov:
             self.assertFalse(self.errorMode.func_call_can_be_cached('func_call_hash'))
             get_func_call_prov.assert_called_once()
             set_necessary_helpers.assert_not_called()
@@ -72,10 +72,10 @@ class TestProbabilisticErrorMode(unittest.TestCase):
     def test_func_call_can_be_cached_when_func_error_is_greater_than_user_max_error_per_function(self):
         self.function_call_prov.confidence_error = 0.5
         self.function_call_prov.confidence_lv = 0.95
-        Constantes().g_argsp_max_error_per_function = 0.2
-        Constantes().g_argsp_confidence_level = 0.95
+        SpeeduPySettings().g_argsp_max_error_per_function = 0.2
+        SpeeduPySettings().g_argsp_confidence_level = 0.95
         with patch(self.set_necessary_helpers_namespace) as set_necessary_helpers, \
-             patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+             patch(self.get_function_call_prov_entry_namespace, return_value=self.function_call_prov) as get_func_call_prov:
             self.assertFalse(self.errorMode.func_call_can_be_cached('func_call_hash'))
             get_func_call_prov.assert_called_once()
             set_necessary_helpers.assert_not_called()
@@ -83,10 +83,10 @@ class TestProbabilisticErrorMode(unittest.TestCase):
     def test_func_call_can_be_cached_when_func_error_is_equal_to_the_user_max_error_per_function(self):
         self.function_call_prov.confidence_error = 0.213
         self.function_call_prov.confidence_lv = 0.95
-        Constantes().g_argsp_max_error_per_function = 0.213
-        Constantes().g_argsp_confidence_level = 0.95
+        SpeeduPySettings().g_argsp_max_error_per_function = 0.213
+        SpeeduPySettings().g_argsp_confidence_level = 0.95
         with patch(self.set_necessary_helpers_namespace) as set_necessary_helpers, \
-             patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+             patch(self.get_function_call_prov_entry_namespace, return_value=self.function_call_prov) as get_func_call_prov:
             self.assertTrue(self.errorMode.func_call_can_be_cached('func_call_hash'))
             get_func_call_prov.assert_called_once()
             set_necessary_helpers.assert_not_called()
@@ -94,10 +94,10 @@ class TestProbabilisticErrorMode(unittest.TestCase):
     def test_func_call_can_be_cached_when_func_error_is_lower_than_the_user_max_error_per_function(self):
         self.function_call_prov.confidence_error = 0.112312
         self.function_call_prov.confidence_lv = 0.95
-        Constantes().g_argsp_max_error_per_function = 0.2412
-        Constantes().g_argsp_confidence_level = 0.95
+        SpeeduPySettings().g_argsp_max_error_per_function = 0.2412
+        SpeeduPySettings().g_argsp_confidence_level = 0.95
         with patch(self.set_necessary_helpers_namespace) as set_necessary_helpers, \
-             patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+             patch(self.get_function_call_prov_entry_namespace, return_value=self.function_call_prov) as get_func_call_prov:
             self.assertTrue(self.errorMode.func_call_can_be_cached('func_call_hash'))
             get_func_call_prov.assert_called_once()
             set_necessary_helpers.assert_not_called()
@@ -107,7 +107,7 @@ class TestProbabilisticErrorMode(unittest.TestCase):
         self.errorMode._ProbabilisticErrorMode__func_call_prov = self.function_call_prov
         self.function_call_prov._FunctionCallProv__outputs = {dumps(2): 10}
         self.function_call_prov.total_num_exec = 10
-        Constantes().g_argsp_confidence_level = 0.95
+        SpeeduPySettings().g_argsp_confidence_level = 0.95
         with patch(self.function_outputs_dict_2_array_namespace, return_value=10*[2]) as function_outputs_dict_2_array:
             self.errorMode._set_necessary_helpers()
             function_outputs_dict_2_array.assert_called_once()
@@ -124,7 +124,7 @@ class TestProbabilisticErrorMode(unittest.TestCase):
                                                               dumps(-1.3): 6,
                                                               dumps(4.27): 8}
         self.function_call_prov.total_num_exec = 27
-        Constantes().g_argsp_confidence_level = 0.99
+        SpeeduPySettings().g_argsp_confidence_level = 0.99
         output_array = 10*[2] + 3*[0] + 6*[-1.3] + 8*[4.27]
         output_mean = st.tmean(output_array)
         interval = st.t.interval(0.99, 26, loc=output_mean, scale=st.sem(output_array))
@@ -144,7 +144,7 @@ class TestProbabilisticErrorMode(unittest.TestCase):
                                                               dumps(0): 5,
                                                               dumps(4.27): 8}
         self.function_call_prov.total_num_exec = 23
-        Constantes().g_argsp_confidence_level = 0.77
+        SpeeduPySettings().g_argsp_confidence_level = 0.77
         output_array = 10*[2] + 5*[0] + 8*[4.27]
         output_mean = st.tmean(output_array)
         interval = st.t.interval(0.77, 22, loc=output_mean, scale=st.sem(output_array))
@@ -164,7 +164,7 @@ class TestProbabilisticErrorMode(unittest.TestCase):
                                                               dumps(3): 8,
                                                               dumps(-2.01): 12}
         self.function_call_prov.total_num_exec = 30
-        Constantes().g_argsp_confidence_level = 0.88
+        SpeeduPySettings().g_argsp_confidence_level = 0.88
         output_array = 10*[2] + 8*[3] + 12*[-2.01]
         output_mean = st.tmean(output_array)
         interval = st.t.interval(0.88, 29, loc=output_mean, scale=st.sem(output_array))
@@ -184,7 +184,7 @@ class TestProbabilisticErrorMode(unittest.TestCase):
                                                               dumps(3): 9,
                                                               dumps(-2.01): 12}
         self.function_call_prov.total_num_exec = 31
-        Constantes().g_argsp_confidence_level = 0.66
+        SpeeduPySettings().g_argsp_confidence_level = 0.66
         output_array = 10*[2] + 9*[3] + 12*[-2.01]
         output_mean = st.tmean(output_array)
         interval = st.norm.interval(0.66, loc=output_mean, scale=st.sem(output_array))
@@ -204,7 +204,7 @@ class TestProbabilisticErrorMode(unittest.TestCase):
                                                               dumps(-4): 10,
                                                               dumps(-7.01): 12}
         self.function_call_prov.total_num_exec = 52
-        Constantes().g_argsp_confidence_level = 0.8
+        SpeeduPySettings().g_argsp_confidence_level = 0.8
         output_array = 30*[-5.2] + 10*[-4] + 12*[-7.01]
         output_mean = st.tmean(output_array)
         interval = st.norm.interval(0.8, loc=output_mean, scale=st.sem(output_array))
@@ -222,7 +222,7 @@ class TestProbabilisticErrorMode(unittest.TestCase):
         self.function_call_prov.mean_output = None
         output_array = 5*[3] + 2*[0]
         with patch(self.function_outputs_dict_2_array_namespace, return_value=output_array) as function_outputs_dict_2_array, \
-             patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+             patch(self.get_function_call_prov_entry_namespace, return_value=self.function_call_prov) as get_func_call_prov:
             self.assertEqual(round(self.errorMode.get_func_call_cache('func_call_hash'), 9),
                              round(st.tmean(output_array), 9))
             get_func_call_prov.assert_called_once()
@@ -231,7 +231,7 @@ class TestProbabilisticErrorMode(unittest.TestCase):
     def test_get_func_call_cache_when_func_mean_output_helper_is_not_None(self):
         self.function_call_prov.mean_output = 0.23
         with patch(self.function_outputs_dict_2_array_namespace) as function_outputs_dict_2_array, \
-             patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+             patch(self.get_function_call_prov_entry_namespace, return_value=self.function_call_prov) as get_func_call_prov:
             self.assertEqual(self.errorMode.get_func_call_cache('func_call_hash'), 0.23)
             get_func_call_prov.assert_called_once()
             function_outputs_dict_2_array.assert_not_called()
@@ -240,7 +240,7 @@ class TestProbabilisticErrorMode(unittest.TestCase):
         metadata = Metadata('func_call_hash', [], {}, 9, 0)
         self.function_call_prov.mean_output = 10
         self.function_call_prov.confidence_error = 0.572
-        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+        with patch(self.get_function_call_prov_entry_namespace, return_value=self.function_call_prov) as get_func_call_prov:
             self.assertFalse(self.errorMode.func_call_acted_as_expected('func_call_hash', metadata))
             get_func_call_prov.assert_called_once()
 
@@ -248,7 +248,7 @@ class TestProbabilisticErrorMode(unittest.TestCase):
         metadata = Metadata('func_call_hash', [], {}, 10.152, 0)
         self.function_call_prov.mean_output = 10
         self.function_call_prov.confidence_error = 0.304
-        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+        with patch(self.get_function_call_prov_entry_namespace, return_value=self.function_call_prov) as get_func_call_prov:
             self.assertTrue(self.errorMode.func_call_acted_as_expected('func_call_hash', metadata))
             get_func_call_prov.assert_called_once()
 
@@ -256,7 +256,7 @@ class TestProbabilisticErrorMode(unittest.TestCase):
         metadata = Metadata('func_call_hash', [], {}, 10.1521, 0)
         self.function_call_prov.mean_output = 10
         self.function_call_prov.confidence_error = 0.304
-        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+        with patch(self.get_function_call_prov_entry_namespace, return_value=self.function_call_prov) as get_func_call_prov:
             self.assertFalse(self.errorMode.func_call_acted_as_expected('func_call_hash', metadata))
             get_func_call_prov.assert_called_once()
         
@@ -264,7 +264,7 @@ class TestProbabilisticErrorMode(unittest.TestCase):
         metadata = Metadata('func_call_hash', [], {}, 2.889, 0)
         self.function_call_prov.mean_output = 3
         self.function_call_prov.confidence_error = 0.222
-        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+        with patch(self.get_function_call_prov_entry_namespace, return_value=self.function_call_prov) as get_func_call_prov:
             self.assertTrue(self.errorMode.func_call_acted_as_expected('func_call_hash', metadata))
             get_func_call_prov.assert_called_once()
 
@@ -272,7 +272,7 @@ class TestProbabilisticErrorMode(unittest.TestCase):
         metadata = Metadata('func_call_hash', [], {}, 2.8889, 0)
         self.function_call_prov.mean_output = 3
         self.function_call_prov.confidence_error = 0.222
-        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+        with patch(self.get_function_call_prov_entry_namespace, return_value=self.function_call_prov) as get_func_call_prov:
             self.assertFalse(self.errorMode.func_call_acted_as_expected('func_call_hash', metadata))
             get_func_call_prov.assert_called_once()
 
@@ -280,7 +280,7 @@ class TestProbabilisticErrorMode(unittest.TestCase):
         metadata = Metadata('func_call_hash', [], {}, 3.1, 0)
         self.function_call_prov.mean_output = 3
         self.function_call_prov.confidence_error = 0.222
-        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+        with patch(self.get_function_call_prov_entry_namespace, return_value=self.function_call_prov) as get_func_call_prov:
             self.assertTrue(self.errorMode.func_call_acted_as_expected('func_call_hash', metadata))
             get_func_call_prov.assert_called_once()
         
@@ -288,7 +288,7 @@ class TestProbabilisticErrorMode(unittest.TestCase):
         metadata = Metadata('func_call_hash', [], {}, 3.2, 0)
         self.function_call_prov.mean_output = 3
         self.function_call_prov.confidence_error = 0.222
-        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+        with patch(self.get_function_call_prov_entry_namespace, return_value=self.function_call_prov) as get_func_call_prov:
             self.assertFalse(self.errorMode.func_call_acted_as_expected('func_call_hash', metadata))
             get_func_call_prov.assert_called_once()
         
@@ -296,7 +296,7 @@ class TestProbabilisticErrorMode(unittest.TestCase):
         metadata = Metadata('func_call_hash', [], {}, 2, 0)
         self.function_call_prov.mean_output = 3
         self.function_call_prov.confidence_error = 0.222
-        with patch(self.get_func_call_prov_namespace, return_value=self.function_call_prov) as get_func_call_prov:
+        with patch(self.get_function_call_prov_entry_namespace, return_value=self.function_call_prov) as get_func_call_prov:
             self.assertFalse(self.errorMode.func_call_acted_as_expected('func_call_hash', metadata))
             get_func_call_prov.assert_called_once()
 
