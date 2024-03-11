@@ -1,5 +1,5 @@
 from execute_exp.services.revalidations.AbstractRevalidation import AbstractRevalidation
-from services.execution_modes.AbstractExecutionMode import AbstractExecutionMode
+from execute_exp.services.execution_modes.AbstractExecutionMode import AbstractExecutionMode
 from entities.Metadata import Metadata
 
 class AdaptativeRevalidation(AbstractRevalidation):

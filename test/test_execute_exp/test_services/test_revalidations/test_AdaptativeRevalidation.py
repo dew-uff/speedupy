@@ -5,7 +5,7 @@ project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
 from execute_exp.services.revalidations.AdaptativeRevalidation import AdaptativeRevalidation
-from services.execution_modes.AbstractExecutionMode import AbstractExecutionMode
+from execute_exp.services.execution_modes.AbstractExecutionMode import AbstractExecutionMode
 from entities.FunctionCallProv import FunctionCallProv
 
 class TestAdaptativeRevalidation(unittest.TestCase):
