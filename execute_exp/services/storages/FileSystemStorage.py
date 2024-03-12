@@ -5,7 +5,6 @@ from util import deserialize_from_file, serialize_to_file
 from execute_exp.services.storages.Storage import Storage
 from constantes import Constantes
 
-#TODO: TEST
 class FileSystemStorage(Storage):
     def __init__(self):
         self.__CACHE_FOLDER_NAME = Constantes().CACHE_FOLDER_NAME
@@ -45,5 +44,6 @@ class FileSystemStorage(Storage):
         folder_path = self.__CACHE_FOLDER_NAME
         if func_name:
             folder_path = os.path.join(folder_path, func_name)
+            os.makedirs(folder_path, exist_ok=True)
         file_path = os.path.join(folder_path, func_call_hash)
         serialize_to_file(func_output, file_path)
