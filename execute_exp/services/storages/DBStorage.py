@@ -8,21 +8,23 @@ from banco import Banco
 #TODO: TEST
 class DBStorage(Storage):
     def __init__(self):
-        self.__db_connection = Constantes().CONEXAO_BANCO
+        self.__db_connection = Banco(Constantes().BD_PATH)
 
     #TODO: TESTAR SE ESTÁ FUNCIONANDO!!!
     def _set_db_connection(func):
-        def wrapper(self:DBStorage, *args, use_isolated_connection=False, **kwargs) :
+        def wrapper(self, *args, use_isolated_connection=False, **kwargs):
             if use_isolated_connection:
+                main_conn = self.__db_connection
                 self.__db_connection = Banco(Constantes().BD_PATH)
-                func(self, use_isolated_connection)
+                result = func(self, use_isolated_connection)
                 
                 if func == self.save_cache_data_of_a_function_call:
                     self.__db_connection.salvarAlteracoes()
                 self.__db_connection.fecharConexao()
-                self.__db_connection = Constantes().CONEXAO_BANCO
+                self.__db_connection = main_conn
             else:
-                func(self, use_isolated_connection)
+                result = func(self, use_isolated_connection)
+            return result
         return wrapper
 
     @_set_db_connection
@@ -44,6 +46,7 @@ class DBStorage(Storage):
         return func_output
 
     #TODO: ATUALIZAR CONFORME NOVA ASSINATURA DO MÉTODO DA SUPERCLASSE. AGORA, RECEBE-SE TODO O CONJUNTO DE DADOS AO INVÉS DE APENAS UM DADO POR VEZ!
+    #TODO: ANALISAR COMO FECHAR CONEXÃO PRINCIPAL COM O BANCO DE DADOS!
     @_set_db_connection
     def save_cache_data_of_a_function_call(self, func_call_hash:str, func_output, func_name=None, use_isolated_connection=False):
         func_output = pickle.dumps(func_output)
@@ -51,3 +54,7 @@ class DBStorage(Storage):
             self.__db_connection.executarComandoSQLSemRetorno("INSERT OR IGNORE INTO CACHE(func_call_hash, func_output) VALUES (?, ?)", (func_call_hash, func_output))
         else:
             self.__db_connection.executarComandoSQLSemRetorno("INSERT OR IGNORE INTO CACHE(func_call_hash, func_output, func_name) VALUES (?, ?, ?)", (func_call_hash, func_output, func_name))
+
+    def __del__(self):
+        self.__db_connection.salvarAlteracoes()
+        self.__db_connection.fecharConexao()
