@@ -18,7 +18,7 @@ class V024MemArch(AbstractMemArch):
         t = threading.Thread(target=populate_cached_data_dictionary)
         t.start()
     
-    def get_cache_entry(self, func_call_hash:str):
+    def get_cache_entry(self, func_call_hash:str, *args):
         with self.__CACHED_DATA_DICTIONARY_SEMAPHORE:
             if(func_call_hash in self.__DATA_DICTIONARY):
                 return self.__DATA_DICTIONARY[func_call_hash]
@@ -26,7 +26,7 @@ class V024MemArch(AbstractMemArch):
             return self.__NEW_DATA_DICTIONARY[func_call_hash]
         return None
     
-    def create_cache_entry(self, func_call_hash:str, func_return):
+    def create_cache_entry(self, func_call_hash:str, func_return, *args):
         self.__NEW_DATA_DICTIONARY[func_call_hash] = func_return
     
     def save_new_cache_entries(self):
