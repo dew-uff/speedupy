@@ -16,7 +16,7 @@ class V027MemArch(AbstractMemArch):
         if(func_call_hash in self.__NEW_DATA_DICTIONARY):
             return self.__NEW_DATA_DICTIONARY[func_call_hash]
         
-        result = self.__storage.get_cached_data_of_a_function_call(func_call_hash)
+        result = self._storage.get_cached_data_of_a_function_call(func_call_hash)
         self.__DATA_DICTIONARY[func_call_hash] = result
         return result
     
@@ -25,4 +25,4 @@ class V027MemArch(AbstractMemArch):
 
     def save_new_cache_entries(self):
         for func_call_hash, func_return in self.__NEW_DATA_DICTIONARY.items():
-            self.__storage.save_cache_data_of_a_function_call(func_call_hash, func_return)
+            self._storage.save_cache_data_of_a_function_call(func_call_hash, func_return)

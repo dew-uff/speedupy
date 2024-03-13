@@ -2,7 +2,7 @@ from execute_exp.services.storages.Storage import Storage
 
 class AbstractMemArch():
     def __init__(self, storage:Storage):
-        self.__storage = storage
+        self._storage = storage
 
     def get_initial_cache_entries(self): pass #OLD populate_cache_dictionary
     def get_cache_entry(self, func_call_hash:str, *args): pass #OLD get_cache_data

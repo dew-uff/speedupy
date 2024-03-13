@@ -13,11 +13,11 @@ class V021MemArch(AbstractMemArch):
     def get_cache_entry(self, func_call_hash:str):
         if(func_call_hash in self.__NEW_DATA_DICTIONARY):
             return self.__NEW_DATA_DICTIONARY[func_call_hash]
-        return self.__storage.get_cached_data_of_a_function_call(func_call_hash)
+        return self._storage.get_cached_data_of_a_function_call(func_call_hash)
     
     def create_cache_entry(self, func_call_hash:str, func_return):
         self.__NEW_DATA_DICTIONARY[func_call_hash] = func_return
         
     def save_new_cache_entries(self):
         for func_call_hash, func_return in self.__NEW_DATA_DICTIONARY.items():
-            self.__storage.save_cache_data_of_a_function_call(func_call_hash, func_return)
+            self._storage.save_cache_data_of_a_function_call(func_call_hash, func_return)
