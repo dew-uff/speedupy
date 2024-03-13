@@ -35,7 +35,7 @@ class FileSystemStorage(Storage):
             return deserialize_from_file(file_path)
         except FileNotFoundError: pass
     
-    def save_cache_data(self, data:Dict[str, Dict]):
+    def save_cache_data(self, data:Dict[str, Dict]) -> None:
         for func_call_hash, func_info in data.items():
             self._save_cache_data_of_a_function_call(func_call_hash, func_info['output'],
                                                     func_name=func_info['func_name'])
