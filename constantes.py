@@ -1,9 +1,5 @@
 import os
-import threading
-
-from banco import Banco
 from SingletonMeta import SingletonMeta
-from execute_exp.SpeeduPySettings import SpeeduPySettings
 
 class Constantes(metaclass=SingletonMeta):
     def __init__(self):
@@ -12,23 +8,8 @@ class Constantes(metaclass=SingletonMeta):
         self.BD_PATH = os.path.join(self.FOLDER_NAME, "speedupy.db")        
         self.EXP_FUNCTIONS_FILENAME = os.path.join(self.FOLDER_NAME, 'functions_speedupy.json')
         self.EXP_SERIALIZED_FILENAME = os.path.join(self.FOLDER_NAME, 'experiment_speedupy.pickle')
-        
-        self.__CONEXAO_BANCO = None
 
         self.NUM_EXEC_MIN_PARA_INFERENCIA = 20
         self.MAX_ERROR_RATE = 0.2
         self.MIN_TIME_TO_CACHE = 1
         self.MIN_TIME_TO_SIMULATE_FUNC_CALL = 10
-
-    @property
-    def CONEXAO_BANCO(self):
-        if SpeeduPySettings().g_argsp_m != ['v01x'] and self.__CONEXAO_BANCO is None:
-            try:
-                self.__CONEXAO_BANCO = Banco(self.BD_PATH)
-            except: #Need for unit testing!
-                self.__CONEXAO_BANCO = None
-        return self.__CONEXAO_BANCO
-
-    @CONEXAO_BANCO.setter
-    def CONEXAO_BANCO(self, CONEXAO_BANCO):
-        self.__CONEXAO_BANCO = CONEXAO_BANCO
