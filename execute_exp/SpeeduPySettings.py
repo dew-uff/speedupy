@@ -10,6 +10,8 @@ class SpeeduPySettings(metaclass=SingletonMeta):
         self.g_argsp_exec_mode, \
         self.g_argsp_strategy, \
         self.g_argsp_revalidation, \
+        self.g_argsp_max_num_exec_til_revalidation, \
+        self.g_argsp_reduction_factor, \
         self.g_argsp_min_num_exec, \
         self.g_argsp_min_mode_occurrence, \
         self.g_argsp_confidence_level, \

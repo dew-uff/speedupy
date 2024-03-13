@@ -54,9 +54,9 @@ def get_params():
     exec_modes = ['no-cache', 'manual', 'accurate', 'probabilistic']
     prob_mode_strategies = ['counting', 'error', 'frequency']
     revalidations = ['none', 'fixed', 'adaptative']
-    memories = ['help','ad', '1d-ow', '1d-ad', '2d-ad', '2d-ad-t', '2d-ad-f', '2d-ad-ft', '2d-lz']
-    hashes = ['help','md5', 'murmur', 'xxhash']
-    storageOptions = ['help','db-file','db','file']
+    memories = ['ad', '1d-ow', '1d-ad', '2d-ad', '2d-ad-t', '2d-ad-f', '2d-ad-ft', '2d-lz']
+    hashes = ['md5', 'murmur', 'xxhash']
+    storageOptions = ['db','file']
 
     speedupy_arg_parser = argparse.ArgumentParser(usage=help_msg())
     
@@ -86,6 +86,20 @@ def get_params():
                                   default=['adaptative'],
                                   nargs=1,
                                   help='defines if Speedupy should reexecute a function sometimes to validate that the function continues to be safe to cache. There are three possible variations for this algorithm, depending on the execution mode selected.')
+    
+    speedupy_arg_parser.add_argument('--max-num-exec-til-revalidation',
+                                  default=10,
+                                  metavar='',
+                                  type=int,
+                                  nargs=1,
+                                  help='defines the maximum number of times a function can be cached before a revalidation occurs.')
+    
+    speedupy_arg_parser.add_argument('--reduction-factor',
+                                  default=0.3,
+                                  metavar='',
+                                  type=float,
+                                  nargs=1,
+                                  help='defines the factor used to update the next number of cached functions before the next revalidation occurs.')
 
     speedupy_arg_parser.add_argument('--min-num-exec',
                                   default=20,
@@ -134,7 +148,7 @@ def get_params():
                                    choices=storageOptions,
                                    metavar='',
                                    nargs=1,
-                                   default=['db-file'],
+                                   default=['db'],
                                    help='SpeeduPy\'s mechanism of storage: choose one of the following options: '+', '.join(storageOptions))
     
     args = speedupy_arg_parser.parse_args()
@@ -146,13 +160,14 @@ def get_params():
     argsp_exec_mode = args.exec_mode
     argsp_strategy = args.strategy
     argsp_revalidation = args.revalidation
+    argsp_max_num_exec_til_revalidation = args.max_num_exec_til_revalidation
+    argsp_reduction_factor = args.reduction_factor
     argsp_min_num_exec = args.min_num_exec
     argsp_min_mode_occurrence = args.min_mode_occurrence
     argsp_confidence_level = args.confidence_level
     argsp_max_error_per_function = args.max_error_per_function
     
-    return argsp_m, argsp_hash, argsp_s, argsp_exec_mode, argsp_strategy, argsp_revalidation, argsp_min_num_exec, argsp_min_mode_occurrence, argsp_confidence_level, argsp_max_error_per_function
-
+    return argsp_m, argsp_hash, argsp_s, argsp_exec_mode, argsp_strategy, argsp_revalidation, argsp_max_num_exec_til_revalidation, argsp_reduction_factor, argsp_min_num_exec, argsp_min_mode_occurrence, argsp_confidence_level, argsp_max_error_per_function
 
 """
 if argsp.version == ['1d-ow'] or argsp.version == ['v021x']:
