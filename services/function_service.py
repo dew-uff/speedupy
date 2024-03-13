@@ -1,9 +1,8 @@
 from typing import List, Dict, Tuple
 import ast, time
 from constantes import Constantes
-from execute_exp.data_access import get_all_saved_metadata_of_a_function_group_by_function_call_hash
 from entities.Metadata import Metadata
-from execute_exp.data_access import create_cache_entry, add_to_simulated_function_calls, add_to_dont_cache_function_calls, remove_metadata
+from execute_exp.data_access import DataAccess
 
 #TODO TEST
 def execute_and_classify_function(module, function:ast.FunctionDef, functions_2_hashes:Dict[str, str]) -> None:
@@ -82,8 +81,9 @@ def _is_statistically_deterministic_function(error_rate:float, mean_exec_time:fl
     return error_rate <= Constantes().MAX_ERROR_RATE and\
            mean_exec_time >= Constantes().MIN_TIME_TO_CACHE
         
+#TODO: CHECK IF THIS FUNCTION IS WORKIN AS EXPECTED
 def classify_as_statistically_deterministic_function(fun_name, fun_args, fun_return, fun_source) -> None:
-    create_cache_entry(fun_name, fun_args, fun_return, fun_source, Constantes().g_argsp_m)
+    DataAccess().create_cache_entry(fun_name, fun_args, {}, fun_return)
 
 def _should_be_simulated(mean_exec_time:float) -> bool:
     return mean_exec_time >= Constantes().MIN_TIME_TO_SIMULATE_FUNC_CALL
