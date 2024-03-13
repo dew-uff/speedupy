@@ -12,16 +12,22 @@ from entities.Metadata import Metadata
 from SingletonMeta import SingletonMeta
 from constantes import Constantes
 from util import get_content_json_file
+from factory import init_storage, init_mem_arch
 
 #TODO: TEST
 class DataAccess(metaclass=SingletonMeta):
     def __init__(self):
         self.METADATA = {}
-        self.FUNCTIONS_2_HASHES = get_content_json_file(Constantes().EXP_FUNCTIONS_FILENAME)
+        self.FUNCTIONS_2_HASHES = {}
         self.mem_arch :AbstractMemArch
-        self.function_calls_prov_table = FunctionCallsProvTable()
+        self.function_calls_prov_table:FunctionCallsProvTable
 
     def init_data_access(self):
+        storage = init_storage()
+        self.mem_arch = init_mem_arch(storage)
+        self.function_calls_prov_table = FunctionCallsProvTable()
+        self.FUNCTIONS_2_HASHES = get_content_json_file(Constantes().EXP_FUNCTIONS_FILENAME)
+
         self.mem_arch.get_initial_cache_entries()
         self.function_calls_prov_table.get_initial_function_calls_prov_entries()
 
@@ -37,14 +43,10 @@ class DataAccess(metaclass=SingletonMeta):
         self.mem_arch.create_cache_entry(func_call_hash, func_return, func_qualname) #some mem_arch needs 'func_qualname', others dont use it.
 
     ############# METADATA
-    def add_to_metadata(self, func_qualname:str, func_args:List, func_kwargs:Dict, func_return, exec_time:float) -> None:
-        func_hash = self.FUNCTIONS_2_HASHES[func_qualname]
-
-        md = Metadata(func_hash, func_args, func_kwargs, func_return, exec_time)
-        func_call_hash = get_id(func_hash, func_args, func_kwargs)
+    def add_to_metadata(self, func_call_hash:str, metadata:Metadata) -> None:
         if func_call_hash not in self.METADATA:
             self.METADATA[func_call_hash] = [] 
-        self.METADATA[func_call_hash].append(md)
+        self.METADATA[func_call_hash].append(metadata)
 
     ############# FUNCTION_CALL_PROV
     def get_function_call_prov_entry(self, func_call_hash:str) -> FunctionCallProv:
