@@ -5,25 +5,23 @@ from execute_exp.services.storages.Storage import Storage
 from constantes import Constantes
 from banco import Banco
 
-#TODO: TEST
 class DBStorage(Storage):
     def __init__(self):
         self.__db_connection = Banco(Constantes().BD_PATH)
 
-    #TODO: TESTAR SE ESTÁ FUNCIONANDO!!!
     def _set_db_connection(func):
         def wrapper(self, *args, use_isolated_connection=False, **kwargs):
             if use_isolated_connection:
                 main_conn = self.__db_connection
                 self.__db_connection = Banco(Constantes().BD_PATH)
-                result = func(self, use_isolated_connection)
+                result = func(self, *args, use_isolated_connection, **kwargs)
                 
-                if func == self.save_cache_data_of_a_function_call:
+                if func.__qualname__ == 'DBStorage.save_cache_data':
                     self.__db_connection.salvarAlteracoes()
                 self.__db_connection.fecharConexao()
                 self.__db_connection = main_conn
             else:
-                result = func(self, use_isolated_connection)
+                result = func(self, *args, use_isolated_connection, **kwargs)
             return result
         return wrapper
 
@@ -41,19 +39,32 @@ class DBStorage(Storage):
 
     @_set_db_connection
     def get_cached_data_of_a_function_call(self, func_call_hash:str, use_isolated_connection=False):
-        result = self.__db_connection.executarComandoSQLSelect("SELECT func_output FROM CACHE WHERE func_call_hash = ?", (func_call_hash,))
-        func_output = pickle.loads(result[0][0])
-        return func_output
+        try:
+            result = self.__db_connection.executarComandoSQLSelect("SELECT func_output FROM CACHE WHERE func_call_hash = ?", (func_call_hash,))
+            func_output = pickle.loads(result[0][0])
+            return func_output
+        except IndexError: pass
 
-    #TODO: ATUALIZAR CONFORME NOVA ASSINATURA DO MÉTODO DA SUPERCLASSE. AGORA, RECEBE-SE TODO O CONJUNTO DE DADOS AO INVÉS DE APENAS UM DADO POR VEZ!
-    #TODO: ANALISAR COMO FECHAR CONEXÃO PRINCIPAL COM O BANCO DE DADOS!
     @_set_db_connection
-    def save_cache_data_of_a_function_call(self, func_call_hash:str, func_output, func_name=None, use_isolated_connection=False):
-        func_output = pickle.dumps(func_output)
-        if func_name is None:
-            self.__db_connection.executarComandoSQLSemRetorno("INSERT OR IGNORE INTO CACHE(func_call_hash, func_output) VALUES (?, ?)", (func_call_hash, func_output))
+    def save_cache_data(self, data:Dict[str, Dict], use_isolated_connection=False) -> None:
+        if len(data) == 0: return
+        sql_stmt = ''
+        sql_params = []
+        for func_call_hash, func_info in data.items():
+            func_name = func_info['func_name']
+            func_output = pickle.dumps(func_info['output'])
+            
+            sql_params.append(func_call_hash)
+            sql_params.append(func_output)
+            if func_name: sql_params.append(func_name)
+        if list(data.values())[0]['func_name']: #Testing if data records have func_name set or not!
+            sql_stmt = "INSERT OR IGNORE INTO CACHE(func_call_hash, func_output, func_name) VALUES" +\
+                       len(data) * " (?, ?, ?),"
         else:
-            self.__db_connection.executarComandoSQLSemRetorno("INSERT OR IGNORE INTO CACHE(func_call_hash, func_output, func_name) VALUES (?, ?, ?)", (func_call_hash, func_output, func_name))
+            sql_stmt = "INSERT OR IGNORE INTO CACHE(func_call_hash, func_output) VALUES" +\
+                       len(data) * " (?, ?),"
+        sql_stmt = sql_stmt[:-1]
+        self.__db_connection.executarComandoSQLSemRetorno(sql_stmt, sql_params)
 
     def __del__(self):
         self.__db_connection.salvarAlteracoes()

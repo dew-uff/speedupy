@@ -1,5 +1,6 @@
 import unittest, os, sys
 from unittest.mock import Mock
+from typing import Dict
 
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
@@ -43,17 +44,29 @@ class TestDBStorage(unittest.TestCase):
     def assert_db_is_empty(self):
         resp = self.storage_conn.execute("SELECT * FROM CACHE").fetchall()
         self.assertListEqual(resp, [])
-
-    # def manually_cache_a_record_group_by_function_name(self, func_name, func_hash, func_return):
-    #     folder_path = os.path.join(Constantes().CACHE_FOLDER_NAME, func_name)
-    #     os.makedirs(folder_path, exist_ok=True)
-
-    #     file_path = os.path.join(func_name, func_hash)
-    #     self.manually_cache_a_record(file_path, func_return)
     
-    def manually_cache_a_record(self, func_hash, func_return, commit=False):
-        self.storage_conn.execute('INSERT INTO CACHE(func_call_hash, func_output) VALUES (?, ?)',
-                                  [func_hash, dumps(func_return)])
+    def assert_cache_data_correctly_inserted(self, expected_data:Dict):
+        #expected_data = {func_call_hash (str): {'func_name': (Optional[str]),
+        #                                        'output': (Any)}
+        #                }
+        sql = 'SELECT func_call_hash, func_output, func_name FROM CACHE'
+        resp = self.storage_conn.execute(sql).fetchall()
+        self.assertEqual(len(resp), len(expected_data))
+        for row in resp:
+            fc_hash = row[0]
+            fc_output = row[1]
+            fc_name = row[2]
+            self.assertIn(fc_hash, expected_data)
+            self.assertEqual(fc_output, dumps(expected_data[fc_hash]['output']))
+            self.assertEqual(fc_name, expected_data[fc_hash]['func_name'])
+    
+    def manually_cache_a_record(self, func_hash, func_return, func_name=None, commit=False):
+        sql_stmt = 'INSERT INTO CACHE(func_call_hash, func_output) VALUES (?, ?)'
+        sql_params = [func_hash, dumps(func_return)]
+        if func_name:
+            sql_stmt = 'INSERT INTO CACHE(func_call_hash, func_output, func_name) VALUES (?, ?, ?)'
+            sql_params.append(func_name)
+        self.storage_conn.execute(sql_stmt, sql_params)
         if commit: self.storage_conn.commit()
 
     def clean_database(self):
@@ -92,130 +105,116 @@ class TestDBStorage(unittest.TestCase):
         
         self.clean_database()
 
-    def test_get_cached_data_of_a_function_when_there_is_no_record(self): pass
-    def test_get_cached_data_of_a_function_when_there_is_no_record_for_the_requested_function_but_for_other_functions_there_are_records(self): pass
-    def test_get_cached_data_of_a_function_when_there_is_one_record(self): pass
-    def test_get_cached_data_of_a_function_when_there_are_many_record(self): pass
-    def test_get_cached_data_of_a_function_using_an_isolated_connection(self): pass
-        # results = self.__db_connection.executarComandoSQLSelect("SELECT func_call_hash, func_output FROM CACHE WHERE func_name = ?", (func_name,))
-        # data = {func_call_hash:pickle.loads(func_output) for func_call_hash, func_output in results}
-        # return data
+    def test_get_cached_data_of_a_function_when_there_is_no_record(self):
+        dicio = self.storage.get_cached_data_of_a_function('f1')
+        self.assertDictEqual(dicio, {})
 
-
-
-
-
-    # def assert_cache_data_correctly_inserted(self, func_call_hash, func_return, func_name=None):
-    #     file_path = Constantes().CACHE_FOLDER_NAME
-    #     if func_name:
-    #         file_path = os.path.join(file_path, func_name, func_call_hash)
-    #     else:
-    #         file_path = os.path.join(file_path, func_call_hash)
-    #     self.assertTrue(os.path.exists(file_path))
-    #     with open(file_path, 'rb') as f:
-    #         self.assertEqual(f.read(), dumps(func_return))
-
-
-
-
-
-
-
-    
-    # def test_get_cached_data_of_a_function_when_there_is_no_cached_data(self):
-    #     dicio = self.storage.get_cached_data_of_a_function('f1')
-    #     self.assertDictEqual(dicio, {})
-
-    # def test_get_cached_data_of_a_function_when_there_is_cached_data_only_for_other_functions(self):
-    #     self.manually_cache_a_record_group_by_function_name('f2', 'func_call_hash1', (True, 2, 5))
-    #     self.manually_cache_a_record_group_by_function_name('f2', 'func_call_hash2', [{'key1': 10,
-    #                                                                               'key_2': False}])
-    #     self.manually_cache_a_record_group_by_function_name('f3', 'func_call_hash3', -123.213)
+    def test_get_cached_data_of_a_function_when_there_is_no_record_for_the_requested_function_but_for_other_functions_there_are_records(self):
+        self.manually_cache_a_record('func_call_hash1', 1.12312, func_name='f2')
+        self.manually_cache_a_record('func_call_hash2', False, func_name='f2')
+        self.manually_cache_a_record('func_call_hash3', 'My test', func_name='f3')
         
-    #     dicio = self.storage.get_cached_data_of_a_function('f1')
-    #     self.assertDictEqual(dicio, {})
+        dicio = self.storage.get_cached_data_of_a_function('f1')
+        self.assertDictEqual(dicio, {})
 
-    # def test_get_cached_data_of_a_function_when_there_is_cached_data_for_it_and_for_other_functions_too(self):
-    #     self.manually_cache_a_record_group_by_function_name('f1', 'func_call_hash1', 5000.00)
-    #     self.manually_cache_a_record_group_by_function_name('f1', 'func_call_hash11', (True, 2, 5))
-    #     self.manually_cache_a_record_group_by_function_name('f2', 'func_call_hash2', [{'key1': 10,
-    #                                                                               'key_2': False}])
-    #     self.manually_cache_a_record_group_by_function_name('f3', 'func_call_hash3', -123.213)
+    def test_get_cached_data_of_a_function_when_there_is_one_record(self):
+        self.manually_cache_a_record('func_call_hash1', 1.12312, func_name='f1')
+        self.manually_cache_a_record('func_call_hash2', True, func_name='f2')
+        self.manually_cache_a_record('func_call_hash3', {1, 4, -2}, func_name='f2')
         
-    #     dicio = self.storage.get_cached_data_of_a_function('f1')
-    #     self.assertDictEqual(dicio, {'func_call_hash1': 5000.00,
-    #                                  'func_call_hash11': (True, 2, 5)})
+        dicio = self.storage.get_cached_data_of_a_function('f1')
+        self.assertDictEqual(dicio, {'func_call_hash1':1.12312})
 
-    # def test_get_cached_data_of_a_function_when_there_is_a_cached_data_record_for_it(self):
-    #     self.manually_cache_a_record_group_by_function_name('f1', 'func_call_hash1', {5, 'test', -2.8})
+    def test_get_cached_data_of_a_function_when_there_are_many_record(self):
+        self.manually_cache_a_record('func_call_hash1', 1.12312, func_name='f1')
+        self.manually_cache_a_record('func_call_hash2', True, func_name='f1')
+        self.manually_cache_a_record('func_call_hash3', {1, 4, -2}, func_name='f1')
+        self.manually_cache_a_record('func_call_hash4', 'my test', func_name='f2')
         
-    #     dicio = self.storage.get_cached_data_of_a_function('f1')
-    #     self.assertDictEqual(dicio, {'func_call_hash1': {5, 'test', -2.8}})
+        dicio = self.storage.get_cached_data_of_a_function('f1')
+        self.assertDictEqual(dicio, {'func_call_hash1':1.12312,
+                                     'func_call_hash2':True,
+                                     'func_call_hash3':{1, 4, -2}})
+
+    def test_get_cached_data_of_a_function_using_an_isolated_connection(self):
+        self.manually_cache_a_record('func_call_hash1', 'My Test', func_name='f1', commit=True)
+        self.manually_cache_a_record('func_call_hash2', {1, 4, -2}, func_name='f1', commit=True)
+        self.manually_cache_a_record('func_call_hash3', 10, func_name='f2', commit=True)
+        self.manually_cache_a_record('func_call_hash4', {1, 5, 4}, func_name='f2', commit=True)
         
-    # def test_get_cached_data_of_a_function_when_there_are_many_cached_data_records_for_it(self):
-    #     self.manually_cache_a_record_group_by_function_name('f1', 'func_call_hash1', 'testing')
-    #     self.manually_cache_a_record_group_by_function_name('f1', 'func_call_hash2', (1,))
-    #     self.manually_cache_a_record_group_by_function_name('f1', 'func_call_hash3', [10, -4, False])
-    #     self.manually_cache_a_record_group_by_function_name('f3', 'func_call_hash4', -123.213)
+        dicio = self.storage.get_cached_data_of_a_function('f1', use_isolated_connection=True)
+        self.assertDictEqual(dicio, {'func_call_hash1':'My Test',
+                                     'func_call_hash2':{1, 4, -2}})
         
-    #     dicio = self.storage.get_cached_data_of_a_function('f1')
-    #     self.assertDictEqual(dicio, {'func_call_hash1': 'testing',
-    #                                  'func_call_hash2': (1,),
-    #                                  'func_call_hash3': [10, -4, False]})
-    
-    # def test_get_cached_data_of_a_function_call_when_this_record_doesnt_exist(self):
-    #     func_return = self.storage.get_cached_data_of_a_function_call('func_call_hash')
-    #     self.assertIsNone(func_return)
+        self.clean_database()
 
-    # def test_get_cached_data_of_a_function_call_when_this_record_exists(self):
-    #     self.manually_cache_a_record('func_call_hash', (True, 2, 5))
+    def test_get_cached_data_of_a_function_call_when_cache_record_doesnt_exist(self):
+        value = self.storage.get_cached_data_of_a_function_call('func_call_hash')
+        self.assertIsNone(value)
 
-    #     func_return = self.storage.get_cached_data_of_a_function_call('func_call_hash')
-    #     self.assertEqual(func_return, (True, 2, 5))
+    def test_get_cached_data_of_a_function_call_when_cache_record_doesnt_exist_but_other_records_exist(self):
+        self.manually_cache_a_record('func_call_hash1', 'My Test')
+        self.manually_cache_a_record('func_call_hash2', {1, 4, -2})
+        self.manually_cache_a_record('func_call_hash3', 10)
 
-    # def test_get_cached_data_of_a_function_call_when_this_record_doesnt_exist_and_records_are_grouped_by_function_name(self):
-    #     func_return = self.storage.get_cached_data_of_a_function_call('func_call_hash', func_name='f1')
-    #     self.assertIsNone(func_return)
+        value = self.storage.get_cached_data_of_a_function_call('func_call_hash0')
+        self.assertIsNone(value)
 
-    # def test_get_cached_data_of_a_function_call_when_this_record_exists_and_records_are_grouped_by_function_name(self):
-    #     self.manually_cache_a_record_group_by_function_name('f1', 'func_call_hash', 'my_string')
+    def test_get_cached_data_of_a_function_call_when_cache_record_exists(self):
+        self.manually_cache_a_record('func_call_hash1', 3.1415)
+        self.manually_cache_a_record('func_call_hash2', [1, {2, 4, 1}, -2])
+        self.manually_cache_a_record('func_call_hash3', 'My test')
 
-    #     func_return = self.storage.get_cached_data_of_a_function_call('func_call_hash', func_name='f1')
-    #     self.assertEqual(func_return, 'my_string')
+        value = self.storage.get_cached_data_of_a_function_call('func_call_hash1')
+        self.assertEqual(value, 3.1415)
 
-    # def test_get_cached_data_of_a_function_call_when_this_record_doesnt_exists_but_other_records_exist(self):
-    #     self.manually_cache_a_record('func_call_hash1', (True, 2, 5))
-    #     self.manually_cache_a_record('func_call_hash2', -12.2131)
-    #     self.manually_cache_a_record('func_call_hash3', False)
+    def test_get_cached_data_of_a_function_call_using_an_isolated_connection(self):
+        self.manually_cache_a_record('func_call_hash1', -3.1415, commit=True)
+        self.manually_cache_a_record('func_call_hash2', [1, {2, 4, 1}, -2], commit=True)
+        self.manually_cache_a_record('func_call_hash3', 'My test', commit=True)
 
-    #     func_return = self.storage.get_cached_data_of_a_function_call('func_call_hash')
-    #     self.assertIsNone(func_return)
-    
-    # def test_save_cache_data_of_a_function_call_when_function_call_record_doesnt_exist(self):
-    #     file_path = os.path.join(Constantes().CACHE_FOLDER_NAME, 'func_call_hash')
-    #     self.assertFalse(os.path.exists(file_path))
+        value = self.storage.get_cached_data_of_a_function_call('func_call_hash1',
+                                                                use_isolated_connection=True)
+        self.assertEqual(value, -3.1415)
+        self.clean_database()
+ 
+    def test_save_cache_data_when_there_is_no_data_to_save(self):
+        self.storage.save_cache_data({})
+        self.assert_cache_data_correctly_inserted({})
 
-    #     self.storage._save_cache_data_of_a_function_call('func_call_hash', False)
-    #     self.assert_cache_data_correctly_inserted('func_call_hash', False)
+    def test_save_cache_data_when_there_is_one_record_to_save_without_func_name(self):
+        data = {'func_call_hash':{'func_name':None, 'output':{1, 5, 4}}}
+        self.storage.save_cache_data(data)
+        self.assert_cache_data_correctly_inserted(data)
 
-    # def test_save_cache_data_of_a_function_call_when_function_call_record_already_exists(self):
-    #     self.manually_cache_a_record('func_call_hash', (True, 2, 5))
+    def test_save_cache_data_when_there_is_one_record_to_save_with_func_name(self):
+        data = {'func_call_hash':{'func_name':'f1', 'output':{1, True}}}
+        self.storage.save_cache_data(data)
+        self.assert_cache_data_correctly_inserted(data)
 
-    #     self.storage._save_cache_data_of_a_function_call('func_call_hash', (True, 2, 5))
-    #     self.assert_cache_data_correctly_inserted('func_call_hash', (True, 2, 5))
+    def test_save_cache_data_when_there_are_many_records_to_save_without_func_name(self):
+        data = {'func_call_hash1':{'func_name':None, 'output':{1, True}},
+                'func_call_hash2':{'func_name':None, 'output':('test',)},
+                'func_call_hash3':{'func_name':None, 'output':-23.123}}
+        self.storage.save_cache_data(data)
+        self.assert_cache_data_correctly_inserted(data)
 
-    # def test_save_cache_data_of_a_function_call_grouped_by_function_name_when_function_directory_doesnt_exist(self):
-    #     file_path = os.path.join(Constantes().CACHE_FOLDER_NAME, 'f1', 'func_call_hash')
-    #     self.assertFalse(os.path.exists(file_path))
+    def test_save_cache_data_when_there_are_many_records_to_save_with_func_name(self):
+        data = {'func_call_hash1':{'func_name':'f1', 'output':{1, True}},
+                'func_call_hash2':{'func_name':'f2', 'output':('test',)},
+                'func_call_hash3':{'func_name':'f2', 'output':-23.123},
+                'func_call_hash4':{'func_name':'f3', 'output':MyClass()}}
+        self.storage.save_cache_data(data)
+        self.assert_cache_data_correctly_inserted(data)
 
-    #     self.storage._save_cache_data_of_a_function_call('func_call_hash', [3.1245123], func_name='f1')
-    #     self.assert_cache_data_correctly_inserted('func_call_hash', [3.1245123], func_name='f1')
-
-    # def test_save_cache_data_of_a_function_call_grouped_by_function_name_when_function_directory_already_exists(self):
-    #     self.manually_cache_a_record_group_by_function_name('f1', 'func_call_hash', MyClass())
-
-    #     self.storage._save_cache_data_of_a_function_call('func_call_hash', MyClass(), func_name='f1')
-    #     self.assert_cache_data_correctly_inserted('func_call_hash', MyClass(), func_name='f1')
+    def test_save_cache_data_using_an_isolated_connection(self):
+        data = {'func_call_hash1':{'func_name':'f1', 'output':{1, True}},
+                'func_call_hash2':{'func_name':'f2', 'output':-23.123},
+                'func_call_hash3':{'func_name':'f3', 'output':MyClass()}}
+        self.storage.save_cache_data(data, use_isolated_connection=True)
+        self.assert_cache_data_correctly_inserted(data)
+        
+        self.clean_database()
 
 class MyClass():
     def __init__(self):
