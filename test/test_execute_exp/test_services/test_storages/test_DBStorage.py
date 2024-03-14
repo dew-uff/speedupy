@@ -6,8 +6,9 @@ project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
 from execute_exp.services.storages.DBStorage import DBStorage
+from entities.CacheData import CacheData
 from constantes import Constantes
-from pickle import dumps
+from pickle import dumps, loads
 import sqlite3
 
 class TestDBStorage(unittest.TestCase):
@@ -45,21 +46,28 @@ class TestDBStorage(unittest.TestCase):
         resp = self.storage_conn.execute("SELECT * FROM CACHE").fetchall()
         self.assertListEqual(resp, [])
     
-    def assert_cache_data_correctly_inserted(self, expected_data:Dict):
-        #expected_data = {func_call_hash (str): {'func_name': (Optional[str]),
-        #                                        'output': (Any)}
-        #                }
+    def assert_cache_data_correctly_inserted(self, expected_data:Dict[str, CacheData]):
         sql = 'SELECT func_call_hash, func_output, func_name FROM CACHE'
         resp = self.storage_conn.execute(sql).fetchall()
-        self.assertEqual(len(resp), len(expected_data))
+        data_gotten = {}
         for row in resp:
             fc_hash = row[0]
-            fc_output = row[1]
+            fc_output = loads(row[1])
             fc_name = row[2]
-            self.assertIn(fc_hash, expected_data)
-            self.assertEqual(fc_output, dumps(expected_data[fc_hash]['output']))
-            self.assertEqual(fc_name, expected_data[fc_hash]['func_name'])
+            data_gotten[fc_hash] = CacheData(fc_hash, fc_output, func_name=fc_name)
+        self.assert_data_gotten_is_correct(data_gotten, expected_data)
     
+    def assert_data_gotten_is_correct(self, data_gotten:Dict[str, CacheData], expected_data:Dict[str, CacheData]):
+        self.assertListEqual(list(data_gotten.keys()), list(expected_data.keys()))
+        for func_call_hash in data_gotten:
+            self.assert_two_cache_data_are_equal(data_gotten[func_call_hash],
+                                                 expected_data[func_call_hash])
+    
+    def assert_two_cache_data_are_equal(self, cache_data_1:CacheData, cache_data_2:CacheData):
+        self.assertEqual(cache_data_1.function_call_hash, cache_data_2.function_call_hash)
+        self.assertEqual(cache_data_1.func_name, cache_data_2.func_name)
+        self.assertEqual(dumps(cache_data_1.output), dumps(cache_data_2.output))
+
     def manually_cache_a_record(self, func_hash, func_return, func_name=None, commit=False):
         sql_stmt = 'INSERT INTO CACHE(func_call_hash, func_output) VALUES (?, ?)'
         sql_params = [func_hash, dumps(func_return)]
@@ -79,9 +87,11 @@ class TestDBStorage(unittest.TestCase):
 
     def test_get_all_cached_data_when_there_is_one_cache_record(self):
         self.manually_cache_a_record('func_call_hash', (1, True, MyClass()))
+        
         dicio = self.storage.get_all_cached_data()
-        self.assertListEqual(list(dicio.keys()), ['func_call_hash'])
-        self.assertEqual(dumps(dicio['func_call_hash']), dumps((1, True, MyClass())))
+
+        expected_data = {'func_call_hash':CacheData('func_call_hash', (1, True, MyClass()))}
+        self.assert_data_gotten_is_correct(dicio, expected_data)
         
     def test_get_all_cached_data_when_there_are_many_cache_records(self):
         self.manually_cache_a_record('func_call_hash1', 1.12312)
@@ -90,18 +100,22 @@ class TestDBStorage(unittest.TestCase):
         self.manually_cache_a_record('func_call_hash4', {-1, True, 10})
         
         dicio = self.storage.get_all_cached_data()
-        self.assertDictEqual(dicio, {'func_call_hash1': 1.12312,
-                                     'func_call_hash2': False,
-                                     'func_call_hash3': 'My test',
-                                     'func_call_hash4': {-1, True, 10}})
+
+        expected_data = {'func_call_hash1': CacheData('func_call_hash1', 1.12312),
+                         'func_call_hash2': CacheData('func_call_hash2', False),
+                         'func_call_hash3': CacheData('func_call_hash3', 'My test'),
+                         'func_call_hash4': CacheData('func_call_hash4', {-1, True, 10})}
+        self.assert_data_gotten_is_correct(dicio, expected_data)
 
     def test_get_all_cached_data_using_an_isolated_connection(self):
         self.manually_cache_a_record('func_call_hash1', -123.3, commit=True)
         self.manually_cache_a_record('func_call_hash2', True, commit=True)
         
         dicio = self.storage.get_all_cached_data(use_isolated_connection=True)
-        self.assertDictEqual(dicio, {'func_call_hash1': -123.3,
-                                     'func_call_hash2': True})
+
+        expected_data = {'func_call_hash1':CacheData('func_call_hash1', -123.3),
+                         'func_call_hash2':CacheData('func_call_hash2', True)}
+        self.assert_data_gotten_is_correct(dicio, expected_data)
         
         self.clean_database()
 
@@ -123,7 +137,9 @@ class TestDBStorage(unittest.TestCase):
         self.manually_cache_a_record('func_call_hash3', {1, 4, -2}, func_name='f2')
         
         dicio = self.storage.get_cached_data_of_a_function('f1')
-        self.assertDictEqual(dicio, {'func_call_hash1':1.12312})
+
+        expected_data = {'func_call_hash1':CacheData('func_call_hash1', 1.12312, func_name='f1')}
+        self.assert_data_gotten_is_correct(dicio, expected_data)
 
     def test_get_cached_data_of_a_function_when_there_are_many_record(self):
         self.manually_cache_a_record('func_call_hash1', 1.12312, func_name='f1')
@@ -132,9 +148,11 @@ class TestDBStorage(unittest.TestCase):
         self.manually_cache_a_record('func_call_hash4', 'my test', func_name='f2')
         
         dicio = self.storage.get_cached_data_of_a_function('f1')
-        self.assertDictEqual(dicio, {'func_call_hash1':1.12312,
-                                     'func_call_hash2':True,
-                                     'func_call_hash3':{1, 4, -2}})
+        
+        expected_data = {'func_call_hash1':CacheData('func_call_hash1', 1.12312, func_name='f1'),
+                         'func_call_hash2':CacheData('func_call_hash2', True, func_name='f1'),
+                         'func_call_hash3':CacheData('func_call_hash3', {1, 4, -2}, func_name='f1')}
+        self.assert_data_gotten_is_correct(dicio, expected_data)
 
     def test_get_cached_data_of_a_function_using_an_isolated_connection(self):
         self.manually_cache_a_record('func_call_hash1', 'My Test', func_name='f1', commit=True)
@@ -143,39 +161,41 @@ class TestDBStorage(unittest.TestCase):
         self.manually_cache_a_record('func_call_hash4', {1, 5, 4}, func_name='f2', commit=True)
         
         dicio = self.storage.get_cached_data_of_a_function('f1', use_isolated_connection=True)
-        self.assertDictEqual(dicio, {'func_call_hash1':'My Test',
-                                     'func_call_hash2':{1, 4, -2}})
+        
+        expected_data = {'func_call_hash1':CacheData('func_call_hash1', 'My Test', func_name='f1'),
+                         'func_call_hash2':CacheData('func_call_hash2', {1, 4, -2}, func_name='f1')}
+        self.assert_data_gotten_is_correct(dicio, expected_data)
         
         self.clean_database()
 
     def test_get_cached_data_of_a_function_call_when_cache_record_doesnt_exist(self):
-        value = self.storage.get_cached_data_of_a_function_call('func_call_hash')
-        self.assertIsNone(value)
+        cache_data = self.storage.get_cached_data_of_a_function_call('func_call_hash')
+        self.assertIsNone(cache_data)
 
     def test_get_cached_data_of_a_function_call_when_cache_record_doesnt_exist_but_other_records_exist(self):
         self.manually_cache_a_record('func_call_hash1', 'My Test')
         self.manually_cache_a_record('func_call_hash2', {1, 4, -2})
         self.manually_cache_a_record('func_call_hash3', 10)
 
-        value = self.storage.get_cached_data_of_a_function_call('func_call_hash0')
-        self.assertIsNone(value)
+        cache_data = self.storage.get_cached_data_of_a_function_call('func_call_hash0')
+        self.assertIsNone(cache_data)
 
     def test_get_cached_data_of_a_function_call_when_cache_record_exists(self):
         self.manually_cache_a_record('func_call_hash1', 3.1415)
         self.manually_cache_a_record('func_call_hash2', [1, {2, 4, 1}, -2])
         self.manually_cache_a_record('func_call_hash3', 'My test')
 
-        value = self.storage.get_cached_data_of_a_function_call('func_call_hash1')
-        self.assertEqual(value, 3.1415)
+        cache_data = self.storage.get_cached_data_of_a_function_call('func_call_hash1')
+        self.assert_two_cache_data_are_equal(cache_data, CacheData('func_call_hash1', 3.1415))
 
     def test_get_cached_data_of_a_function_call_using_an_isolated_connection(self):
         self.manually_cache_a_record('func_call_hash1', -3.1415, commit=True)
         self.manually_cache_a_record('func_call_hash2', [1, {2, 4, 1}, -2], commit=True)
         self.manually_cache_a_record('func_call_hash3', 'My test', commit=True)
 
-        value = self.storage.get_cached_data_of_a_function_call('func_call_hash1',
+        cache_data = self.storage.get_cached_data_of_a_function_call('func_call_hash1',
                                                                 use_isolated_connection=True)
-        self.assertEqual(value, -3.1415)
+        self.assert_two_cache_data_are_equal(cache_data, CacheData('func_call_hash1', -3.1415))
         self.clean_database()
  
     def test_save_cache_data_when_there_is_no_data_to_save(self):
@@ -183,34 +203,34 @@ class TestDBStorage(unittest.TestCase):
         self.assert_cache_data_correctly_inserted({})
 
     def test_save_cache_data_when_there_is_one_record_to_save_without_func_name(self):
-        data = {'func_call_hash':{'func_name':None, 'output':{1, 5, 4}}}
+        data = {'func_call_hash':CacheData('func_call_hash', {1, 5, 4})}
         self.storage.save_cache_data(data)
         self.assert_cache_data_correctly_inserted(data)
 
     def test_save_cache_data_when_there_is_one_record_to_save_with_func_name(self):
-        data = {'func_call_hash':{'func_name':'f1', 'output':{1, True}}}
+        data = {'func_call_hash':CacheData('func_call_hash', {1, True}, func_name='f1')}
         self.storage.save_cache_data(data)
         self.assert_cache_data_correctly_inserted(data)
 
     def test_save_cache_data_when_there_are_many_records_to_save_without_func_name(self):
-        data = {'func_call_hash1':{'func_name':None, 'output':{1, True}},
-                'func_call_hash2':{'func_name':None, 'output':('test',)},
-                'func_call_hash3':{'func_name':None, 'output':-23.123}}
+        data = {'func_call_hash1':CacheData('func_call_hash1', {1, True}),
+                'func_call_hash2':CacheData('func_call_hash2', ('test',)),
+                'func_call_hash3':CacheData('func_call_hash3', -23.123)}
         self.storage.save_cache_data(data)
         self.assert_cache_data_correctly_inserted(data)
 
     def test_save_cache_data_when_there_are_many_records_to_save_with_func_name(self):
-        data = {'func_call_hash1':{'func_name':'f1', 'output':{1, True}},
-                'func_call_hash2':{'func_name':'f2', 'output':('test',)},
-                'func_call_hash3':{'func_name':'f2', 'output':-23.123},
-                'func_call_hash4':{'func_name':'f3', 'output':MyClass()}}
+        data = {'func_call_hash1':CacheData('func_call_hash1', {1, True}, func_name='f1'),
+                'func_call_hash2':CacheData('func_call_hash2', ('test',), func_name='f2'),
+                'func_call_hash3':CacheData('func_call_hash3', -23.123, func_name='f2'),
+                'func_call_hash4':CacheData('func_call_hash4', MyClass(), func_name='f3')}
         self.storage.save_cache_data(data)
         self.assert_cache_data_correctly_inserted(data)
 
     def test_save_cache_data_using_an_isolated_connection(self):
-        data = {'func_call_hash1':{'func_name':'f1', 'output':{1, True}},
-                'func_call_hash2':{'func_name':'f2', 'output':-23.123},
-                'func_call_hash3':{'func_name':'f3', 'output':MyClass()}}
+        data = {'func_call_hash1':CacheData('func_call_hash1', {1, True}, func_name='f1'),
+                'func_call_hash2':CacheData('func_call_hash2', -23.123, func_name='f2'),
+                'func_call_hash3':CacheData('func_call_hash3', MyClass(), func_name='f3')}
         self.storage.save_cache_data(data, use_isolated_connection=True)
         self.assert_cache_data_correctly_inserted(data)
         
