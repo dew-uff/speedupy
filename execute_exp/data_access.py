@@ -12,7 +12,7 @@ from entities.Metadata import Metadata
 from SingletonMeta import SingletonMeta
 from constantes import Constantes
 from util import get_content_json_file
-from factory import init_storage, init_mem_arch
+from factory import init_mem_arch
 
 #TODO: TEST
 class DataAccess(metaclass=SingletonMeta):
@@ -23,8 +23,7 @@ class DataAccess(metaclass=SingletonMeta):
         self.function_calls_prov_table:FunctionCallsProvTable
 
     def init_data_access(self):
-        storage = init_storage()
-        self.mem_arch = init_mem_arch(storage)
+        self.mem_arch = init_mem_arch()
         self.function_calls_prov_table = FunctionCallsProvTable()
         self.FUNCTIONS_2_HASHES = get_content_json_file(Constantes().EXP_FUNCTIONS_FILENAME)
 
