@@ -4,9 +4,9 @@ from execute_exp.parser_params import get_params
 
 class SpeeduPySettings(metaclass=SingletonMeta):
     def __init__(self):
-        self.g_argsp_num_dict, \
-        self.g_argsp_retrieval_strategy, \
-        self.g_argsp_retrieval_exec_mode, \
+        self.num_dict, \
+        self.retrieval_strategy, \
+        self.retrieval_exec_mode, \
         self.g_argsp_hash, \
         self.g_argsp_s, \
         self.g_argsp_exec_mode, \

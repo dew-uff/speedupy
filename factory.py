@@ -1,9 +1,51 @@
+from typing import Optional
 from execute_exp.services.execution_modes.AbstractExecutionMode import AbstractExecutionMode
+from execute_exp.services.revalidations.AbstractRevalidation import AbstractRevalidation
+from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
+from execute_exp.services.retrieval_strategies.AbstractRetrievalStrategy import AbstractRetrievalStrategy
 from execute_exp.services.storages.Storage import Storage
 from execute_exp.SpeeduPySettings import SpeeduPySettings
 
 #TODO:TEST
-def init_exec_mode():
+def init_storage() -> Storage:
+    from execute_exp.services.storages.DBStorage import DBStorage
+    from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
+
+    if SpeeduPySettings().g_argsp_s == ['db']: return DBStorage()
+    elif SpeeduPySettings().g_argsp_s == ['file']: return FileSystemStorage()
+
+#TODO:TEST
+def init_retrieval_strategy(storage:Storage) -> AbstractRetrievalStrategy:
+    from execute_exp.services.retrieval_strategies.LazyRetrieval import LazyRetrieval
+    from execute_exp.services.retrieval_strategies.FunctionRetrieval import FunctionRetrieval
+    from execute_exp.services.retrieval_strategies.EagerRetrieval import EagerRetrieval
+
+    if SpeeduPySettings().retrieval_strategy == ['lazy']:
+        return LazyRetrieval(storage)
+    elif SpeeduPySettings().retrieval_strategy == ['function']:
+        return FunctionRetrieval(storage)
+    elif SpeeduPySettings().retrieval_strategy == ['eager']:
+        return EagerRetrieval(storage)
+    
+#TODO:TEST
+def init_mem_arch(storage:Storage, retrieval_strategy:AbstractRetrievalStrategy) -> AbstractMemArch:
+    from execute_exp.services.memory_architecures.ZeroDictMemArch import ZeroDictMemArch
+    from execute_exp.services.memory_architecures.OneDictMemArch import OneDictMemArch
+    from execute_exp.services.memory_architecures.OneDictOldDataOneDictNewDataMemArch import OneDictOldDataOneDictNewDataMemArch
+    from execute_exp.services.memory_architecures.OneDictAllDataOneDictNewDataMemArch import OneDictAllDataOneDictNewDataMemArch
+
+    use_threads = SpeeduPySettings().retrieval_exec_mode == ['thread']
+    if SpeeduPySettings().num_dict == ['0']:
+        return ZeroDictMemArch(storage, retrieval_strategy, use_threads)
+    elif SpeeduPySettings().num_dict == ['1']:
+        return OneDictMemArch(storage, retrieval_strategy, use_threads)
+    elif SpeeduPySettings().num_dict == ['2']:
+        return OneDictOldDataOneDictNewDataMemArch(storage, retrieval_strategy, use_threads)
+    elif SpeeduPySettings().num_dict == ['2-fast']:
+        return OneDictAllDataOneDictNewDataMemArch(storage, retrieval_strategy, use_threads)
+
+#TODO:TEST
+def init_exec_mode() -> Optional[AbstractExecutionMode]:
     from execute_exp.services.execution_modes.AccurateMode import AccurateMode
     from execute_exp.services.execution_modes.ProbabilisticCountingMode import ProbabilisticCountingMode
     from execute_exp.services.execution_modes.ProbabilisticErrorMode import ProbabilisticErrorMode
@@ -18,11 +60,12 @@ def init_exec_mode():
         return ProbabilisticErrorMode()
 
 #TODO:TEST
-def init_revalidation(exec_mode:AbstractExecutionMode):
+def init_revalidation(exec_mode:Optional[AbstractExecutionMode]) -> Optional[AbstractRevalidation]:
     from execute_exp.services.revalidations.NoRevalidation import NoRevalidation
     from execute_exp.services.revalidations.FixedRevalidation import FixedRevalidation
     from execute_exp.services.revalidations.AdaptativeRevalidation import AdaptativeRevalidation
-
+    
+    if exec_mode is None: return
     if SpeeduPySettings().g_argsp_revalidation == ['none']:
         return NoRevalidation()
     elif SpeeduPySettings().g_argsp_revalidation == ['fixed']:
@@ -30,31 +73,3 @@ def init_revalidation(exec_mode:AbstractExecutionMode):
     elif SpeeduPySettings().g_argsp_revalidation == ['adaptative']:
         return AdaptativeRevalidation(exec_mode,
                                       SpeeduPySettings().g_argsp_max_num_exec_til_revalidation, SpeeduPySettings().g_argsp_reduction_factor)
-
-#TODO:TEST
-def init_storage():
-    from execute_exp.services.storages.DBStorage import DBStorage
-    from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
-
-    if SpeeduPySettings().g_argsp_s == ['db']: return DBStorage()
-    elif SpeeduPySettings().g_argsp_s == ['file']: return FileSystemStorage()
-
-#TODO:TEST
-def init_mem_arch(storage:Storage):
-    from execute_exp.memory_architectures.V01MemArch import V01MemArch
-    from execute_exp.memory_architectures.V021MemArch import V021MemArch
-    from execute_exp.memory_architectures.V022MemArch import V022MemArch
-    from execute_exp.memory_architectures.V023MemArch import V023MemArch
-    from execute_exp.memory_architectures.V024MemArch import V024MemArch
-    from execute_exp.memory_architectures.V025MemArch import V025MemArch
-    from execute_exp.memory_architectures.V026MemArch import V026MemArch
-    from execute_exp.memory_architectures.V027MemArch import V027MemArch
-
-    if SpeeduPySettings().g_argsp_m == ['ad']: return V01MemArch(storage)
-    elif SpeeduPySettings().g_argsp_m == ['1d-ow']: return V021MemArch(storage)
-    elif SpeeduPySettings().g_argsp_m == ['1d-ad']: return V022MemArch(storage)
-    elif SpeeduPySettings().g_argsp_m == ['2d-ad']: return V023MemArch(storage)
-    elif SpeeduPySettings().g_argsp_m == ['2d-ad-t']: return V024MemArch(storage)
-    elif SpeeduPySettings().g_argsp_m == ['2d-ad-f']: return V025MemArch(storage)
-    elif SpeeduPySettings().g_argsp_m == ['2d-ad-ft']: return V026MemArch(storage)
-    elif SpeeduPySettings().g_argsp_m == ['2d-lz']: return V027MemArch(storage)
