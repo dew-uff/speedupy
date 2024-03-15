@@ -1,5 +1,5 @@
 from execute_exp.services.storages.Storage import Storage
-from execute_exp.memory_architectures.MemArchImpl import AbstractRetrievalStrategy
+from execute_exp.services.retrieval_strategies.AbstractRetrievalStrategy import AbstractRetrievalStrategy
 
 class AbstractMemArch():
     def __init__(self, storage:Storage, retrieval_strategy:AbstractRetrievalStrategy, use_threads:bool):

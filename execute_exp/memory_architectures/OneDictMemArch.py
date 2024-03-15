@@ -1,4 +1,4 @@
-from execute_exp.memory_architectures.AbstractOneDictMemArch import AbstractOneDictMemArch
+from execute_exp.services.memory_architecures.AbstractOneDictMemArch import AbstractOneDictMemArch
 from entities.CacheData import CacheData
 
 #TODO: TEST

@@ -1,4 +1,4 @@
-from execute_exp.memory_architectures.AbstractMemArch import AbstractMemArch
+from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
 from execute_exp.services.storages.Storage import Storage
 
 #TODO: TEST

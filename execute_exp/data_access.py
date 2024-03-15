@@ -4,7 +4,7 @@ import hashlib
 import mmh3
 import xxhash
 
-from execute_exp.memory_architectures.AbstractMemArch import AbstractMemArch
+from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
 from execute_exp.SpeeduPySettings import SpeeduPySettings
 from execute_exp.function_calls_prov_table import FunctionCallsProvTable
 from entities.FunctionCallProv import FunctionCallProv

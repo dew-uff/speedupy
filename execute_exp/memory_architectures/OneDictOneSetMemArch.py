@@ -1,5 +1,5 @@
-from execute_exp.memory_architectures.AbstractOneDictMemArch import AbstractOneDictMemArch
-from execute_exp.memory_architectures.MemArchImpl import AbstractRetrievalStrategy
+from execute_exp.services.memory_architecures.AbstractOneDictMemArch import AbstractOneDictMemArch
+from execute_exp.services.retrieval_strategies.AbstractRetrievalStrategy import AbstractRetrievalStrategy
 from execute_exp.services.storages.Storage import Storage
 from entities.CacheData import CacheData
 
