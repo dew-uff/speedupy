@@ -1,8 +1,6 @@
 from execute_exp.services.memory_architecures.AbstractOneDictMemArch import AbstractOneDictMemArch
 from entities.CacheData import CacheData
 
-#TODO: TEST
-#TODO: TEST IF I CAN READ DICTIONARY WITHOUT SEMAPHORE
 class OneDictMemArch(AbstractOneDictMemArch):
     def create_cache_entry(self, func_call_hash:str, func_return, func_name=None):
         with self._DATA_DICTIONARY_SEMAPHORE:
