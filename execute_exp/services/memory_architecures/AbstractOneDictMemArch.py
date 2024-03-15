@@ -13,7 +13,7 @@ class AbstractOneDictMemArch(AbstractMemArch):
         self._DATA_DICTIONARY = {}
         self._thread = None #Needed for unit testing!
 
-    def get_initial_cache_entries(self):
+    def get_initial_cache_entries(self) -> None:
         def populate_cached_data_dictionary():
             data = self._retrieval_strategy.get_initial_cache_entries(use_thread=self._use_threads)
             with self._DATA_DICTIONARY_SEMAPHORE:
