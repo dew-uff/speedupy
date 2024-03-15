@@ -26,7 +26,7 @@ class AbstractOneDictMemArch(AbstractMemArch):
     
     def get_cache_entry(self, func_call_hash:str, func_name=None):
         try:
-            c = self._get_cache_entry_from_dict()
+            c = self._get_cache_entry_from_dict(func_call_hash)
             if c is None:
                 c = self._get_cache_entry_from_storage(func_call_hash, func_name)
             return c.output
