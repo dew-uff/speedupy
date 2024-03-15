@@ -50,13 +50,13 @@ def init_exec_mode() -> Optional[AbstractExecutionMode]:
     from execute_exp.services.execution_modes.ProbabilisticCountingMode import ProbabilisticCountingMode
     from execute_exp.services.execution_modes.ProbabilisticErrorMode import ProbabilisticErrorMode
 
-    if SpeeduPySettings().g_argsp_exec_mode == ['accurate']:
+    if SpeeduPySettings().exec_mode == ['accurate']:
         return AccurateMode()
-    elif SpeeduPySettings().g_argsp_exec_mode == ['probabilistic'] and \
-         SpeeduPySettings().g_argsp_strategy == ['counting']:
+    elif SpeeduPySettings().exec_mode == ['probabilistic'] and \
+         SpeeduPySettings().strategy == ['counting']:
         return ProbabilisticCountingMode()
-    elif SpeeduPySettings().g_argsp_exec_mode == ['probabilistic'] and \
-         SpeeduPySettings().g_argsp_strategy == ['error']:
+    elif SpeeduPySettings().exec_mode == ['probabilistic'] and \
+         SpeeduPySettings().strategy == ['error']:
         return ProbabilisticErrorMode()
 
 #TODO:TEST

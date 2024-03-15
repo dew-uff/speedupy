@@ -9,8 +9,8 @@ class SpeeduPySettings(metaclass=SingletonMeta):
         self.retrieval_exec_mode, \
         self.g_argsp_hash, \
         self.g_argsp_s, \
-        self.g_argsp_exec_mode, \
-        self.g_argsp_strategy, \
+        self.exec_mode, \
+        self.strategy, \
         self.g_argsp_revalidation, \
         self.g_argsp_max_num_exec_til_revalidation, \
         self.g_argsp_reduction_factor, \
@@ -28,13 +28,13 @@ class SpeeduPySettings(metaclass=SingletonMeta):
             self._set_default_strategy()
 
     def _exec_mode_unset(self):
-        return self.g_argsp_exec_mode is None
+        return self.exec_mode is None
 
     def _set_default_exec_mode(self):
-        self.g_argsp_exec_mode = 'probabilistic' if self.g_argsp_strategy else 'manual'
+        self.exec_mode = 'probabilistic' if self.strategy else 'manual'
 
     def _probabilistic_mode_without_strategy(self):
-        return self.g_argsp_exec_mode == 'probabilistic' and self.g_argsp_strategy is None
+        return self.exec_mode == 'probabilistic' and self.strategy is None
 
     def _set_default_strategy(self):
-        self.g_argsp_strategy = 'error'
+        self.strategy = 'error'

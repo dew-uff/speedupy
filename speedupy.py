@@ -115,7 +115,7 @@ def _execute_func(f, self, *method_args, **method_kwargs):
 
 check_python_version()
 
-if SpeeduPySettings().g_argsp_exec_mode == ['no-cache']:
+if SpeeduPySettings().exec_mode == ['no-cache']:
     def initialize_speedupy(f):
         return f
 
@@ -125,6 +125,6 @@ if SpeeduPySettings().g_argsp_exec_mode == ['no-cache']:
     def maybe_deterministic(f):
         return f
 
-elif SpeeduPySettings().g_argsp_exec_mode == ['manual']:
+elif SpeeduPySettings().exec_mode == ['manual']:
     def maybe_deterministic(f):
         return f
