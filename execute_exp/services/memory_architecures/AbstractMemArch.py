@@ -9,5 +9,5 @@ class AbstractMemArch():
 
     def get_initial_cache_entries(self) -> None: return
     def get_cache_entry(self, func_call_hash:str, func_name=None): pass
-    def create_cache_entry(self, func_call_hash:str, func_return, func_name=None): pass
+    def create_cache_entry(self, func_call_hash:str, func_return, func_name=None) -> None: pass
     def save_new_cache_entries(self) -> None: return
