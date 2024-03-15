@@ -5,7 +5,6 @@ from execute_exp.services.retrieval_strategies.AbstractRetrievalStrategy import 
 from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
 from entities.CacheData import CacheData
 
-#TODO: TEST
 class AbstractOneDictMemArch(AbstractMemArch):
     def __init__(self, storage:Storage, retrieval_strategy:AbstractRetrievalStrategy, use_threads:bool):
         super().__init__(storage, retrieval_strategy, use_threads)
