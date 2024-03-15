@@ -2,14 +2,14 @@ import argparse
 import sys
 
 def help_msg() -> str:
-    return tool_options_msg() + exec_mode_msg() + strategy_msg() + hashes_msg() + storage_msg() + memory_msg()
+    return tool_options_msg() + exec_mode_msg() + strategy_msg() + revalidation_msg() + hashes_msg() + storage_msg() + num_dicts_msg() + retrieval_strategies_msg() + retrieval_exec_modes_msg()
 
 def tool_options_msg():
     return "\nSpeeduPy's command line arguments help:\n\n\
     To run your experiment with SpeeduPy use:\n\
-    $ python "+str(sys.argv[0])+" program_arguments [-h, --help] [-m memory, --memory memory] [-H type, --hash type] [-s form, --storage form]\n\n\
+    $ python "+str(sys.argv[0])+" program_arguments [-h, --help] [OPTIONS]\n\n\
     To run in the SpeeduPy DEBUG mode use:\n\
-    $ DEBUG=True python "+str(sys.argv[0])+" program_arguments [-h, --help] [-m memory, --memory memory] [-H type, --hash type] [-s form, --storage form]\n\n"
+    $ DEBUG=True python "+str(sys.argv[0])+" program_arguments [-h, --help] [OPTIONS]\n\n"
 
 def exec_mode_msg():
     return "\nExecution Mode - Defines how SpeeduPy will execute:\n\
@@ -21,40 +21,50 @@ def exec_mode_msg():
 def strategy_msg():
     return "\nStrategy - Defines SpeeduPy\'s policy for caching function calls when executing in probabilistic mode\n\
     =>error    : SpeeduPy only caches function calls that introduce errors up to a user-specified limit\n\
-    =>counting : SpeeduPy only caches function calls whose most produced output occurred at least a minimum percentage of times defined by the user. The output that appeared most times will always be returned.\n\
-    =>frequency : SpeeduPy only caches function calls whose most produced output occurred at least a minimum percentage of times defined by the user. Speedupy will return a sequence of the outputs obtained on the previous execution of the function. The outputs will appear at the same frequencies they were obtained when the function was executed.\n"
+    =>counting : SpeeduPy only caches function calls whose most produced output occurred at least a minimum percentage of times defined by the user. The output that appeared most times will always be returned.\n"
+
+def revalidation_msg():
+    return "\nRevalidation options:\n\
+    =>none       : SpeeduPy will never reexecute a function it classified as statistically pure\n\
+    =>fixed      : SpeeduPy will reexecute a function it classified as statistically pure always after a fixed number of cached function calls\n\
+    =>adaptative : SpeeduPy will reexecute a function it classified as statistically pure. The number of cached function calls before the revalidation occurs varies according to the historical behaviour of the function.\n"
 
 def hashes_msg():
     return "\nHashes: \n\
     =>md5   : is a cryptographic hash fuction with a better collision resistence and lower performance compared to the others.\n\
     =>murmur: is a modern non-cryptographic hash function with a low collision rate and high performance.\n\
-    =>xxhash: is a modern non-cryptographic hash function with a lower collision resistence and better performance compered to murmur.\n\
-    usage: $ python "+str(sys.argv[0])+" program_arguments -H|--hash options\n"
+    =>xxhash: is a modern non-cryptographic hash function with a lower collision resistence and better performance compered to murmur.\n"
 
 def storage_msg():
     return "\nStorage:\n\
-    =>db-file: use database and file to store data.\n\
-    =>db     : use database to store data\n\
-    =>file   : use file to store data.\n\
-    usage: $ python "+str(sys.argv[0])+" program_arguments -s|--storage options\n"
+    =>db     : use a database to store data\n\
+    =>file   : use the filesystem to store data.\n"
 
-def memory_msg():
-    return "\nMemory forms:\n\
-    =>ad      : original version with some bug fixes and instrumentation, all data are stored directly in the database.\n\
-    =>1d-ow   : one dicionary (1d), only write (ow), 1st implementation of dictionary: new data is added to the dictionary only when cache miss occur and the function decorated with @deterministic is executed.\n\
-    =>1d-ad   : one dicionary (1d), all data loaded at the begining (ad), 2nd implementation of dictionary (uses 1 dictionary): at the begining of the execution all the data cached is loaded to the dictonary before the user script starts to run.\n\
-    =>2d-ad   : two dicionaries (2d), all data loaded at the begining (ad), 3rd implementation of dictionary (uses 2 dictionaries): at the begining of the execution all the data cached is loaded to the dictionary DATA_DICTIONARY before the user script starts to run. When cache miss occurs and a function decorated with @deterministic is processed, its result is stored in NEW_DATA_DICTIONARY. This way, only the elements of NEW_DATA_DICTIONARY are added to the database at the end of the execution.\n\
-    =>2d-ad-t : two dicionaries (2d), all data loaded at the begining with a thread (ad-t), 4th implementation of dictionary (uses 2 dictionaries): at the begining of the execution a thread is started to load all the data cached in the database to the dictionary DATA_DICTIONARY. When cache miss occurs and a function decorated with @deterministic is processed, its result is stored in NEW_DATA_DICTIONARY. Only the elements of NEW_DATA_DICTIONARY are added to the database at the end of the execution but it is possible that some elements in NEW_DATA_DICTIONARY are already in the database due to the concurrent execution of the experiment and the thread that populates DATA_DICTIONARY.\n\
-    =>2d-ad-f : two dicionaries (2d), all data loaded at the begining of a function(ad-f), 5th implementation of dictionary (uses 2 dictionaries): when @deterministic is executed a select query is created to the database to bring all results of the function decorated with @deterministic stored in the cache. A list of functions already inserted to the dictionary is maintained to avoid unecessary querys to the database. The results are then stored in the dictionary DATA_DICTIONARY. When cache miss occurs and a function decorated with @deterministic is processed, its result is stored in NEW_DATA_DICTIONARY. This way, only the elements of NEW_DATA_DICTIONARY are added to the database at the end of the execution.\n\
-    =>2d-ad-ft: two dicionaries (2d), all data loaded at the begining of a function with a thread (ad-ft), 6th implementation of dictionary (uses 2 dictionaries): when @deterministic is executed a select query is created to the database to bring all results of the function decorated with @deterministic stored in the cache. A list of functions already inserted to the dictionary is maintained to avoid unecessary querys to the database. The results of the query are stored in the dictionary DATA_DICTIONARY by a thread. When cache miss occurs and a function decorated with @deterministic is processed, its result is stored in NEW_DATA_DICTIONARY. This way, only the elements of NEW_DATA_DICTIONARY are added to the database at the end of the execution.\n\
-    =>2d-lz   : two dicionaries (2d), lazy mode (lz), 7th implementation of dictionary (uses 2 dictionaries): new data is added to DATA_DICTIONARY when cache hit occurs (LAZY approach) and new data is added to NEW_DATA_DICTIONARY when cache miss occur and the function decorated with @deterministic is executed.\n\
-    usage: $ python "+str(sys.argv[0])+" program_arguments -m|--memory options\n"
-    
+def num_dicts_msg():
+    return "\nNumber of dictionaries options:\n\
+    =>0      : SpeeduPy will always request and save data directly on the storage.\n\
+    =>1      : SpeeduPy will save the data loaded from the storage and the new data generated by the experiment in the same dictionary. It will be good during the execution of the experiment, but there may be an overhead for SpeeduPy to save the new data into storage.\n\
+    =>2      : SpeeduPy will save the data loaded from the storage in one dictionary and the new data generated by the experiment in another dictionary. It will be good for saving new data into the storage, but there may be an overhead for SpeeduPy to search for data during the experiment execution\n\
+    =>2-fast : SpeeduPy will save the data loaded from the storage and the new data generated by the experiment in the same dictionary, but there will be a second dictionary with the references to the new data generated by the experiment. This setup should produce a good performance, but it will consume more RAM space.\n"
+
+def retrieval_strategies_msg():
+    return "\nRetrieval strategy options:\n\
+    =>lazy     : SpeeduPy will always request only the data required for the experiment execution.\n\
+    =>function : SpeeduPy will request all the data of a function when the experiment needs a specific data of a function\n\
+    =>eager    : SpeeduPy will request all data saved on the storage before the experiment starts to execute\n"
+
+def retrieval_exec_modes_msg():
+    return "\nRetrieval execution mode options:\n\
+    =>sequential : SpeeduPy will always request data from the storage sequentially, blocking the experiment execution during this process.\n\
+    =>thread     : SpeeduPy will request data from the storage using a thread. It will allow the experiment to execute while the data is being loaded to RAN\n"
+
 def get_params():
     exec_modes = ['no-cache', 'manual', 'accurate', 'probabilistic']
-    prob_mode_strategies = ['counting', 'error', 'frequency']
+    prob_mode_strategies = ['counting', 'error']
     revalidations = ['none', 'fixed', 'adaptative']
-    memories = ['ad', '1d-ow', '1d-ad', '2d-ad', '2d-ad-t', '2d-ad-f', '2d-ad-ft', '2d-lz']
+    retrieval_strategies = ['lazy', 'function', 'eager']
+    retrieval_exec_modes = ['sequential', 'thread']
+    num_dicts = ['0', '1', '2', '2-fast']
     hashes = ['md5', 'murmur', 'xxhash']
     storageOptions = ['db','file']
 
@@ -126,15 +136,30 @@ def get_params():
                                   nargs=1,
                                   help='used when "exec-mode=probabilistic strategy=error" is set. Defines the maximum error the user considers acceptable for a function to introduce when it is cached. This error correspond to the margin of error of the confidence interval calculated. Notice, that an execution of a function can produce an output that is not inside the confidence interval, in which case the error produced by the function would be greater then the margin of error the confidence interval. The probability of this occurring is (1 - confidence_level).')
     
-    speedupy_arg_parser.add_argument('-m',
-                                  '--memory',
-                                   choices=memories,
+    speedupy_arg_parser.add_argument('--retrieval-strategy',
+                                   choices=retrieval_strategies,
                                    metavar='',
                                    nargs=1,
                                    type=str,
-                                   default=['2d-ad'],
-                                   help='SpeeduPy\'s mechanism of persistence: choose one of the following options: '+', '.join(memories))
+                                   default=['eager'],
+                                   help='Defines how SpeeduPy\'s should load cached data saved on the storage')
     
+    speedupy_arg_parser.add_argument('--retrieval-exec-mode',
+                                   choices=retrieval_exec_modes,
+                                   metavar='',
+                                   nargs=1,
+                                   type=str,
+                                   default=['sequential'],
+                                   help='Defines how SpeeduPy\'s should load cached data saved on the storage')
+    
+    speedupy_arg_parser.add_argument('--num-dict',
+                                   choices=num_dicts,
+                                   metavar='',
+                                   nargs=1,
+                                   type=str,
+                                   default=['2-fast'],
+                                   help='Defines how SpeeduPy\'s should store the data on RAM during the experiment execution')
+
     speedupy_arg_parser.add_argument('-H',
                                   '--hash',
                                    choices=hashes,
@@ -153,7 +178,9 @@ def get_params():
     
     args = speedupy_arg_parser.parse_args()
     
-    argsp_m = args.memory
+    argsp_num_dict = args.num_dict
+    argsp_retrieval_strategy = args.retrieval_strategy
+    argsp_retrieval_exec_mode = args.retrieval_exec_mode
     argsp_hash = args.hash
     argsp_s = args.storage
 
@@ -167,23 +194,4 @@ def get_params():
     argsp_confidence_level = args.confidence_level
     argsp_max_error_per_function = args.max_error_per_function
     
-    return argsp_m, argsp_hash, argsp_s, argsp_exec_mode, argsp_strategy, argsp_revalidation, argsp_max_num_exec_til_revalidation, argsp_reduction_factor, argsp_min_num_exec, argsp_min_mode_occurrence, argsp_confidence_level, argsp_max_error_per_function
-
-"""
-if argsp.version == ['1d-ow'] or argsp.version == ['v021x']:
-    v_data_access = ".data_access_v021x_1d-ow"
-elif argsp.version == ['1d-ad'] or argsp.version == ['v022x']:
-    v_data_access = ".data_access_v022x_1d-ad"
-elif argsp.version == ['2d-ad'] or argsp.version == ['v023x']:
-    v_data_access = ".data_access_v023x_2d-ad"
-elif argsp.version == ['2d-ad-t'] or argsp.version == ['v024x']:
-    v_data_access = ".data_access_v024x_2d-ad-t"
-elif argsp.version == ['2d-ad-f'] or argsp.version == ['v025x']:
-    v_data_access = ".data_access_v025x_2d-ad-f"
-elif argsp.version == ['2d-ad-ft'] or argsp.version == ['v026x']:
-    v_data_access = ".data_access_v026x_2d-ad-ft"
-elif argsp.version == ['2d-lz'] or argsp.version == ['v027x']:
-    v_data_access = ".data_access_v027x_2d-lz"
-else:
-    v_data_access = ".data_access_v021x_1d-ow"
-"""
+    return argsp_num_dict, argsp_retrieval_strategy, argsp_retrieval_exec_mode, argsp_hash, argsp_s, argsp_exec_mode, argsp_strategy, argsp_revalidation, argsp_max_num_exec_til_revalidation, argsp_reduction_factor, argsp_min_num_exec, argsp_min_mode_occurrence, argsp_confidence_level, argsp_max_error_per_function

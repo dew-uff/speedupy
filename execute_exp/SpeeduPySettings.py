@@ -4,7 +4,9 @@ from execute_exp.parser_params import get_params
 
 class SpeeduPySettings(metaclass=SingletonMeta):
     def __init__(self):
-        self.g_argsp_m, \
+        self.g_argsp_num_dict, \
+        self.g_argsp_retrieval_strategy, \
+        self.g_argsp_retrieval_exec_mode, \
         self.g_argsp_hash, \
         self.g_argsp_s, \
         self.g_argsp_exec_mode, \
@@ -24,11 +26,6 @@ class SpeeduPySettings(metaclass=SingletonMeta):
             self._set_default_exec_mode()
         elif self._probabilistic_mode_without_strategy():
             self._set_default_strategy()
-        
-        if self._strategy_set_with_non_probabilistic_mode() or \
-           self._use_cache_with_architecture_unset():
-            print("Error: Invalid parameters detected! Please execute \"python SCRIPT.py --help\" to see usage instructions")
-            sys.exit()
 
     def _exec_mode_unset(self):
         return self.g_argsp_exec_mode is None
@@ -41,9 +38,3 @@ class SpeeduPySettings(metaclass=SingletonMeta):
 
     def _set_default_strategy(self):
         self.g_argsp_strategy = 'error'
-
-    def _strategy_set_with_non_probabilistic_mode(self):
-        return self.g_argsp_strategy is not None and self.g_argsp_exec_mode != 'probabilistic'
-
-    def _use_cache_with_architecture_unset(self):
-        return self.g_argsp_exec_mode != 'no-cache' and self.g_argsp_m is None
