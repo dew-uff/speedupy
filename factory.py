@@ -1,12 +1,11 @@
 from typing import Optional
 from execute_exp.services.execution_modes.AbstractExecutionMode import AbstractExecutionMode
-# from execute_exp.services.revalidations.AbstractRevalidation import AbstractRevalidation
+from execute_exp.services.revalidations.AbstractRevalidation import AbstractRevalidation
 from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
 from execute_exp.services.retrieval_strategies.AbstractRetrievalStrategy import AbstractRetrievalStrategy
 from execute_exp.services.storages.Storage import Storage
 from execute_exp.SpeeduPySettings import SpeeduPySettings
 
-#TODO:TEST
 def init_mem_arch() -> AbstractMemArch:
     from execute_exp.services.memory_architecures.ZeroDictMemArch import ZeroDictMemArch
     from execute_exp.services.memory_architecures.OneDictMemArch import OneDictMemArch
@@ -25,7 +24,7 @@ def init_mem_arch() -> AbstractMemArch:
     elif SpeeduPySettings().num_dict == ['2-fast']:
         return OneDictAllDataOneDictNewDataMemArch(storage, retrieval_strategy, use_threads)
 
-#TODO:TEST
+#TODO:CHECK IF IT IS WORTH CREATE CONSTRUCTORS TO PASS CONSTANTES() TO EACH Storage!
 def _init_storage() -> Storage:
     from execute_exp.services.storages.DBStorage import DBStorage
     from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
@@ -33,7 +32,6 @@ def _init_storage() -> Storage:
     if SpeeduPySettings().g_argsp_s == ['db']: return DBStorage()
     elif SpeeduPySettings().g_argsp_s == ['file']: return FileSystemStorage()
 
-#TODO:TEST
 def _init_retrieval_strategy(storage:Storage) -> AbstractRetrievalStrategy:
     from execute_exp.services.retrieval_strategies.LazyRetrieval import LazyRetrieval
     from execute_exp.services.retrieval_strategies.FunctionRetrieval import FunctionRetrieval
@@ -46,7 +44,7 @@ def _init_retrieval_strategy(storage:Storage) -> AbstractRetrievalStrategy:
     elif SpeeduPySettings().retrieval_strategy == ['eager']:
         return EagerRetrieval(storage)
     
-#TODO:TEST
+#TODO:CHECK IF IT IS WORTH CREATE CONSTRUCTORS TO PASS SPEEDUPYSETTINGS() TO EACH EXEC_MODE!
 def init_exec_mode() -> Optional[AbstractExecutionMode]:
     from execute_exp.services.execution_modes.AccurateMode import AccurateMode
     from execute_exp.services.execution_modes.ProbabilisticCountingMode import ProbabilisticCountingMode
@@ -61,8 +59,8 @@ def init_exec_mode() -> Optional[AbstractExecutionMode]:
          SpeeduPySettings().strategy == ['error']:
         return ProbabilisticErrorMode()
 
-#TODO:TEST
-def init_revalidation(exec_mode:Optional[AbstractExecutionMode]): #-> Optional[AbstractRevalidation]:
+#TODO:CHECK IF IT IS WORTH CREATE CONSTRUCTORS TO PASS SPEEDUPYSETTINGS() TO EACH REVALIDATION!
+def init_revalidation(exec_mode:Optional[AbstractExecutionMode]) -> Optional[AbstractRevalidation]:
     from execute_exp.services.revalidations.NoRevalidation import NoRevalidation
     from execute_exp.services.revalidations.FixedRevalidation import FixedRevalidation
     from execute_exp.services.revalidations.AdaptativeRevalidation import AdaptativeRevalidation
