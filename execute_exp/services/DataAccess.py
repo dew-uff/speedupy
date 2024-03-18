@@ -20,7 +20,7 @@ class DataAccess(metaclass=SingletonMeta):
         self.__function_calls_prov_table:FunctionCallsProvTable
 
     def init_data_access(self):
-        from factory import init_mem_arch
+        from execute_exp.services.factory import init_mem_arch
         self.__mem_arch = init_mem_arch()
         self.__function_calls_prov_table = FunctionCallsProvTable()
         self.__FUNCTIONS_2_HASHES = get_content_json_file(Constantes().EXP_FUNCTIONS_FILENAME)

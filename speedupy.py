@@ -8,7 +8,7 @@ from execute_exp.SpeeduPySettings import SpeeduPySettings
 from execute_exp.services.DataAccess import DataAccess, get_id
 from logger.log import debug
 from util import check_python_version
-from factory import init_exec_mode, init_revalidation
+from execute_exp.services.factory import init_exec_mode, init_revalidation
 from SingletonMeta import SingletonMeta
 from entities.Metadata import Metadata
 
