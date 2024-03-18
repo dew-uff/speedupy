@@ -1,4 +1,4 @@
-from entities.Metadata import Metadata
+from execute_exp.entitites.Metadata import Metadata
 from execute_exp.services.execution_modes.AbstractExecutionMode import AbstractExecutionMode
 from execute_exp.services.execution_modes.util import func_call_mode_output_occurs_enough
 from execute_exp.services.DataAccess import DataAccess

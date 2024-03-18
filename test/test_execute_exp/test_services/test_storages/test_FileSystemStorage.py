@@ -7,7 +7,7 @@ from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
 from constantes import Constantes
 from pickle import dumps
 from typing import Dict
-from entities.CacheData import CacheData
+from execute_exp.entitites.CacheData import CacheData
 
 class TestFileSystemStorage(unittest.TestCase):
     @classmethod

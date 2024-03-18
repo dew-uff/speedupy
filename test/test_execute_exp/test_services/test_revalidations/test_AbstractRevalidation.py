@@ -5,7 +5,7 @@ project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
 from execute_exp.services.revalidations.AbstractRevalidation import AbstractRevalidation
-from entities.FunctionCallProv import FunctionCallProv
+from execute_exp.entitites.FunctionCallProv import FunctionCallProv
 
 class TestAbstractRevalidation(unittest.TestCase):
     def setUp(self):

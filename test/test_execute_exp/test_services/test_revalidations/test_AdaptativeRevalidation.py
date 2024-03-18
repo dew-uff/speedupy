@@ -6,7 +6,7 @@ sys.path.append(project_folder)
 
 from execute_exp.services.revalidations.AdaptativeRevalidation import AdaptativeRevalidation
 from execute_exp.services.execution_modes.AbstractExecutionMode import AbstractExecutionMode
-from entities.FunctionCallProv import FunctionCallProv
+from execute_exp.entitites.FunctionCallProv import FunctionCallProv
 
 class TestAdaptativeRevalidation(unittest.TestCase):
     def setUp(self):

@@ -8,7 +8,7 @@ from execute_exp.SpeeduPySettings import SpeeduPySettings
 from execute_exp.services.storages.Storage import Storage
 from execute_exp.services.retrieval_strategies.AbstractRetrievalStrategy import AbstractRetrievalStrategy
 from execute_exp.services.memory_architecures.AbstractOneDictMemArch import AbstractOneDictMemArch
-from entities.CacheData import CacheData
+from execute_exp.entitites.CacheData import CacheData
 import time, threading, copy
 
 class TestIntPy(unittest.TestCase):

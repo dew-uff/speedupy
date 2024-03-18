@@ -6,8 +6,8 @@ project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
 from execute_exp.services.execution_modes.AccurateMode import AccurateMode
-from entities.FunctionCallProv import FunctionCallProv
-from entities.Metadata import Metadata
+from execute_exp.entitites.FunctionCallProv import FunctionCallProv
+from execute_exp.entitites.Metadata import Metadata
 
 class TestAccurateMode(unittest.TestCase):
     def setUp(self):

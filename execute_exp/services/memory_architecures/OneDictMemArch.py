@@ -1,5 +1,5 @@
 from execute_exp.services.memory_architecures.AbstractOneDictMemArch import AbstractOneDictMemArch
-from entities.CacheData import CacheData
+from execute_exp.entitites.CacheData import CacheData
 
 class OneDictMemArch(AbstractOneDictMemArch):
     def create_cache_entry(self, func_call_hash:str, func_return, func_name=None):

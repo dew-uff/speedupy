@@ -1,5 +1,5 @@
 from execute_exp.services.revalidations.AbstractRevalidation import AbstractRevalidation
-from entities.Metadata import Metadata
+from execute_exp.entitites.Metadata import Metadata
 
 class FixedRevalidation(AbstractRevalidation):
     def __init__(self, fixed_num_exec_til_reval:int):

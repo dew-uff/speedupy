@@ -5,7 +5,7 @@ project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
 from execute_exp.services.revalidations.FixedRevalidation import FixedRevalidation
-from entities.FunctionCallProv import FunctionCallProv
+from execute_exp.entitites.FunctionCallProv import FunctionCallProv
 class TestFixedRevalidation(unittest.TestCase):
     def setUp(self):
         self.get_function_call_prov_entry_namespace = 'execute_exp.services.revalidations.AbstractRevalidation.DataAccess.get_function_call_prov_entry'

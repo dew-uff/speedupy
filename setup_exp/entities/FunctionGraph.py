@@ -1,8 +1,8 @@
 import ast, copy
 from util import *
 from typing import Union, List, Callable
-from entities.Script import Script
-from entities.Experiment import Experiment
+from setup_exp.entities.Script import Script
+from setup_exp.entities.Experiment import Experiment
 
 class FunctionGraph():
     def __init__(self, main_script:Script, dependency_scripts_names:List[str], experiment:Experiment):

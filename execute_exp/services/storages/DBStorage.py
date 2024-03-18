@@ -2,7 +2,7 @@ import pickle
 from typing import Dict, Optional
 
 from execute_exp.services.storages.Storage import Storage
-from entities.CacheData import CacheData
+from execute_exp.entitites.CacheData import CacheData
 from banco import Banco
 
 class DBStorage(Storage):

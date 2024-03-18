@@ -1,9 +1,9 @@
 import os
 from typing import List, Dict, Set
 
-from entities.Script import Script
-from entities.Experiment import Experiment
-from entities.FunctionGraph import FunctionGraph
+from setup_exp.entities.Script import Script
+from setup_exp.entities.Experiment import Experiment
+from setup_exp.entities.FunctionGraph import FunctionGraph
 from execute_exp.services.DataAccess import get_id
 from setup_exp.services.script_service import create_script, create_script_function_graph, decorate_script_functions, overwrite_decorated_script, add_decorator_import
 from setup_exp.services.function_service import decorate_main_function

@@ -2,8 +2,8 @@ import ast, os
 
 from typing import List
 from util import get_script_path
-from entities.Script import Script
-from entities.Experiment import Experiment
+from setup_exp.entities.Script import Script
+from setup_exp.entities.Experiment import Experiment
 from setup_exp.services.ASTSearcherService import ASTSearcherService
 from setup_exp.services.ScriptFunctionGraphCreatorService import ScriptFunctionGraphCreatorService
 from setup_exp.services.function_service import decorate_function

@@ -6,9 +6,9 @@ sys.path.append(project_folder)
 
 from hashlib import md5
 
-from entities.Script import Script
-from entities.Experiment import Experiment
-from entities.Metadata import Metadata
+from setup_exp.entities.Script import Script
+from setup_exp.entities.Experiment import Experiment
+from execute_exp.entitites.Metadata import Metadata
 from setup_exp.services.function_service import decorate_main_function, decorate_function
 from constantes import Constantes
 

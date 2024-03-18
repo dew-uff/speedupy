@@ -1,6 +1,6 @@
 from execute_exp.services.revalidations.AbstractRevalidation import AbstractRevalidation
 from execute_exp.services.execution_modes.AbstractExecutionMode import AbstractExecutionMode
-from entities.Metadata import Metadata
+from execute_exp.entitites.Metadata import Metadata
 
 class AdaptativeRevalidation(AbstractRevalidation):
     def __init__(self, exec_mode:AbstractExecutionMode, initial_num_exec_til_reval:int, adaptative_factor:float):

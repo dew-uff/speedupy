@@ -1,7 +1,7 @@
 from execute_exp.services.memory_architecures.AbstractOneDictMemArch import AbstractOneDictMemArch
 from execute_exp.services.retrieval_strategies.AbstractRetrievalStrategy import AbstractRetrievalStrategy
 from execute_exp.services.storages.Storage import Storage
-from entities.CacheData import CacheData
+from execute_exp.entitites.CacheData import CacheData
 
 class AbstractTwoDictMemArch(AbstractOneDictMemArch):
     def __init__(self, storage:Storage, retrieval_strategy:AbstractRetrievalStrategy, use_threads:bool):

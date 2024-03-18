@@ -3,7 +3,7 @@ from typing import Dict, Optional
 from util import deserialize_from_file, serialize_to_file
 
 from execute_exp.services.storages.Storage import Storage
-from entities.CacheData import CacheData
+from execute_exp.entitites.CacheData import CacheData
 
 class FileSystemStorage(Storage):
     def __init__(self, cache_folder:str):

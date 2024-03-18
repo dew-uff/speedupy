@@ -6,8 +6,8 @@ import xxhash
 from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
 from execute_exp.SpeeduPySettings import SpeeduPySettings
 from execute_exp.function_calls_prov_table import FunctionCallsProvTable
-from entities.FunctionCallProv import FunctionCallProv
-from entities.Metadata import Metadata
+from execute_exp.entitites.FunctionCallProv import FunctionCallProv
+from execute_exp.entitites.Metadata import Metadata
 from SingletonMeta import SingletonMeta
 from constantes import Constantes
 from util import get_content_json_file

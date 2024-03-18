@@ -5,8 +5,8 @@ project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
 from setup_exp.services.script_service import decorate_script_functions, add_decorator_import, overwrite_decorated_script
-from entities.Script import Script
-from entities.FunctionGraph import FunctionGraph
+from setup_exp.entities.Script import Script
+from setup_exp.entities.FunctionGraph import FunctionGraph
 
 class TestScriptService(unittest.TestCase):
     @classmethod

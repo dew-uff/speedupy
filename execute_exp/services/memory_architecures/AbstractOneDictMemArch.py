@@ -3,7 +3,7 @@ import threading
 from execute_exp.services.storages.Storage import Storage
 from execute_exp.services.retrieval_strategies.AbstractRetrievalStrategy import AbstractRetrievalStrategy
 from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
-from entities.CacheData import CacheData
+from execute_exp.entitites.CacheData import CacheData
 
 class AbstractOneDictMemArch(AbstractMemArch):
     def __init__(self, storage:Storage, retrieval_strategy:AbstractRetrievalStrategy, use_threads:bool):

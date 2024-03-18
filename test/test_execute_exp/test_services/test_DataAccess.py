@@ -7,7 +7,7 @@ sys.path.append(project_folder)
 
 from execute_exp.services.DataAccess import DataAccess, get_id
 from execute_exp.SpeeduPySettings import SpeeduPySettings
-from entities.Metadata import Metadata
+from execute_exp.entitites.Metadata import Metadata
 
 class TestDataAccess(unittest.TestCase):
     def setUp(self):

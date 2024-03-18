@@ -6,7 +6,7 @@ project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
 from execute_exp.services.execution_modes.util import func_call_mode_output_occurs_enough, _set_statistical_mode_helpers, function_outputs_dict_2_array
-from entities.FunctionCallProv import FunctionCallProv
+from execute_exp.entitites.FunctionCallProv import FunctionCallProv
 
 class TestUtil(unittest.TestCase):
     def setUp(self):

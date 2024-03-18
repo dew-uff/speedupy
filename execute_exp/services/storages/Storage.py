@@ -1,5 +1,5 @@
 from typing import Dict, Optional
-from entities.CacheData import CacheData
+from execute_exp.entitites.CacheData import CacheData
 
 class Storage():
     def get_all_cached_data(self, use_isolated_connection=False) -> Dict[str, CacheData]: pass

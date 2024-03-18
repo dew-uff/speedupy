@@ -10,7 +10,7 @@ from logger.log import debug
 from util import check_python_version
 from execute_exp.services.factory import init_exec_mode, init_revalidation
 from SingletonMeta import SingletonMeta
-from entities.Metadata import Metadata
+from execute_exp.entitites.Metadata import Metadata
 
 class SpeeduPy(metaclass=SingletonMeta):
     def __init__(self):

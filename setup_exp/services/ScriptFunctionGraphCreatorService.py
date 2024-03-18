@@ -1,8 +1,8 @@
 from typing import List
 import ast
-from entities.Experiment import Experiment
-from entities.FunctionGraph import FunctionGraph
-from entities.Script import Script
+from setup_exp.entities.Experiment import Experiment
+from setup_exp.entities.FunctionGraph import FunctionGraph
+from setup_exp.entities.Script import Script
 from setup_exp.services.FunctionCalledDetectorService import FunctionCalledDetectorService
 
 class ScriptFunctionGraphCreatorService(ast.NodeVisitor):

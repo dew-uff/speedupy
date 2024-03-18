@@ -1,5 +1,5 @@
 from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
-from entities.CacheData import CacheData
+from execute_exp.entitites.CacheData import CacheData
 
 class ZeroDictMemArch(AbstractMemArch):
     #This MemoryArchitecture can only be used with LazyRetrieval because it saves no data on RAM!

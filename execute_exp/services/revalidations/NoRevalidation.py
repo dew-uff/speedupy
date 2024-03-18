@@ -1,5 +1,5 @@
 from execute_exp.services.revalidations.AbstractRevalidation import AbstractRevalidation
-from entities.Metadata import Metadata
+from execute_exp.entitites.Metadata import Metadata
 
 class NoRevalidation(AbstractRevalidation):
     def revalidation_in_current_execution(self, func_call_hash:str) -> bool:

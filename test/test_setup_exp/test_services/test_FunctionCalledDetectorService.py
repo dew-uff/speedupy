@@ -4,8 +4,8 @@ import unittest, unittest.mock, os, sys, ast
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
-from entities.Script import Script
-from entities.Experiment import Experiment
+from setup_exp.entities.Script import Script
+from setup_exp.entities.Experiment import Experiment
 from setup_exp.services.FunctionCalledDetectorService import FunctionCalledDetectorService
 
 class TestFunctionCalledDetectorService(unittest.TestCase):
