@@ -7,7 +7,7 @@ sys.path.append(project_folder)
 from execute_exp.SpeeduPySettings import SpeeduPySettings
 import speedupy
 
-class TestSpeeduPy(unittest.TestCase):
+class TestSpeeduPyExecMode(unittest.TestCase):
     def test_initialize_speedupy_on_no_cache_exec_mode(self):
         SpeeduPySettings().exec_mode = ['no-cache']
         importlib.reload(speedupy)
