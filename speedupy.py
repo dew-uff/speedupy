@@ -5,7 +5,7 @@ import sys, os, random
 sys.path.append(os.path.dirname(__file__))
 
 from execute_exp.SpeeduPySettings import SpeeduPySettings
-from execute_exp.data_access import DataAccess, get_id
+from execute_exp.services.DataAccess import DataAccess, get_id
 from logger.log import debug
 from util import check_python_version
 from factory import init_exec_mode, init_revalidation

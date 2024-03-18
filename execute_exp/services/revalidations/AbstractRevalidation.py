@@ -1,7 +1,15 @@
-from execute_exp.data_access import DataAccess
+from execute_exp.services.DataAccess import DataAccess
 from entities.Metadata import Metadata
 
 class AbstractRevalidation():
+    # #TODO:TEST
+    # def __init__(self, max_num_exec_til_revalidation):
+    #     self.__max_num_exec_til_revalidation = max_num_exec_til_revalidation
+
+    # #TODO:IMPLEMENT
+    # def assert_next_revalidation_already_updated_by_user_setting(self):
+    #     pass
+
     def revalidation_in_current_execution(self, func_call_hash:str) -> bool:
         fc_prov = DataAccess().get_function_call_prov_entry(func_call_hash)
         return fc_prov.next_revalidation == 0

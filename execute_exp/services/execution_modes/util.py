@@ -1,7 +1,7 @@
 from typing import List, Dict
 from pickle import loads
 from entities.FunctionCallProv import FunctionCallProv
-from execute_exp.data_access import DataAccess
+from execute_exp.services.DataAccess import DataAccess
 
 def func_call_mode_output_occurs_enough(func_call_hash, min_freq):
     func_call_prov = DataAccess().get_function_call_prov_entry(func_call_hash)

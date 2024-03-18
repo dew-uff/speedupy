@@ -1,7 +1,7 @@
 from entities.Metadata import Metadata
 from execute_exp.services.execution_modes.AbstractExecutionMode import AbstractExecutionMode
 from execute_exp.services.execution_modes.util import function_outputs_dict_2_array
-from execute_exp.data_access import DataAccess
+from execute_exp.services.DataAccess import DataAccess
 import scipy.stats as st
 from math import isnan
 

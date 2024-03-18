@@ -2,7 +2,7 @@ from typing import List, Dict, Tuple
 import ast, time
 from constantes import Constantes
 from entities.Metadata import Metadata
-from execute_exp.data_access import DataAccess
+from execute_exp.services.DataAccess import DataAccess
 
 #TODO TEST
 def execute_and_classify_function(module, function:ast.FunctionDef, functions_2_hashes:Dict[str, str]) -> None:

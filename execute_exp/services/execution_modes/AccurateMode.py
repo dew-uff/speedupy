@@ -1,6 +1,6 @@
 from entities.Metadata import Metadata
 from execute_exp.services.execution_modes.AbstractExecutionMode import AbstractExecutionMode
-from execute_exp.data_access import DataAccess
+from execute_exp.services.DataAccess import DataAccess
 from pickle import loads, dumps
 
 class AccurateMode(AbstractExecutionMode):
