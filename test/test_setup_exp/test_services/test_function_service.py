@@ -8,17 +8,10 @@ from hashlib import md5
 
 from setup_exp.entities.Script import Script
 from setup_exp.entities.Experiment import Experiment
-from execute_exp.entitites.Metadata import Metadata
 from setup_exp.services.function_service import decorate_main_function, decorate_function
 from constantes import Constantes
 
 class TestFunctionService(unittest.TestCase):
-    def setUp(self):
-        Constantes().MAX_ERROR_RATE = 0.2
-        Constantes().NUM_EXEC_MIN_PARA_INFERENCIA = 20
-        Constantes().MIN_TIME_TO_CACHE = 1
-        Constantes().MIN_TIME_TO_SIMULATE_FUNC_CALL = 10
-
     def tearDown(self):
         files_and_folders = ['script_test.py', 
                              'script_test_2.py',
