@@ -7,14 +7,14 @@ class SpeeduPySettings(metaclass=SingletonMeta):
         self.num_dict, \
         self.retrieval_strategy, \
         self.retrieval_exec_mode, \
-        self.g_argsp_hash, \
+        self.hash, \
         self.storage, \
         self.exec_mode, \
         self.strategy, \
         self.revalidation, \
         self.max_num_exec_til_reval, \
         self.reduction_factor, \
-        self.g_argsp_min_num_exec, \
+        self.min_num_exec, \
         self.min_mode_occurrence, \
         self.confidence_lv, \
         self.max_error_per_function = get_params()

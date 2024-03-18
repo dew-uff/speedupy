@@ -71,9 +71,9 @@ def get_id(fun_source, fun_args=[], fun_kwargs={}):
     data = pickle.dumps(fun_args) + pickle.dumps(fun_kwargs)
     data = str(data) + fun_source
     data = data.encode('utf')
-    if SpeeduPySettings().g_argsp_hash[0] == 'md5':
+    if SpeeduPySettings().hash[0] == 'md5':
         return hashlib.md5(data).hexdigest()
-    elif SpeeduPySettings().g_argsp_hash[0] == 'murmur':
+    elif SpeeduPySettings().hash[0] == 'murmur':
         return hex(mmh3.hash128(data))[2:]
-    elif SpeeduPySettings().g_argsp_hash[0] == 'xxhash':
+    elif SpeeduPySettings().hash[0] == 'xxhash':
         return xxhash.xxh128_hexdigest(data)
