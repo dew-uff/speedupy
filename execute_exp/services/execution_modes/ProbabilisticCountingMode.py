@@ -2,13 +2,14 @@ from entities.Metadata import Metadata
 from execute_exp.services.execution_modes.AbstractExecutionMode import AbstractExecutionMode
 from execute_exp.services.execution_modes.util import func_call_mode_output_occurs_enough
 from execute_exp.data_access import DataAccess
-from execute_exp.SpeeduPySettings import SpeeduPySettings
 from pickle import dumps
 
 class ProbabilisticCountingMode(AbstractExecutionMode):
+    def __init__(self, min_mode_occurrence:int):
+        self.__min_mode_occurrence = min_mode_occurrence
+
     def func_call_can_be_cached(self, func_call_hash:str) -> bool:
-        return func_call_mode_output_occurs_enough(func_call_hash,
-                                                   SpeeduPySettings().g_argsp_min_mode_occurrence)
+        return func_call_mode_output_occurs_enough(func_call_hash, self.__min_mode_occurrence)
 
     def get_func_call_cache(self, func_call_hash:str):
         self.__func_call_prov = DataAccess().get_function_call_prov_entry(func_call_hash)

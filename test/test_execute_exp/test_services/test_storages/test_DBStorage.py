@@ -37,7 +37,7 @@ class TestDBStorage(unittest.TestCase):
         os.system(f'rm -rf {Constantes().FOLDER_NAME}/')
     
     def setUp(self):
-        self.storage = DBStorage()
+        self.storage = DBStorage(Constantes().BD_PATH)
         self.storage_conn = self.storage._DBStorage__db_connection.conexao
         self.storage._DBStorage__db_connection.salvarAlteracoes = Mock() #Preventing DB connection to commit changes when DBStorage instance is destroyed
         self.assert_db_is_empty()

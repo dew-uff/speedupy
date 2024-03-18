@@ -3,18 +3,18 @@ from typing import Dict, Optional
 
 from execute_exp.services.storages.Storage import Storage
 from entities.CacheData import CacheData
-from constantes import Constantes
 from banco import Banco
 
 class DBStorage(Storage):
-    def __init__(self):
-        self.__db_connection = Banco(Constantes().BD_PATH)
+    def __init__(self, db_path:str):
+        self.__db_path = db_path
+        self.__db_connection = Banco(db_path)
 
     def _set_db_connection(func):
         def wrapper(self, *args, use_isolated_connection=False, **kwargs):
             if use_isolated_connection:
                 main_conn = self.__db_connection
-                self.__db_connection = Banco(Constantes().BD_PATH)
+                self.__db_connection = Banco(self.__db_path)
                 result = func(self, *args, use_isolated_connection, **kwargs)
                 
                 if func.__qualname__ == 'DBStorage.save_cache_data':

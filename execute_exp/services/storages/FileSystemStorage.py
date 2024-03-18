@@ -3,12 +3,11 @@ from typing import Dict, Optional
 from util import deserialize_from_file, serialize_to_file
 
 from execute_exp.services.storages.Storage import Storage
-from constantes import Constantes
 from entities.CacheData import CacheData
 
 class FileSystemStorage(Storage):
-    def __init__(self):
-        self.__CACHE_FOLDER_NAME = Constantes().CACHE_FOLDER_NAME
+    def __init__(self, cache_folder:str):
+        self.__CACHE_FOLDER_NAME = cache_folder
 
     def get_all_cached_data(self) -> Dict[str, CacheData]:
         data = {}

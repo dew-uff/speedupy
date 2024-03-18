@@ -1,4 +1,5 @@
 from typing import Optional
+from constantes import Constantes
 from execute_exp.services.execution_modes.AbstractExecutionMode import AbstractExecutionMode
 from execute_exp.services.revalidations.AbstractRevalidation import AbstractRevalidation
 from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
@@ -24,13 +25,12 @@ def init_mem_arch() -> AbstractMemArch:
     elif SpeeduPySettings().num_dict == ['2-fast']:
         return OneDictAllDataOneDictNewDataMemArch(storage, retrieval_strategy, use_threads)
 
-#TODO:CHECK IF IT IS WORTH CREATE CONSTRUCTORS TO PASS CONSTANTES() TO EACH Storage!
 def _init_storage() -> Storage:
     from execute_exp.services.storages.DBStorage import DBStorage
     from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
 
-    if SpeeduPySettings().g_argsp_s == ['db']: return DBStorage()
-    elif SpeeduPySettings().g_argsp_s == ['file']: return FileSystemStorage()
+    if SpeeduPySettings().storage == ['db']: return DBStorage(Constantes().BD_PATH)
+    elif SpeeduPySettings().storage == ['file']: return FileSystemStorage(Constantes().CACHE_FOLDER_NAME)
 
 def _init_retrieval_strategy(storage:Storage) -> AbstractRetrievalStrategy:
     from execute_exp.services.retrieval_strategies.LazyRetrieval import LazyRetrieval
@@ -44,7 +44,6 @@ def _init_retrieval_strategy(storage:Storage) -> AbstractRetrievalStrategy:
     elif SpeeduPySettings().retrieval_strategy == ['eager']:
         return EagerRetrieval(storage)
     
-#TODO:CHECK IF IT IS WORTH CREATE CONSTRUCTORS TO PASS SPEEDUPYSETTINGS() TO EACH EXEC_MODE!
 def init_exec_mode() -> Optional[AbstractExecutionMode]:
     from execute_exp.services.execution_modes.AccurateMode import AccurateMode
     from execute_exp.services.execution_modes.ProbabilisticCountingMode import ProbabilisticCountingMode
@@ -54,22 +53,23 @@ def init_exec_mode() -> Optional[AbstractExecutionMode]:
         return AccurateMode()
     elif SpeeduPySettings().exec_mode == ['probabilistic'] and \
          SpeeduPySettings().strategy == ['counting']:
-        return ProbabilisticCountingMode()
+        return ProbabilisticCountingMode(SpeeduPySettings().min_mode_occurrence)
     elif SpeeduPySettings().exec_mode == ['probabilistic'] and \
          SpeeduPySettings().strategy == ['error']:
-        return ProbabilisticErrorMode()
+        return ProbabilisticErrorMode(SpeeduPySettings().max_error_per_function,
+                                      SpeeduPySettings().confidence_lv)
 
-#TODO:CHECK IF IT IS WORTH CREATE CONSTRUCTORS TO PASS SPEEDUPYSETTINGS() TO EACH REVALIDATION!
 def init_revalidation(exec_mode:Optional[AbstractExecutionMode]) -> Optional[AbstractRevalidation]:
     from execute_exp.services.revalidations.NoRevalidation import NoRevalidation
     from execute_exp.services.revalidations.FixedRevalidation import FixedRevalidation
     from execute_exp.services.revalidations.AdaptativeRevalidation import AdaptativeRevalidation
     
     if exec_mode is None: return
-    if SpeeduPySettings().g_argsp_revalidation == ['none']:
+    if SpeeduPySettings().revalidation == ['none']:
         return NoRevalidation()
-    elif SpeeduPySettings().g_argsp_revalidation == ['fixed']:
-        return FixedRevalidation(SpeeduPySettings().g_argsp_max_num_exec_til_revalidation)
-    elif SpeeduPySettings().g_argsp_revalidation == ['adaptative']:
+    elif SpeeduPySettings().revalidation == ['fixed']:
+        return FixedRevalidation(SpeeduPySettings().max_num_exec_til_reval)
+    elif SpeeduPySettings().revalidation == ['adaptative']:
         return AdaptativeRevalidation(exec_mode,
-                                      SpeeduPySettings().g_argsp_max_num_exec_til_revalidation, SpeeduPySettings().g_argsp_reduction_factor)
+                                      SpeeduPySettings().max_num_exec_til_reval,
+                                      SpeeduPySettings().reduction_factor)

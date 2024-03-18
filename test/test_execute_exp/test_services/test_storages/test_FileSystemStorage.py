@@ -14,7 +14,7 @@ class TestFileSystemStorage(unittest.TestCase):
     def setUpClass(cls):
         Constantes().CACHE_FOLDER_NAME = '.speedupy_test/cache/'
         os.makedirs(Constantes().CACHE_FOLDER_NAME)
-        cls.storage = FileSystemStorage()
+        cls.storage = FileSystemStorage(Constantes().CACHE_FOLDER_NAME)
     
     @classmethod
     def tearDownClass(cls):

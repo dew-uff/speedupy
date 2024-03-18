@@ -8,16 +8,16 @@ class SpeeduPySettings(metaclass=SingletonMeta):
         self.retrieval_strategy, \
         self.retrieval_exec_mode, \
         self.g_argsp_hash, \
-        self.g_argsp_s, \
+        self.storage, \
         self.exec_mode, \
         self.strategy, \
-        self.g_argsp_revalidation, \
-        self.g_argsp_max_num_exec_til_revalidation, \
-        self.g_argsp_reduction_factor, \
+        self.revalidation, \
+        self.max_num_exec_til_reval, \
+        self.reduction_factor, \
         self.g_argsp_min_num_exec, \
-        self.g_argsp_min_mode_occurrence, \
-        self.g_argsp_confidence_level, \
-        self.g_argsp_max_error_per_function = get_params()
+        self.min_mode_occurrence, \
+        self.confidence_lv, \
+        self.max_error_per_function = get_params()
 
         self._validate_user_args()
 
