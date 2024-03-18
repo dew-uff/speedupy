@@ -29,7 +29,7 @@ def initialize_speedupy(f):
 def maybe_deterministic(f):
     @wraps(f)
     def wrapper(*method_args, **method_kwargs):
-        func_hash = DataAccess().FUNCTIONS_2_HASHES[f.__qualname__]
+        func_hash = DataAccess().get_function_hash(f.__qualname__)
         func_call_hash = get_id(func_hash, method_args, method_kwargs)
         if SpeeduPy().revalidation.revalidation_in_current_execution(func_call_hash):
             return_value, elapsed_time = _execute_func(f, *method_args, **method_kwargs)

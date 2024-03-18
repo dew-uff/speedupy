@@ -1,4 +1,3 @@
-from typing import Dict, List
 import pickle
 import hashlib
 import mmh3
@@ -13,59 +12,63 @@ from SingletonMeta import SingletonMeta
 from constantes import Constantes
 from util import get_content_json_file
 
-#TODO: TEST
 class DataAccess(metaclass=SingletonMeta):
     def __init__(self):
-        self.METADATA = {}
-        self.FUNCTIONS_2_HASHES = {}
-        self.mem_arch :AbstractMemArch
-        self.function_calls_prov_table:FunctionCallsProvTable
+        self.__METADATA = {}
+        self.__FUNCTIONS_2_HASHES = {}
+        self.__mem_arch :AbstractMemArch
+        self.__function_calls_prov_table:FunctionCallsProvTable
 
     def init_data_access(self):
         from factory import init_mem_arch
-        self.mem_arch = init_mem_arch()
-        self.function_calls_prov_table = FunctionCallsProvTable()
-        self.FUNCTIONS_2_HASHES = get_content_json_file(Constantes().EXP_FUNCTIONS_FILENAME)
+        self.__mem_arch = init_mem_arch()
+        self.__function_calls_prov_table = FunctionCallsProvTable()
+        self.__FUNCTIONS_2_HASHES = get_content_json_file(Constantes().EXP_FUNCTIONS_FILENAME)
 
-        self.mem_arch.get_initial_cache_entries()
-        self.function_calls_prov_table.get_initial_function_calls_prov_entries()
+        self.__mem_arch.get_initial_cache_entries()
+        self.__function_calls_prov_table.get_initial_function_calls_prov_entries()
+
+    def get_function_hash(self, func_qualname:str) -> str:
+        return self.__FUNCTIONS_2_HASHES[func_qualname]
 
     ############# CACHE
     def get_cache_entry(self, func_qualname, func_args, func_kwargs):
-        func_hash = self.FUNCTIONS_2_HASHES[func_qualname]
+        func_hash = self.__FUNCTIONS_2_HASHES[func_qualname]
         func_call_hash = get_id(func_hash, func_args, func_kwargs)
-        return self.mem_arch.get_cache_entry(func_call_hash, func_qualname) #some mem_arch needs 'func_qualname', others dont use it.
+        return self.__mem_arch.get_cache_entry(func_call_hash, func_qualname)
     
     def create_cache_entry(self, func_qualname, func_args, func_kwargs, func_return):
-        func_hash = self.FUNCTIONS_2_HASHES[func_qualname]
+        func_hash = self.__FUNCTIONS_2_HASHES[func_qualname]
         func_call_hash = get_id(func_hash, func_args, func_kwargs)
-        self.mem_arch.create_cache_entry(func_call_hash, func_return, func_qualname) #some mem_arch needs 'func_qualname', others dont use it.
+        self.__mem_arch.create_cache_entry(func_call_hash, func_return, func_qualname)
 
     ############# METADATA
     def add_to_metadata(self, func_call_hash:str, metadata:Metadata) -> None:
-        if func_call_hash not in self.METADATA:
-            self.METADATA[func_call_hash] = [] 
-        self.METADATA[func_call_hash].append(metadata)
+        if func_call_hash not in self.__METADATA:
+            self.__METADATA[func_call_hash] = [] 
+        self.__METADATA[func_call_hash].append(metadata)
 
     ############# FUNCTION_CALL_PROV
     def get_function_call_prov_entry(self, func_call_hash:str) -> FunctionCallProv:
-        return self.function_calls_prov_table.get_function_call_prov_entry(func_call_hash)
+        return self.__function_calls_prov_table.get_function_call_prov_entry(func_call_hash)
     
     def create_or_update_function_call_prov_entry(self, func_call_hash:str, 
                                                   function_call_prov:FunctionCallProv) -> None:
-        self.function_calls_prov_table.create_or_update_function_call_prov_entry(func_call_hash,
+        self.__function_calls_prov_table.create_or_update_function_call_prov_entry(func_call_hash,
                                                                                  function_call_prov)
 
     def add_all_metadata_collected_to_function_calls_prov(self) -> None:
-        self.function_calls_prov_table.add_all_metadata_collected_to_function_calls_prov(self.METADATA)
+        self.__function_calls_prov_table.add_all_metadata_collected_to_function_calls_prov(self.__METADATA)
+        self.__METADATA = {}
         
     def add_metadata_collected_to_a_func_call_prov(self, func_call_hash:str) -> None:
-        self.function_calls_prov_table.add_metadata_collected_to_a_func_call_prov(func_call_hash,
-        self.METADATA[func_call_hash])
+        self.__function_calls_prov_table.add_metadata_collected_to_a_func_call_prov(func_call_hash,
+        self.__METADATA[func_call_hash])
+        self.__METADATA.pop(func_call_hash)
 
     def close_data_access(self):
-        self.mem_arch.save_new_cache_entries()
-        self.function_calls_prov_table.save_function_calls_prov_entries()
+        self.__mem_arch.save_new_cache_entries()
+        self.__function_calls_prov_table.save_function_calls_prov_entries()
 
 def get_id(fun_source, fun_args=[], fun_kwargs={}):
     data = pickle.dumps(fun_args) + pickle.dumps(fun_kwargs)
