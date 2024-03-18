@@ -8,8 +8,8 @@ from execute_exp.services.revalidations.FixedRevalidation import FixedRevalidati
 from entities.FunctionCallProv import FunctionCallProv
 class TestFixedRevalidation(unittest.TestCase):
     def setUp(self):
-        self.get_function_call_prov_entry_namespace = 'execute_exp.services.revalidations.AbstractRevalidation.get_function_call_prov_entry'
-        self.create_or_update_function_call_prov_entry_namespace = 'execute_exp.services.revalidations.AbstractRevalidation.create_or_update_function_call_prov_entry'
+        self.get_function_call_prov_entry_namespace = 'execute_exp.services.revalidations.AbstractRevalidation.DataAccess.get_function_call_prov_entry'
+        self.create_or_update_function_call_prov_entry_namespace = 'execute_exp.services.revalidations.AbstractRevalidation.DataAccess.create_or_update_function_call_prov_entry'
         self.fc_prov = FunctionCallProv('', {})
 
     def test_calculate_next_revalidation(self):

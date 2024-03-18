@@ -10,8 +10,8 @@ from entities.FunctionCallProv import FunctionCallProv
 class TestAbstractRevalidation(unittest.TestCase):
     def setUp(self):
         self.abstractRevalidation = AbstractRevalidation()
-        self.get_function_call_prov_entry_namespace = 'execute_exp.services.revalidations.AbstractRevalidation.get_function_call_prov_entry'
-        self.create_or_update_function_call_prov_entry_namespace = 'execute_exp.services.revalidations.AbstractRevalidation.create_or_update_function_call_prov_entry'
+        self.get_function_call_prov_entry_namespace = 'execute_exp.services.revalidations.AbstractRevalidation.DataAccess.get_function_call_prov_entry'
+        self.create_or_update_function_call_prov_entry_namespace = 'execute_exp.services.revalidations.AbstractRevalidation.DataAccess.create_or_update_function_call_prov_entry'
         self.fc_prov = FunctionCallProv('', {})
     
     def test_revalidation_in_current_execution_when_revalidation_will_occur(self):

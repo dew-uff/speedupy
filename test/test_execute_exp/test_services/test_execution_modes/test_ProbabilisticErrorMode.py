@@ -15,7 +15,7 @@ class TestProbabilisticErrorMode(unittest.TestCase):
     def setUp(self):
         self.errorMode = ProbabilisticErrorMode()
         self.function_call_prov = FunctionCallProv(None, None, None, None, None, None, None, None, None, None, None, None, None)
-        self.get_function_call_prov_entry_namespace = 'execute_exp.services.execution_modes.ProbabilisticErrorMode.get_function_call_prov_entry'
+        self.get_function_call_prov_entry_namespace = 'execute_exp.services.execution_modes.ProbabilisticErrorMode.DataAccess.get_function_call_prov_entry'
         self.set_necessary_helpers_namespace = 'execute_exp.services.execution_modes.ProbabilisticErrorMode.ProbabilisticErrorMode._set_necessary_helpers'
         self.function_outputs_dict_2_array_namespace = 'execute_exp.services.execution_modes.ProbabilisticErrorMode.function_outputs_dict_2_array'
     

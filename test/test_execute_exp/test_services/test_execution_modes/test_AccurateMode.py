@@ -13,7 +13,7 @@ class TestAccurateMode(unittest.TestCase):
     def setUp(self):
         self.accurateMode = AccurateMode()
         self.function_call_prov = FunctionCallProv(None, None, None, None, None, None, None, None, None, None, None, None, None)
-        self.get_function_call_prov_entry_namespace = 'execute_exp.services.execution_modes.AccurateMode.get_function_call_prov_entry'
+        self.get_function_call_prov_entry_namespace = 'execute_exp.services.execution_modes.AccurateMode.DataAccess.get_function_call_prov_entry'
     
     def test_func_call_can_be_cached_when_func_has_one_output(self):
         self.function_call_prov._FunctionCallProv__outputs = {dumps(1):12}

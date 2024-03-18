@@ -11,7 +11,7 @@ from entities.FunctionCallProv import FunctionCallProv
 class TestUtil(unittest.TestCase):
     def setUp(self):
         self.function_call_prov = FunctionCallProv(None, None, None, None, None, None, None, None, None, None, None, None, None)
-        self.get_function_call_prov_entry_namespace = 'execute_exp.services.execution_modes.util.get_function_call_prov_entry'
+        self.get_function_call_prov_entry_namespace = 'execute_exp.services.execution_modes.util.DataAccess.get_function_call_prov_entry'
 
     def test_func_call_mode_output_occurs_enough_when_function_occurs_more_than_necessary(self):
         self.function_call_prov.mode_rel_freq = 0.8

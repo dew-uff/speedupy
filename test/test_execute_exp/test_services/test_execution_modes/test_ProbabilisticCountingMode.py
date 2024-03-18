@@ -13,7 +13,7 @@ class TestProbabilisticCountingMode(unittest.TestCase):
     def setUp(self):
         self.countingMode = ProbabilisticCountingMode()
         self.function_call_prov = FunctionCallProv(None, None, None, None, None, None, None, None, None, None, None, None, None)
-        self.get_function_call_prov_entry_namespace = 'execute_exp.services.execution_modes.ProbabilisticCountingMode.get_function_call_prov_entry'
+        self.get_function_call_prov_entry_namespace = 'execute_exp.services.execution_modes.ProbabilisticCountingMode.DataAccess.get_function_call_prov_entry'
     
     def test_get_func_call_cache_with_different_output_types(self):
         self.function_call_prov.mode_output = 12
