@@ -86,28 +86,29 @@ def maybe_deterministic(f):
 #     #return func_call_hash not in Constantes().DONT_CACHE_FUNCTION_CALLS
 #     return True
 
-#TODO: TEST
+#TODO: TEST, REFACTOR
 def deterministic(f):
     @wraps(f)
     def wrapper(*method_args, **method_kwargs):
         debug("calling {0}".format(f.__name__))
         c = DataAccess().get_cache_entry(f.__qualname__, method_args, method_kwargs)
-        if not _cache_exists(c):
-            debug("cache miss for {0}({1})".format(f.__name__, *method_args))
-            return_value, _ = _execute_func(f, *method_args, **method_kwargs)
+        if _cache_doesnt_exist(c):
+            debug("cache miss for {0}({1})".format(f.__name__, method_args))
+            return_value, _ = _execute_func(f, method_args, method_kwargs)
             DataAccess().create_cache_entry(f.__qualname__, method_args, method_kwargs, return_value)
             return return_value
         else:
-            debug("cache hit for {0}({1})".format(f.__name__, *method_args))
+            debug("cache hit for {0}({1})".format(f.__name__, method_args))
             return c
     return wrapper
 
-def _cache_exists(cache) -> bool:
-    return cache is not None
+def _cache_doesnt_exist(cache) -> bool:
+    return cache is None
 
-def _execute_func(f, self, *method_args, **method_kwargs):
+#TODO: TEST, REFACTOR: PERFORM TIME COLLECTION, ONLY WITH @MAYBE_DETERMINISTIC. CREATE A DECORATOR FOR THAT 
+def _execute_func(f, method_args, method_kwargs):
     start = time.perf_counter()
-    result_value = f(self, *method_args, **method_kwargs) if self is not None else f(*method_args, **method_kwargs)
+    result_value = f(*method_args, **method_kwargs)
     end = time.perf_counter()
     elapsed_time = end - start
     debug("{0} took {1} to run".format(f.__name__, elapsed_time))
