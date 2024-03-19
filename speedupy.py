@@ -3,6 +3,7 @@ from functools import wraps
 from typing import Dict, List, Tuple, Any
 sys.path.append(os.path.dirname(__file__))
 
+from execute_exp.entitites.FunctionCallProv import FunctionCallProv
 from execute_exp.services.factory import init_exec_mode, init_revalidation
 from execute_exp.services.DataAccess import DataAccess, get_id
 from execute_exp.SpeeduPySettings import SpeeduPySettings
@@ -42,8 +43,7 @@ class SpeeduPy(metaclass=SingletonMeta):
         self.exec_mode = init_exec_mode()
         self.revalidation = init_revalidation(self.exec_mode)
 
-#TODO: TRY TO USE DIRECTLY fun_call_prov 
-#TODO: AND TEST
+#TODO: TEST
 def maybe_deterministic(f):
     @wraps(f)
     def wrapper(*method_args, **method_kwargs):
@@ -51,16 +51,12 @@ def maybe_deterministic(f):
         fc_hash = get_id(f_hash, method_args, method_kwargs)
         fc_prov = DataAccess().get_function_call_prov_entry(fc_hash)
         if SpeeduPy().revalidation.revalidation_in_current_execution(fc_prov):
-            result, md = _execute_func_collecting_metadata(f, method_args, method_kwargs, f_hash, fc_hash)
-            SpeeduPy().revalidation.calculate_next_revalidation(fc_prov, md)
-            DataAccess().add_metadata_collected_to_a_func_call_prov(fc_prov)
+            result = _revalidate_func(f, method_args, method_kwargs, f_hash, fc_hash, fc_prov)
         else:
-            num_metadata = DataAccess().get_amount_of_collected_metadata(fc_hash)
-            if (fc_prov.total_num_exec < SpeeduPy().exec_mode.min_num_exec) and \
-               (fc_prov.total_num_exec + num_metadata >= SpeeduPy().exec_mode.min_num_exec):
+            if _updating_FunctionCallProv_may_speed_up_func_call(fc_hash, fc_prov):
                 DataAccess().add_metadata_collected_to_a_func_call_prov(fc_prov)
 
-            if fc_prov.total_num_exec >= SpeeduPy().exec_mode.min_num_exec:
+            if _FunctionCallProv_has_enough_data_to_classify_func_call(fc_prov):
                 if SpeeduPy().exec_mode.func_call_can_be_cached(fc_prov):
                     SpeeduPy().revalidation.decrement_num_exec_to_next_revalidation(fc_prov)
                     result = SpeeduPy().exec_mode.get_func_call_cache(fc_prov)
@@ -70,6 +66,12 @@ def maybe_deterministic(f):
                 result, _ = _execute_func_collecting_metadata(f, method_args, method_kwargs, f_hash, fc_hash)
         return result
     return wrapper
+
+def _revalidate_func(f, method_args:List, method_kwargs:Dict, f_hash:str, fc_hash:str, fc_prov:FunctionCallProv) -> Any:
+    result, md = _execute_func_collecting_metadata(f, method_args, method_kwargs, f_hash, fc_hash)
+    SpeeduPy().revalidation.calculate_next_revalidation(fc_prov, md)
+    DataAccess().add_metadata_collected_to_a_func_call_prov(fc_prov)
+    return result
 
 def _execute_func_collecting_metadata(f, method_args:List, method_kwargs:Dict,
                                       func_hash:str, func_call_hash:str) -> Tuple[Any, Metadata]:
@@ -83,6 +85,14 @@ def _execute_func_measuring_time(f, method_args, method_kwargs):
     result_value = f(*method_args, **method_kwargs)
     end = time.perf_counter()
     return result_value, end - start
+
+def _updating_FunctionCallProv_may_speed_up_func_call(fc_hash:str, fc_prov:FunctionCallProv) -> bool:
+    num_metadata = DataAccess().get_amount_of_collected_metadata(fc_hash)
+    return (fc_prov.total_num_exec < SpeeduPy().exec_mode.min_num_exec) and \
+           (fc_prov.total_num_exec + num_metadata >= SpeeduPy().exec_mode.min_num_exec)
+
+def _FunctionCallProv_has_enough_data_to_classify_func_call(fc_prov:FunctionCallProv) -> bool:
+    return fc_prov.total_num_exec >= SpeeduPy().exec_mode.min_num_exec
 
 check_python_version()
 
