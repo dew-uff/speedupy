@@ -65,10 +65,10 @@ class DataAccess(metaclass=SingletonMeta):
         self.__function_calls_prov_table.add_all_metadata_collected_to_function_calls_prov(self.__METADATA)
         self.__METADATA = {}
         
-    def add_metadata_collected_to_a_func_call_prov(self, func_call_hash:str) -> None:
-        self.__function_calls_prov_table.add_metadata_collected_to_a_func_call_prov(func_call_hash,
-        self.__METADATA[func_call_hash])
-        self.__METADATA.pop(func_call_hash)
+    def add_metadata_collected_to_a_func_call_prov(self, fc_prov:FunctionCallProv) -> None:
+        self.__function_calls_prov_table.add_metadata_collected_to_a_func_call_prov(fc_prov,
+        self.__METADATA[fc_prov.function_call_hash])
+        self.__METADATA.pop(fc_prov.function_call_hash)
 
     def close_data_access(self):
         self.__mem_arch.save_new_cache_entries()

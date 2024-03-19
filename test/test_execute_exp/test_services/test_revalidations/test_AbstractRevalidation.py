@@ -26,19 +26,15 @@ class TestAbstractRevalidation(unittest.TestCase):
     
     def test_decrement_num_exec_to_next_revalidation_when_common_decrement(self):
         self.fc_prov.next_revalidation = 3
-        with patch(self.get_function_call_prov_entry_namespace, return_value=self.fc_prov) as get_function_call_prov_entry, \
-             patch(self.create_or_update_function_call_prov_entry_namespace) as create_or_update_function_call_prov_entry:
-            self.abstractRevalidation.decrement_num_exec_to_next_revalidation('func_call_hash')
-            get_function_call_prov_entry.assert_called_once()
+        with patch(self.create_or_update_function_call_prov_entry_namespace) as create_or_update_function_call_prov_entry:
+            self.abstractRevalidation.decrement_num_exec_to_next_revalidation(self.fc_prov)
             create_or_update_function_call_prov_entry.assert_called_once()
             self.assertEqual(self.fc_prov.next_revalidation, 2)
 
     def test_decrement_num_exec_to_next_revalidation_when_decrement_to_0(self):
         self.fc_prov.next_revalidation = 1
-        with patch(self.get_function_call_prov_entry_namespace, return_value=self.fc_prov) as get_function_call_prov_entry, \
-             patch(self.create_or_update_function_call_prov_entry_namespace) as create_or_update_function_call_prov_entry:
-            self.abstractRevalidation.decrement_num_exec_to_next_revalidation('func_call_hash')
-            get_function_call_prov_entry.assert_called_once()
+        with patch(self.create_or_update_function_call_prov_entry_namespace) as create_or_update_function_call_prov_entry:
+            self.abstractRevalidation.decrement_num_exec_to_next_revalidation(self.fc_prov)
             create_or_update_function_call_prov_entry.assert_called_once()
             self.assertEqual(self.fc_prov.next_revalidation, 0)
     

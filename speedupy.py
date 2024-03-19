@@ -53,16 +53,17 @@ def maybe_deterministic(f):
         if SpeeduPy().revalidation.revalidation_in_current_execution(fc_prov):
             result, md = _execute_func_collecting_metadata(f, method_args, method_kwargs, f_hash, fc_hash)
             SpeeduPy().revalidation.calculate_next_revalidation(fc_prov, md)
-            DataAccess().add_metadata_collected_to_a_func_call_prov(fc_hash)################
+            DataAccess().add_metadata_collected_to_a_func_call_prov(fc_prov)
         else:
             num_metadata = DataAccess().get_amount_of_collected_metadata(fc_hash)
             if (fc_prov.total_num_exec < SpeeduPy().exec_mode.min_num_exec) and \
                (fc_prov.total_num_exec + num_metadata >= SpeeduPy().exec_mode.min_num_exec):
-                DataAccess().add_metadata_collected_to_a_func_call_prov(fc_hash)
+                DataAccess().add_metadata_collected_to_a_func_call_prov(fc_prov)
+
             if fc_prov.total_num_exec >= SpeeduPy().exec_mode.min_num_exec:
-                if SpeeduPy().exec_mode.func_call_can_be_cached(fc_hash):
-                    SpeeduPy().revalidation.decrement_num_exec_to_next_revalidation()
-                    result = SpeeduPy().exec_mode.get_func_call_cache(fc_hash)
+                if SpeeduPy().exec_mode.func_call_can_be_cached(fc_prov):
+                    SpeeduPy().revalidation.decrement_num_exec_to_next_revalidation(fc_prov)
+                    result = SpeeduPy().exec_mode.get_func_call_cache(fc_prov)
                 else:
                     result = f(*method_args, **method_kwargs)
             else:

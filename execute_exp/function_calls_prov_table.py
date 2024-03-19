@@ -6,6 +6,8 @@ from execute_exp.entitites.FunctionCallProv import FunctionCallProv
 from banco import Banco
 
 #TODO: TEST
+#TODO: CHECKING IF __FUNCTION_CALLS_PROV and __NEW_FUNCTION_CALLS_PROV ARE WORKING AS EXPECTED (IF BOTH ARE BEING CHECKED AND SYNCHRONIZED)
+#TODO: CHECK WHEN TO UPDATE FUNCTION_CALL_PROV
 class FunctionCallsProvTable():
     def __init__(self):
         self.__FUNCTION_CALLS_PROV = {}
@@ -39,24 +41,18 @@ class FunctionCallsProvTable():
     def get_function_call_prov_entry(self, func_call_hash:str) -> FunctionCallProv:
         return self.__FUNCTION_CALLS_PROV[func_call_hash]
     
-    def create_or_update_function_call_prov_entry(self, func_call_hash:str, function_call_prov:FunctionCallProv) -> None:
-        self.__FUNCTION_CALLS_PROV[func_call_hash] = function_call_prov
+    #TODO: CHECK IF THIS METHOD KEEPS MAKING SENSE
+    def create_or_update_function_call_prov_entry(self, fc_prov:FunctionCallProv) -> None:
+        self.__NEW_FUNCTION_CALLS_PROV[fc_prov.function_call_hash] = fc_prov
 
     def add_all_metadata_collected_to_function_calls_prov(self, collected_metadata:Dict[str, List[Metadata]]) -> None:
         for func_call_hash, md_list in collected_metadata.items():
             self.add_metadata_collected_to_a_func_call_prov(func_call_hash, md_list)
 
-    def add_metadata_collected_to_a_func_call_prov(self, func_call_hash:str, collected_metadata:List[Metadata]) -> None:
+    #TODO: Check if function call prov maybe doesnt exist 
+    def add_metadata_collected_to_a_func_call_prov(self, fc_prov:FunctionCallProv,
+                                                   collected_metadata:List[Metadata]) -> None:
         for metadata in collected_metadata:
-            if func_call_hash in self.__FUNCTION_CALLS_PROV:
-                fc_prov = self.__FUNCTION_CALLS_PROV.pop(func_call_hash)
-                self.__NEW_FUNCTION_CALLS_PROV[func_call_hash] = fc_prov
-
-            if func_call_hash not in self.__NEW_FUNCTION_CALLS_PROV:
-                fc_prov = FunctionCallProv(func_call_hash, {})
-                self.__NEW_FUNCTION_CALLS_PROV[func_call_hash] = fc_prov
-
-            fc_prov = self.__NEW_FUNCTION_CALLS_PROV[func_call_hash]
             serial_return = pickle.dumps(metadata.return_value)
             
             if serial_return not in fc_prov.outputs:

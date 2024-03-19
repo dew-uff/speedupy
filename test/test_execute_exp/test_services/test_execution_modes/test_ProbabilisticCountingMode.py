@@ -17,30 +17,20 @@ class TestProbabilisticCountingMode(unittest.TestCase):
     
     def test_get_func_call_cache_with_different_output_types(self):
         self.fc_prov.mode_output = 12
-        with patch(self.get_function_call_prov_entry_namespace, return_value=self.fc_prov) as get_func_call_prov:
-            self.assertEqual(self.countingMode.get_func_call_cache('func_call_hash'), 12)
-            get_func_call_prov.assert_called_once()
+        self.assertEqual(self.countingMode.get_func_call_cache(self.fc_prov), 12)
         
         self.fc_prov.mode_output = 'my_result'
-        with patch(self.get_function_call_prov_entry_namespace, return_value=self.fc_prov) as get_func_call_prov:
-            self.assertEqual(self.countingMode.get_func_call_cache('func_call_hash'), 'my_result')
-            get_func_call_prov.assert_called_once()
-
+        self.assertEqual(self.countingMode.get_func_call_cache(self.fc_prov), 'my_result')
+        
         self.fc_prov.mode_output = [1, 4, 3]
-        with patch(self.get_function_call_prov_entry_namespace, return_value=self.fc_prov) as get_func_call_prov:
-            self.assertEqual(self.countingMode.get_func_call_cache('func_call_hash'), [1, 4, 3])
-            get_func_call_prov.assert_called_once()
-
+        self.assertEqual(self.countingMode.get_func_call_cache(self.fc_prov), [1, 4, 3])
+        
         self.fc_prov.mode_output = {1, True, 'xyz'}
-        with patch(self.get_function_call_prov_entry_namespace, return_value=self.fc_prov) as get_func_call_prov:
-            self.assertEqual(self.countingMode.get_func_call_cache('func_call_hash'), {1, True, 'xyz'})
-            get_func_call_prov.assert_called_once()
-
+        self.assertEqual(self.countingMode.get_func_call_cache(self.fc_prov), {1, True, 'xyz'})
+        
         self.fc_prov.mode_output = MyClass()
-        with patch(self.get_function_call_prov_entry_namespace, return_value=self.fc_prov) as get_func_call_prov:
-            self.assertEqual(dumps(self.countingMode.get_func_call_cache('func_call_hash')),
-                             dumps(MyClass()))
-            get_func_call_prov.assert_called_once()
+        self.assertEqual(dumps(self.countingMode.get_func_call_cache(self.fc_prov)),
+                         dumps(MyClass()))
 
     def test_func_call_acted_as_expected_when_metadata_returned_the_statistical_mode(self):
         metadata = Metadata('func_call_hash', [], {}, True, 0)
