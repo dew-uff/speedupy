@@ -11,7 +11,7 @@ from execute_exp.entitites.Metadata import Metadata
 
 class TestAccurateMode(unittest.TestCase):
     def setUp(self):
-        self.accurateMode = AccurateMode()
+        self.accurateMode = AccurateMode(10)
         self.function_call_prov = FunctionCallProv(None, None, None, None, None, None, None, None, None, None, None, None, None)
         self.get_function_call_prov_entry_namespace = 'execute_exp.services.execution_modes.AccurateMode.DataAccess.get_function_call_prov_entry'
     

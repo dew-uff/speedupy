@@ -5,7 +5,8 @@ from execute_exp.services.DataAccess import DataAccess
 from pickle import dumps
 
 class ProbabilisticCountingMode(AbstractExecutionMode):
-    def __init__(self, min_mode_occurrence:int):
+    def __init__(self, min_num_exec, min_mode_occurrence:int):
+        super().__init__(min_num_exec)
         self.__min_mode_occurrence = min_mode_occurrence
 
     def func_call_can_be_cached(self, func_call_hash:str) -> bool:

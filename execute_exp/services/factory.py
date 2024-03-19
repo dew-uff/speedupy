@@ -50,13 +50,15 @@ def init_exec_mode() -> Optional[AbstractExecutionMode]:
     from execute_exp.services.execution_modes.ProbabilisticErrorMode import ProbabilisticErrorMode
 
     if SpeeduPySettings().exec_mode == ['accurate']:
-        return AccurateMode()
+        return AccurateMode(SpeeduPySettings().min_num_exec)
     elif SpeeduPySettings().exec_mode == ['probabilistic'] and \
          SpeeduPySettings().strategy == ['counting']:
-        return ProbabilisticCountingMode(SpeeduPySettings().min_mode_occurrence)
+        return ProbabilisticCountingMode(SpeeduPySettings().min_num_exec, 
+                                         SpeeduPySettings().min_mode_occurrence)
     elif SpeeduPySettings().exec_mode == ['probabilistic'] and \
          SpeeduPySettings().strategy == ['error']:
-        return ProbabilisticErrorMode(SpeeduPySettings().max_error_per_function,
+        return ProbabilisticErrorMode(SpeeduPySettings().min_num_exec, 
+                                      SpeeduPySettings().max_error_per_function,
                                       SpeeduPySettings().confidence_lv)
 
 def init_revalidation(exec_mode:Optional[AbstractExecutionMode]) -> Optional[AbstractRevalidation]:

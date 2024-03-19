@@ -6,7 +6,8 @@ import scipy.stats as st
 from math import isnan
 
 class ProbabilisticErrorMode(AbstractExecutionMode):
-    def __init__(self, max_error_per_function:float, confidence_lv:float):
+    def __init__(self, min_num_exec, max_error_per_function:float, confidence_lv:float):
+        super().__init__(min_num_exec)
         self.__max_error_per_function = max_error_per_function
         self.__confidence_lv = confidence_lv
 

@@ -11,7 +11,7 @@ from execute_exp.entitites.Metadata import Metadata
 
 class TestProbabilisticCountingMode(unittest.TestCase):
     def setUp(self):
-        self.countingMode = ProbabilisticCountingMode(10)
+        self.countingMode = ProbabilisticCountingMode(10, 10)
         self.function_call_prov = FunctionCallProv(None, None, None, None, None, None, None, None, None, None, None, None, None)
         self.get_function_call_prov_entry_namespace = 'execute_exp.services.execution_modes.ProbabilisticCountingMode.DataAccess.get_function_call_prov_entry'
     
