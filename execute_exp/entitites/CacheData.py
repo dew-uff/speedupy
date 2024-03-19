@@ -20,3 +20,7 @@ class CacheData():
     @property
     def func_name(self):
         return self.__func_name
+    
+    @func_name.setter
+    def func_name(self, func_name):
+        self.__func_name = func_name

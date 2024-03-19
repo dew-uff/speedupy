@@ -1,13 +1,12 @@
 from typing import Optional
 import threading
-from execute_exp.services.storages.Storage import Storage
 from execute_exp.services.retrieval_strategies.AbstractRetrievalStrategy import AbstractRetrievalStrategy
 from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
 from execute_exp.entitites.CacheData import CacheData
 
 class AbstractOneDictMemArch(AbstractMemArch):
-    def __init__(self, storage:Storage, retrieval_strategy:AbstractRetrievalStrategy, use_threads:bool):
-        super().__init__(storage, retrieval_strategy, use_threads)
+    def __init__(self, retrieval_strategy:AbstractRetrievalStrategy, use_threads:bool):
+        super().__init__(retrieval_strategy, use_threads)
         self._DATA_DICTIONARY_SEMAPHORE = threading.Semaphore()
         self._DATA_DICTIONARY = {}
         self._thread = None #Needed for unit testing!

@@ -10,4 +10,4 @@ class ZeroDictMemArch(AbstractMemArch):
     
     def create_cache_entry(self, func_call_hash:str, func_return, func_name=None) -> None:
         data = CacheData(func_call_hash, func_return, func_name)
-        self._storage.save_cache_data({func_call_hash: data})
+        self._retrieval_strategy.save_cache_data({func_call_hash: data})

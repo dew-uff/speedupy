@@ -16,3 +16,6 @@ class FunctionRetrieval(AbstractRetrievalStrategy):
         self.__functions_already_loaded_from_storage.append(func_name)
         return self._storage.get_cached_data_of_a_function(func_name,
                                                            use_isolated_connection=use_thread)
+    
+    def save_cache_data(self, data:Dict[str, CacheData], use_isolated_connection=False) -> None:
+        self._storage.save_cache_data(data, use_isolated_connection)

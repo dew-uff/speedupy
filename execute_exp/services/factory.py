@@ -13,17 +13,29 @@ def init_mem_arch() -> AbstractMemArch:
     from execute_exp.services.memory_architecures.OneDictOldDataOneDictNewDataMemArch import OneDictOldDataOneDictNewDataMemArch
     from execute_exp.services.memory_architecures.OneDictAllDataOneDictNewDataMemArch import OneDictAllDataOneDictNewDataMemArch
 
-    storage = _init_storage()
-    retrieval_strategy = _init_retrieval_strategy(storage)
+    retrieval_strategy = _init_retrieval_strategy()
     use_threads = SpeeduPySettings().retrieval_exec_mode == ['thread']
     if SpeeduPySettings().num_dict == ['0']:
-        return ZeroDictMemArch(storage, retrieval_strategy, use_threads)
+        return ZeroDictMemArch(retrieval_strategy, use_threads)
     elif SpeeduPySettings().num_dict == ['1']:
-        return OneDictMemArch(storage, retrieval_strategy, use_threads)
+        return OneDictMemArch(retrieval_strategy, use_threads)
     elif SpeeduPySettings().num_dict == ['2']:
-        return OneDictOldDataOneDictNewDataMemArch(storage, retrieval_strategy, use_threads)
+        return OneDictOldDataOneDictNewDataMemArch(retrieval_strategy, use_threads)
     elif SpeeduPySettings().num_dict == ['2-fast']:
-        return OneDictAllDataOneDictNewDataMemArch(storage, retrieval_strategy, use_threads)
+        return OneDictAllDataOneDictNewDataMemArch(retrieval_strategy, use_threads)
+
+def _init_retrieval_strategy() -> AbstractRetrievalStrategy:
+    from execute_exp.services.retrieval_strategies.LazyRetrieval import LazyRetrieval
+    from execute_exp.services.retrieval_strategies.FunctionRetrieval import FunctionRetrieval
+    from execute_exp.services.retrieval_strategies.EagerRetrieval import EagerRetrieval
+
+    storage = _init_storage()
+    if SpeeduPySettings().retrieval_strategy == ['lazy']:
+        return LazyRetrieval(storage)
+    elif SpeeduPySettings().retrieval_strategy == ['function']:
+        return FunctionRetrieval(storage)
+    elif SpeeduPySettings().retrieval_strategy == ['eager']:
+        return EagerRetrieval(storage)
 
 def _init_storage() -> Storage:
     from execute_exp.services.storages.DBStorage import DBStorage
@@ -31,18 +43,6 @@ def _init_storage() -> Storage:
 
     if SpeeduPySettings().storage == ['db']: return DBStorage(Constantes().BD_PATH)
     elif SpeeduPySettings().storage == ['file']: return FileSystemStorage(Constantes().CACHE_FOLDER_NAME)
-
-def _init_retrieval_strategy(storage:Storage) -> AbstractRetrievalStrategy:
-    from execute_exp.services.retrieval_strategies.LazyRetrieval import LazyRetrieval
-    from execute_exp.services.retrieval_strategies.FunctionRetrieval import FunctionRetrieval
-    from execute_exp.services.retrieval_strategies.EagerRetrieval import EagerRetrieval
-
-    if SpeeduPySettings().retrieval_strategy == ['lazy']:
-        return LazyRetrieval(storage)
-    elif SpeeduPySettings().retrieval_strategy == ['function']:
-        return FunctionRetrieval(storage)
-    elif SpeeduPySettings().retrieval_strategy == ['eager']:
-        return EagerRetrieval(storage)
     
 def init_exec_mode() -> Optional[AbstractExecutionMode]:
     from execute_exp.services.execution_modes.AccurateMode import AccurateMode

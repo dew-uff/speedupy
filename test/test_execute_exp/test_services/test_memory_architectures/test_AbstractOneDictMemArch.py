@@ -13,9 +13,8 @@ import time, threading, copy
 
 class TestIntPy(unittest.TestCase):
     def setUp(self):
-        self.storage = Mock(Storage)
         self.retrieval_strategy = Mock(AbstractRetrievalStrategy)
-        self.mem_arch = AbstractOneDictMemArch(self.storage, self.retrieval_strategy, False)
+        self.mem_arch = AbstractOneDictMemArch(self.retrieval_strategy, False)
 
     def test_get_initial_cache_entries_when_retrieval_strategy_doesnt_load_records(self):
         self.retrieval_strategy.get_initial_cache_entries = Mock(return_value={})
