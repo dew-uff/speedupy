@@ -1,4 +1,5 @@
 from execute_exp.entitites.Metadata import Metadata
+from execute_exp.entitites.FunctionCallProv import FunctionCallProv
 from execute_exp.services.execution_modes.AbstractExecutionMode import AbstractExecutionMode
 from execute_exp.services.execution_modes.util import function_outputs_dict_2_array
 from execute_exp.services.DataAccess import DataAccess
@@ -51,8 +52,8 @@ class ProbabilisticErrorMode(AbstractExecutionMode):
             self.__func_call_prov.mean_output = st.tmean(data)
         return self.__func_call_prov.mean_output
 
-    def func_call_acted_as_expected(self, func_call_hash:str, metadata:Metadata):
-        func_call_prov = DataAccess().get_function_call_prov_entry(func_call_hash)
-        low_limit = func_call_prov.mean_output - func_call_prov.confidence_error/2
-        up_limit = func_call_prov.mean_output + func_call_prov.confidence_error/2
+    #TODO: UPDATE TESTS
+    def func_call_acted_as_expected(self, fc_prov:FunctionCallProv, metadata:Metadata):
+        low_limit = fc_prov.mean_output - fc_prov.confidence_error/2
+        up_limit = fc_prov.mean_output + fc_prov.confidence_error/2
         return low_limit <= metadata.return_value and metadata.return_value <= up_limit

@@ -1,4 +1,5 @@
 from execute_exp.entitites.Metadata import Metadata
+from execute_exp.entitites.FunctionCallProv import FunctionCallProv
 from execute_exp.services.execution_modes.AbstractExecutionMode import AbstractExecutionMode
 from execute_exp.services.execution_modes.util import func_call_mode_output_occurs_enough
 from execute_exp.services.DataAccess import DataAccess
@@ -16,6 +17,5 @@ class ProbabilisticCountingMode(AbstractExecutionMode):
         self.__func_call_prov = DataAccess().get_function_call_prov_entry(func_call_hash)
         return self.__func_call_prov.mode_output
 
-    def func_call_acted_as_expected(self, func_call_hash:str, metadata:Metadata):
-        func_call_prov = DataAccess().get_function_call_prov_entry(func_call_hash)
-        return dumps(metadata.return_value) == dumps(func_call_prov.mode_output)
+    def func_call_acted_as_expected(self, fc_prov:FunctionCallProv, metadata:Metadata):
+        return dumps(metadata.return_value) == dumps(fc_prov.mode_output)

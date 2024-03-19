@@ -47,26 +47,26 @@ class SpeeduPy(metaclass=SingletonMeta):
 def maybe_deterministic(f):
     @wraps(f)
     def wrapper(*method_args, **method_kwargs):
-        func_hash = DataAccess().get_function_hash(f.__qualname__)
-        func_call_hash = get_id(func_hash, method_args, method_kwargs)
-        func_call_prov = DataAccess().get_function_call_prov_entry(func_call_hash)
-        if SpeeduPy().revalidation.revalidation_in_current_execution(func_call_hash):
-            result, md = _execute_func_collecting_metadata(f, method_args, method_kwargs, func_hash, func_call_hash)
-            SpeeduPy().revalidation.calculate_next_revalidation(func_call_hash, md)
-            DataAccess().add_metadata_collected_to_a_func_call_prov(func_call_hash)
+        f_hash = DataAccess().get_function_hash(f.__qualname__)
+        fc_hash = get_id(f_hash, method_args, method_kwargs)
+        fc_prov = DataAccess().get_function_call_prov_entry(fc_hash)
+        if SpeeduPy().revalidation.revalidation_in_current_execution(fc_prov):
+            result, md = _execute_func_collecting_metadata(f, method_args, method_kwargs, f_hash, fc_hash)
+            SpeeduPy().revalidation.calculate_next_revalidation(fc_prov, md)
+            DataAccess().add_metadata_collected_to_a_func_call_prov(fc_hash)################
         else:
-            num_metadata = DataAccess().get_amount_of_collected_metadata(func_call_hash)
-            if (func_call_prov.total_num_exec < SpeeduPy().exec_mode.min_num_exec) and \
-               (func_call_prov.total_num_exec + num_metadata >= SpeeduPy().exec_mode.min_num_exec):
-                DataAccess().add_metadata_collected_to_a_func_call_prov(func_call_hash)
-            if func_call_prov.total_num_exec >= SpeeduPy().exec_mode.min_num_exec:
-                if SpeeduPy().exec_mode.func_call_can_be_cached(func_call_hash):
+            num_metadata = DataAccess().get_amount_of_collected_metadata(fc_hash)
+            if (fc_prov.total_num_exec < SpeeduPy().exec_mode.min_num_exec) and \
+               (fc_prov.total_num_exec + num_metadata >= SpeeduPy().exec_mode.min_num_exec):
+                DataAccess().add_metadata_collected_to_a_func_call_prov(fc_hash)
+            if fc_prov.total_num_exec >= SpeeduPy().exec_mode.min_num_exec:
+                if SpeeduPy().exec_mode.func_call_can_be_cached(fc_hash):
                     SpeeduPy().revalidation.decrement_num_exec_to_next_revalidation()
-                    result = SpeeduPy().exec_mode.get_func_call_cache(func_call_hash)
+                    result = SpeeduPy().exec_mode.get_func_call_cache(fc_hash)
                 else:
                     result = f(*method_args, **method_kwargs)
             else:
-                result, _ = _execute_func_collecting_metadata(f, method_args, method_kwargs, func_hash, func_call_hash)
+                result, _ = _execute_func_collecting_metadata(f, method_args, method_kwargs, f_hash, fc_hash)
         return result
     return wrapper
 

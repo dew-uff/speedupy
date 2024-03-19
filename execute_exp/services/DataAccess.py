@@ -58,10 +58,8 @@ class DataAccess(metaclass=SingletonMeta):
     def get_function_call_prov_entry(self, func_call_hash:str) -> FunctionCallProv:
         return self.__function_calls_prov_table.get_function_call_prov_entry(func_call_hash)
     
-    def create_or_update_function_call_prov_entry(self, func_call_hash:str, 
-                                                  function_call_prov:FunctionCallProv) -> None:
-        self.__function_calls_prov_table.create_or_update_function_call_prov_entry(func_call_hash,
-                                                                                 function_call_prov)
+    def create_or_update_function_call_prov_entry(self, fc_prov:FunctionCallProv) -> None:
+        self.__function_calls_prov_table.create_or_update_function_call_prov_entry(fc_prov)
 
     def add_all_metadata_collected_to_function_calls_prov(self) -> None:
         self.__function_calls_prov_table.add_all_metadata_collected_to_function_calls_prov(self.__METADATA)
