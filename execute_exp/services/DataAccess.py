@@ -48,6 +48,12 @@ class DataAccess(metaclass=SingletonMeta):
             self.__METADATA[func_call_hash] = [] 
         self.__METADATA[func_call_hash].append(metadata)
 
+    #TODO:TEST
+    def get_amount_of_collected_metadata(self, func_call_hash:str) -> int:
+        try:
+            return len(self.__METADATA[func_call_hash])
+        except KeyError: return 0
+
     ############# FUNCTION_CALL_PROV
     def get_function_call_prov_entry(self, func_call_hash:str) -> FunctionCallProv:
         return self.__function_calls_prov_table.get_function_call_prov_entry(func_call_hash)
