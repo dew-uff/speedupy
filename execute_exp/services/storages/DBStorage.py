@@ -41,7 +41,7 @@ class DBStorage(Storage):
         return data
 
     @_set_db_connection
-    def get_cached_data_of_a_function_call(self, func_call_hash:str, use_isolated_connection=False) -> Optional[CacheData]:
+    def get_cached_data_of_a_function_call(self, func_call_hash:str, func_name=None, use_isolated_connection=False) -> Optional[CacheData]:
         try:
             result = self.__db_connection.executarComandoSQLSelect("SELECT func_output FROM CACHE WHERE func_call_hash = ?", (func_call_hash,))
             func_output = pickle.loads(result[0][0])

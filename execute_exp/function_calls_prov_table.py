@@ -1,8 +1,8 @@
 import pickle
 from typing import Dict, List
 from constantes import Constantes
-from entities.Metadata import Metadata
-from entities.FunctionCallProv import FunctionCallProv
+from execute_exp.entitites.Metadata import Metadata
+from execute_exp.entitites.FunctionCallProv import FunctionCallProv
 from banco import Banco
 
 #TODO: TEST
@@ -34,7 +34,8 @@ class FunctionCallsProvTable():
             fc_prov.confidence_error = float(reg[13])
 
             self.__FUNCTION_CALLS_PROV[function_call_hash] = fc_prov
-        
+
+    #TODO: Check if function call prov maybe doesnt exist    
     def get_function_call_prov_entry(self, func_call_hash:str) -> FunctionCallProv:
         return self.__FUNCTION_CALLS_PROV[func_call_hash]
     

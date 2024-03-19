@@ -8,8 +8,8 @@ class FunctionRetrieval(AbstractRetrievalStrategy):
         super().__init__(storage)
         self.__functions_already_loaded_from_storage = []
 
-    def get_cache_entry(self, func_call_hash:str) -> Optional[CacheData]:
-        return self._storage.get_cached_data_of_a_function_call(func_call_hash)
+    def get_cache_entry(self, func_call_hash:str, func_name=None) -> Optional[CacheData]:
+        return self._storage.get_cached_data_of_a_function_call(func_call_hash, func_name)
     
     def get_function_cache_entries(self, func_name:str, use_thread=False) -> Dict[str, CacheData]:
         if func_name in self.__functions_already_loaded_from_storage: return

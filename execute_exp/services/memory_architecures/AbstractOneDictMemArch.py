@@ -42,7 +42,7 @@ class AbstractOneDictMemArch(AbstractMemArch):
                 c = self._get_function_entries_from_storage(func_call_hash, func_name)
             else:
                 #In this case, RetrievalStrategy is always Lazy, so we garantee there will not be a thread executing in parallel!
-                c = self._retrieval_strategy.get_cache_entry(func_call_hash)
+                c = self._retrieval_strategy.get_cache_entry(func_call_hash, func_name)
                 self._DATA_DICTIONARY[c.function_call_hash] = c
             return c
         except AttributeError: return
@@ -58,7 +58,7 @@ class AbstractOneDictMemArch(AbstractMemArch):
             if self._use_threads:
                 self._thread = threading.Thread(target=update_DATA_DICTIONARY)
                 self._thread.start()
-                c = self._retrieval_strategy.get_cache_entry(func_call_hash)
+                c = self._retrieval_strategy.get_cache_entry(func_call_hash, func_name)
             else:
                 update_DATA_DICTIONARY()
                 c = self._DATA_DICTIONARY[func_call_hash]
