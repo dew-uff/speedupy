@@ -7,7 +7,7 @@ def check_python_version():
         raise Exception('Requires python 3.9+')
 
 def is_an_user_defined_script(imported_script:str, experiment_base_dir:str) -> bool:
-    return os.path.exists(get_script_path(imported_script, experiment_base_dir)) and imported_script.find("intpy") == -1
+    return os.path.exists(get_script_path(imported_script, experiment_base_dir)) and imported_script.find("speedupy") == -1
 
 def get_script_path(script_name:str, experiment_base_dir:str) -> str:
     return os.path.join(experiment_base_dir, script_name)

@@ -11,4 +11,4 @@ class AbstractRetrievalStrategy():
     def get_function_cache_entries(self, func_name:str, use_thread=False) -> Dict[str, CacheData]: return {}
     def save_cache_data(self, data:Dict[str, CacheData], use_isolated_connection=False) -> None:
         for cache_data in data.values(): cache_data.func_name = None
-        self._storage.save_cache_data(data, use_isolated_connection)
+        self._storage.save_cache_data(data, use_isolated_connection=use_isolated_connection)

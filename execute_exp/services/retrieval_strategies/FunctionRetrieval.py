@@ -12,10 +12,10 @@ class FunctionRetrieval(AbstractRetrievalStrategy):
         return self._storage.get_cached_data_of_a_function_call(func_call_hash, func_name)
     
     def get_function_cache_entries(self, func_name:str, use_thread=False) -> Dict[str, CacheData]:
-        if func_name in self.__functions_already_loaded_from_storage: return
+        if func_name in self.__functions_already_loaded_from_storage: return {}
         self.__functions_already_loaded_from_storage.append(func_name)
         return self._storage.get_cached_data_of_a_function(func_name,
                                                            use_isolated_connection=use_thread)
     
     def save_cache_data(self, data:Dict[str, CacheData], use_isolated_connection=False) -> None:
-        self._storage.save_cache_data(data, use_isolated_connection)
+        self._storage.save_cache_data(data, use_isolated_connection=use_isolated_connection)
