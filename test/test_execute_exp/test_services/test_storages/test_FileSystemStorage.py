@@ -12,13 +12,12 @@ from execute_exp.entitites.CacheData import CacheData
 class TestFileSystemStorage(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        Constantes().CACHE_FOLDER_NAME = '.speedupy_test/cache/'
         os.makedirs(Constantes().CACHE_FOLDER_NAME)
         cls.storage = FileSystemStorage(Constantes().CACHE_FOLDER_NAME)
     
     @classmethod
     def tearDownClass(cls):
-        os.system('rm -rf .speedupy_test/')
+        os.system(f'rm -rf {Constantes().FOLDER_NAME}/')
     
     def tearDown(self):
         os.system(f'rm -rf {Constantes().CACHE_FOLDER_NAME}/*')

@@ -14,8 +14,6 @@ import sqlite3
 class TestDBStorage(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        Constantes().FOLDER_NAME = '.speedupy_test/'
-        Constantes().BD_PATH = '.speedupy_test/speedupy.db'
         cls.drop_env()
         cls.create_database()
 
