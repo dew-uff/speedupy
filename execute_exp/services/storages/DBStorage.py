@@ -15,12 +15,14 @@ class DBStorage(Storage):
     def _set_db_connection(func):
         def wrapper(self, *args, use_isolated_connection=False, **kwargs):
             if use_isolated_connection:
+                self.__local.previous_conn = self.__local.db_connection
                 self.__local.db_connection = Banco(self.__db_path)
                 result = func(self, *args, use_isolated_connection, **kwargs)
                 
                 if func.__qualname__ == 'DBStorage.save_cache_data':
                     self.__local.db_connection.salvarAlteracoes()
                 self.__local.db_connection.fecharConexao()
+                self.__local.db_connection = self.__local.previous_conn
             else:
                 result = func(self, *args, use_isolated_connection, **kwargs)
             return result
