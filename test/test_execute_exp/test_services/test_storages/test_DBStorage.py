@@ -16,8 +16,13 @@ class TestDBStorage(unittest.TestCase):
     def setUpClass(cls):
         Constantes().FOLDER_NAME = '.speedupy_test/'
         Constantes().BD_PATH = '.speedupy_test/speedupy.db'
+        cls.drop_env()
         cls.create_database()
 
+    @classmethod
+    def drop_env(cls):
+        os.system(f'rm -rf {Constantes().FOLDER_NAME}/')
+    
     @classmethod
     def create_database(cls):
         stmt = "CREATE TABLE IF NOT EXISTS CACHE (\
@@ -34,7 +39,7 @@ class TestDBStorage(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        os.system(f'rm -rf {Constantes().FOLDER_NAME}/')
+        cls.drop_env()
     
     def setUp(self):
         self.storage = DBStorage(Constantes().BD_PATH)
