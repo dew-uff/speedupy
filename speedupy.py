@@ -18,9 +18,12 @@ class SpeeduPy(metaclass=SingletonMeta):
 def initialize_speedupy(f):
     @wraps(f)
     def wrapper(*method_args, **method_kwargs):
+        start = time.perf_counter()
         DataAccess().init_data_access()
         f(*method_args, **method_kwargs)
         DataAccess().close_data_access()
+        end = time.perf_counter()
+        print(f"TOTAL EXECUTION TIME: {end - start}")
     return wrapper
 
 #TODO: CORRIGIR IMPLEMENTAÇÃO
