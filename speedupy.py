@@ -21,6 +21,11 @@ def initialize_speedupy(f):
         DataAccess().init_data_access()
         f(*method_args, **method_kwargs)
         DataAccess().close_data_access()
+
+
+        report()
+
+
     return wrapper
 
 #TODO: CORRIGIR IMPLEMENTAÇÃO
@@ -84,12 +89,42 @@ def maybe_deterministic(f):
 #     #return func_call_hash not in Constantes().DONT_CACHE_FUNCTION_CALLS
 #     return True
 
+import time
+from banco import Banco
+g_num_deterministic_calls = 0
+g_num_cache_misses = 0
+
+def report():
+    conexaoBanco = Banco('.speedupy/speedupy.db')
+    cache_size = int(conexaoBanco.executarComandoSQLSelect("SELECT COUNT(*) FROM CACHE")[0][0])
+    
+
+    time.sleep(2)
+    filename = f'report-{int(time.time())}.txt'
+    with open(filename, 'wt') as f:
+        f.write(f"g_num_deterministic_calls = {g_num_deterministic_calls}\n")
+        f.write(f"g_num_cache_misses = {g_num_cache_misses}\n")
+        f.write(f"g_num_cache_misses (%) = {100 * g_num_cache_misses/g_num_deterministic_calls}\n")
+        f.write(f"cache_size = {cache_size}\n")
+        
+    
 def deterministic(f):
     @wraps(f)
     def wrapper(*method_args, **method_kwargs):
+
+
+        global g_num_deterministic_calls, g_num_cache_misses
+        g_num_deterministic_calls += 1
+
+
         debug("calling {0}".format(f.__qualname__))
         c = DataAccess().get_cache_entry(f.__qualname__, method_args, method_kwargs)
         if _cache_doesnt_exist(c):
+
+
+            g_num_cache_misses += 1
+
+
             debug("cache miss for {0}({1})".format(f.__qualname__, method_args))
             return_value = f(*method_args, **method_kwargs)
             DataAccess().create_cache_entry(f.__qualname__, method_args, method_kwargs, return_value)
