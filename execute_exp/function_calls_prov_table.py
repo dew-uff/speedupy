@@ -3,7 +3,7 @@ from typing import Dict, List
 from constantes import Constantes
 from execute_exp.entitites.Metadata import Metadata
 from execute_exp.entitites.FunctionCallProv import FunctionCallProv
-from banco import Banco
+from entities.BancoSQLite import BancoSQLite
 
 #TODO: TEST
 #TODO: CHECKING IF __FUNCTION_CALLS_PROV and __NEW_FUNCTION_CALLS_PROV ARE WORKING AS EXPECTED (IF BOTH ARE BEING CHECKED AND SYNCHRONIZED)
@@ -12,7 +12,7 @@ class FunctionCallsProvTable():
     def __init__(self):
         self.__FUNCTION_CALLS_PROV = {}
         self.__NEW_FUNCTION_CALLS_PROV = {}
-        self.__db_connection = Banco(Constantes().BD_PATH)
+        self.__db_connection = BancoSQLite(Constantes().BD_PATH)
 
     def get_initial_function_calls_prov_entries(self) -> None:
         sql = "SELECT function_call_hash, outputs, total_num_exec, next_revalidation, next_index_weighted_seq, mode_rel_freq, mode_output, weighted_output_seq, mean_output, confidence_lv, confidence_low_limit, confidence_up_limit, confidence_error, id FROM FUNCTION_CALLS_PROV"

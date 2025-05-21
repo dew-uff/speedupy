@@ -1,6 +1,6 @@
 import sqlite3
 
-class Banco():
+class BancoSQLite():
 	def __init__(self, nomeBanco):
 		self.conexao = sqlite3.connect(nomeBanco)
 		self.cursor = self.conexao.cursor()

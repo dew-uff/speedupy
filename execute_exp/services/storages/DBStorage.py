@@ -4,19 +4,19 @@ from typing import Dict, Optional
 
 from execute_exp.services.storages.Storage import Storage
 from execute_exp.entitites.CacheData import CacheData
-from banco import Banco
+from entities.BancoSQLite import BancoSQLite
 
 class DBStorage(Storage):
     def __init__(self, db_path:str):
         self.__db_path = db_path
         self.__local = threading.local()
-        self.__local.db_connection = Banco(db_path)
+        self.__local.db_connection = BancoSQLite(db_path)
 
     def _set_db_connection(func):
         def wrapper(self, *args, use_isolated_connection=False, **kwargs):
             if use_isolated_connection:
                 self.__local.previous_conn = self.__local.db_connection
-                self.__local.db_connection = Banco(self.__db_path)
+                self.__local.db_connection = BancoSQLite(self.__db_path)
                 result = func(self, *args, use_isolated_connection, **kwargs)
                 
                 if func.__qualname__ == 'DBStorage.save_cache_data':

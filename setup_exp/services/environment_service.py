@@ -1,7 +1,7 @@
 import os
-from banco import Banco
 from logger.log import debug
 from constantes import Constantes
+from entities.BancoSQLite import BancoSQLite
 from BancoRedis import BancoRedis
 
 def init_env():
@@ -67,13 +67,13 @@ def __flush_redis_database():
 
 
 def __create_sqlite_database():
-    conexaoBanco = Banco(Constantes().BD_PATH)
+    conexaoBanco = BancoSQLite(Constantes().BD_PATH)
     _create_table_CACHE(conexaoBanco)
     _create_table_FUNCTION_CALLS_PROV(conexaoBanco)
     conexaoBanco.fecharConexao()
 
 
-def _create_table_CACHE(banco: Banco):
+def _create_table_CACHE(banco: BancoSQLite):
     debug("creating table CACHE")
 
     stmt = "CREATE TABLE IF NOT EXISTS CACHE (\
@@ -85,7 +85,7 @@ def _create_table_CACHE(banco: Banco):
 
     banco.executarComandoSQLSemRetorno(stmt)
 
-def _create_table_FUNCTION_CALLS_PROV(banco: Banco):
+def _create_table_FUNCTION_CALLS_PROV(banco: BancoSQLite):
     stmt = "CREATE TABLE FUNCTION_CALLS_PROV(\
     id INTEGER PRIMARY KEY AUTOINCREMENT,\
     function_call_hash TEXT NOT NULL,\
