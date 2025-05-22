@@ -1,6 +1,6 @@
 import redis
-from typing import Dict, List
-from speedupy.SingletonMeta import SingletonMeta
+from typing import Dict
+from SingletonMeta import SingletonMeta
 
 
 # XXX: IMPLEMENTAR + TESTAR!!!!
@@ -34,7 +34,7 @@ class BancoRedis(metaclass=SingletonMeta):
 		for key, value in data.items(): pipe.set(key, value)
 		pipe.execute()
 
-	def set_group_of_hashes(self, data: Dict[str, List[str, bytes]]):
+	def set_group_of_hashes(self, data: Dict[str, Dict[str, bytes]]):
 		pipe = self.client.pipeline()
 		for h_key, value in data.items(): pipe.hset(h_key, mapping=value)
 		pipe.execute()
