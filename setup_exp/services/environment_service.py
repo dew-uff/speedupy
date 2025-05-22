@@ -2,7 +2,7 @@ import os
 from logger.log import debug
 from constantes import Constantes
 from entities.BancoSQLite import BancoSQLite
-from BancoRedis import BancoRedis
+from entities.BancoRedis import BancoRedis
 
 
 def init_env():
@@ -14,7 +14,7 @@ def init_env():
     debug("creating speedupy environment")
     _create_folder()
     _create_cache_folder()
-    _create_database()
+    _create_databases()
 
 
 def _env_exists():
@@ -48,24 +48,24 @@ def _create_cache_folder():
     debug("creating cache folder")
     os.makedirs(Constantes().CACHE_FOLDER_NAME)
 
-# XXX: TESTAR!
-def _create_database():
+
+def _create_databases():
     debug("creating database")
     if BancoSQLite.database_exists():
         debug("database already exists")
         return
 
-    __flush_redis_database()
-    __create_sqlite_database()
+    _flush_redis_database()
+    _create_sqlite_database()
 
-# XXX: TESTAR!
-def __flush_redis_database():
+
+def _flush_redis_database():
     redis = BancoRedis()
-    redis.flushDatabase()
-    redis.closeConnection()
+    redis.flush_database()
+    redis.close_connection()
 
 
-def __create_sqlite_database():
+def _create_sqlite_database():
     conexao_banco = BancoSQLite()
     conexao_banco.create_database()
     conexao_banco.fechar_conexao()
