@@ -40,9 +40,9 @@ class TestDBStorage(unittest.TestCase):
         cls.drop_env()
     
     def setUp(self):
-        self.storage = DBStorage(Constantes().BD_PATH)
+        self.storage = DBStorage()
         self.storage_conn = self.storage._DBStorage__local.db_connection.conexao
-        self.storage._DBStorage__local.db_connection.salvarAlteracoes = Mock() #Preventing DB connection to commit changes when DBStorage instance is destroyed
+        self.storage._DBStorage__local.db_connection.salvar_alteracoes = Mock() #Preventing DB connection to commit changes when DBStorage instance is destroyed
         self.assert_db_is_empty()
 
     def assert_db_is_empty(self):

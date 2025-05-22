@@ -41,7 +41,7 @@ def _init_storage() -> Storage:
     from execute_exp.services.storages.DBStorage import DBStorage
     from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
 
-    if SpeeduPySettings().storage == ['db']: return DBStorage(Constantes().BD_PATH)
+    if SpeeduPySettings().storage == ['db']: return DBStorage()
     elif SpeeduPySettings().storage == ['file']: return FileSystemStorage(Constantes().CACHE_FOLDER_NAME)
     
 def init_exec_mode() -> Optional[AbstractExecutionMode]:

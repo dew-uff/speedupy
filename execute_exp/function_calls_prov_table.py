@@ -12,11 +12,11 @@ class FunctionCallsProvTable():
     def __init__(self):
         self.__FUNCTION_CALLS_PROV = {}
         self.__NEW_FUNCTION_CALLS_PROV = {}
-        self.__db_connection = BancoSQLite(Constantes().BD_PATH)
+        self.__db_connection = BancoSQLite()
 
     def get_initial_function_calls_prov_entries(self) -> None:
         sql = "SELECT function_call_hash, outputs, total_num_exec, next_revalidation, next_index_weighted_seq, mode_rel_freq, mode_output, weighted_output_seq, mean_output, confidence_lv, confidence_low_limit, confidence_up_limit, confidence_error, id FROM FUNCTION_CALLS_PROV"
-        resp = self.__db_connection.executarComandoSQLSelect(sql)
+        resp = self.__db_connection.executar_comando_sql_select(sql)
         for reg in resp:
             id = reg[0]
             function_call_hash = reg[1]
@@ -83,8 +83,8 @@ class FunctionCallsProvTable():
 
             sql_params = [fc_prov.function_call_hash, pickle.dumps(fc_prov.outputs), fc_prov.total_num_exec, fc_prov.next_revalidation, fc_prov.next_index_weighted_seq, fc_prov.mode_rel_freq, pickle.dumps(fc_prov.mode_output), pickle.dumps(fc_prov.weighted_output_seq), pickle.dumps(fc_prov.mean_output), fc_prov.confidence_lv, fc_prov.confidence_low_limit, fc_prov.confidence_up_limit, fc_prov.confidence_error]
             
-            self.__db_connection.executarComandoSQLSemRetorno(sql, sql_params)
+            self.__db_connection.executar_comando_sql_sem_retorno(sql, sql_params)
 
     def __del__(self):
-        self.__db_connection.salvarAlteracoes()
-        self.__db_connection.fecharConexao()
+        self.__db_connection.salvar_alteracoes()
+        self.__db_connection.fechar_conexao()

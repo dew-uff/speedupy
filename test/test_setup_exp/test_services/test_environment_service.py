@@ -5,7 +5,7 @@ sys.path.append(project_folder)
 
 import os
 from entities.BancoSQLite import BancoSQLite
-from setup_exp.services.environment_service import _create_database, _create_cache_folder, _create_folder, _cache_folder_exists, _db_exists, _folder_exists, _env_exists, init_env
+from setup_exp.services.environment_service import _create_database, _create_cache_folder, _create_folder, _cache_folder_exists, _folder_exists, _env_exists, init_env
 
 class TestEnvironmentService(unittest.TestCase):
     @classmethod
@@ -19,8 +19,9 @@ class TestEnvironmentService(unittest.TestCase):
     def assert_db_exists(self):
         self.assertTrue(os.path.exists('.speedupy/speedupy.db'))
         expeceted_result = {('sqlite_sequence',), ('CACHE',), ('FUNCTION_CALLS_PROV',)}
-        conexaoBanco = BancoSQLite('.speedupy/speedupy.db')
-        resp = conexaoBanco.executarComandoSQLSelect("SELECT tbl_name FROM sqlite_master WHERE type = 'table'")
+        BancoSQLite.nome_banco = '.speedupy/speedupy.db'
+        conexao_banco = BancoSQLite()
+        resp = conexao_banco.executar_comando_sql_select("SELECT tbl_name FROM sqlite_master WHERE type = 'table'")
         self.assertSetEqual(set(resp), expeceted_result)
 
     def test_cache_folder_exists_when_cache_folder_exists(self):
@@ -33,10 +34,10 @@ class TestEnvironmentService(unittest.TestCase):
     def test_db_exists_when_db_exists(self):
         os.mkdir(self.FOLDER_NAME)
         with open('.speedupy/speedupy.db', 'wt'): pass
-        self.assertTrue(_db_exists())
+        self.assertTrue(BancoSQLite.database_exists())
     
     def test_db_exists_when_db_does_not_exist(self):
-        self.assertFalse(_db_exists())
+        self.assertFalse(BancoSQLite.database_exists())
 
     def test_folder_exists_when_folder_exists(self):
         os.mkdir(self.FOLDER_NAME)
