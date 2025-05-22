@@ -1,4 +1,4 @@
-import unittest, unittest.mock, os, sys, random
+import unittest, unittest.mock, os, sys, random, pickle
 from pathlib import Path
 
 project_folder = os.path.realpath(__file__).split('test/')[0]
@@ -23,7 +23,8 @@ class TestEnvironmentService(unittest.TestCase):
         self.redis.flush_database()
 
     def populate_redis_database(self):
-        for i in range(5): self.redis.set(i, random.random())
+        data = {str(i): pickle.dumps(random.random()) for i in range(5)}
+        self.redis.set_group_of_key_value_pairs(data)
 
     def assert_sqlite_db_exists(self):
         self.assertTrue(os.path.exists(self.SQLITE_DB_FILENAME))
