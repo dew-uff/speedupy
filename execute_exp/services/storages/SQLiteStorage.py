@@ -6,7 +6,8 @@ from execute_exp.services.storages.Storage import Storage
 from execute_exp.entitites.CacheData import CacheData
 from entities.BancoSQLite import BancoSQLite
 
-class DBStorage(Storage):
+
+class SQLiteStorage(Storage):
     def __init__(self):
         self.__local = threading.local()
         self.__local.db_connection = BancoSQLite()
@@ -17,8 +18,8 @@ class DBStorage(Storage):
                 self.__local.previous_conn = self.__local.db_connection
                 self.__local.db_connection = BancoSQLite()
                 result = func(self, *args, use_isolated_connection, **kwargs)
-                
-                if func.__qualname__ == 'DBStorage.save_cache_data':
+
+                if func.__qualname__ == 'SQLiteStorage.save_cache_data':
                     self.__local.db_connection.salvar_alteracoes()
                 self.__local.db_connection.fechar_conexao()
                 self.__local.db_connection = self.__local.previous_conn
@@ -30,19 +31,19 @@ class DBStorage(Storage):
     @_set_db_connection
     def get_all_cached_data(self, use_isolated_connection=False) -> Dict[str, CacheData]:
         results = self.__local.db_connection.executar_comando_sql_select("SELECT func_call_hash, func_output FROM CACHE")
-        data = {func_call_hash:CacheData(func_call_hash, pickle.loads(func_output))
-                for func_call_hash, func_output in results}
-        return data
-    
-    @_set_db_connection
-    def get_cached_data_of_a_function(self, func_name:str, use_isolated_connection=False) -> Dict[str, CacheData]:
-        results = self.__local.db_connection.executar_comando_sql_select("SELECT func_call_hash, func_output FROM CACHE WHERE func_name = ?", (func_name,))
-        data = {func_call_hash:CacheData(func_call_hash, pickle.loads(func_output), func_name=func_name)
+        data = {func_call_hash: CacheData(func_call_hash, pickle.loads(func_output))
                 for func_call_hash, func_output in results}
         return data
 
     @_set_db_connection
-    def get_cached_data_of_a_function_call(self, func_call_hash:str, func_name=None, use_isolated_connection=False) -> Optional[CacheData]:
+    def get_cached_data_of_a_function(self, func_name: str, use_isolated_connection=False) -> Dict[str, CacheData]:
+        results = self.__local.db_connection.executar_comando_sql_select("SELECT func_call_hash, func_output FROM CACHE WHERE func_name = ?", (func_name,))
+        data = {func_call_hash: CacheData(func_call_hash, pickle.loads(func_output), func_name=func_name)
+                for func_call_hash, func_output in results}
+        return data
+
+    @_set_db_connection
+    def get_cached_data_of_a_function_call(self, func_call_hash: str, func_name=None, use_isolated_connection=False) -> Optional[CacheData]:
         try:
             result = self.__local.db_connection.executar_comando_sql_select("SELECT func_output FROM CACHE WHERE func_call_hash = ?", (func_call_hash,))
             func_output = pickle.loads(result[0][0])
@@ -50,7 +51,7 @@ class DBStorage(Storage):
         except IndexError: pass
 
     @_set_db_connection
-    def save_cache_data(self, data:Dict[str, CacheData], use_isolated_connection=False) -> None:
+    def save_cache_data(self, data: Dict[str, CacheData], use_isolated_connection=False) -> None:
         if len(data) == 0: return
         sql_stmt = ''
         sql_params = []
