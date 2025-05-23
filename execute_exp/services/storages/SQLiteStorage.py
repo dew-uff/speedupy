@@ -20,8 +20,8 @@ class SQLiteStorage(Storage):
                 result = func(self, *args, **kwargs, use_isolated_connection=use_isolated_connection)
 
                 if func.__qualname__ == 'SQLiteStorage.save_cache_data':
-                    self.__local.db_connection.salvar_alteracoes()
-                self.__local.db_connection.fechar_conexao()
+                    self.__local.db_connection.commit()
+                self.__local.db_connection.close_connection()
                 self.__local.db_connection = self.__local.previous_conn
             else:
                 result = func(self, *args, **kwargs, use_isolated_connection=use_isolated_connection)
@@ -30,14 +30,14 @@ class SQLiteStorage(Storage):
 
     @_set_db_connection
     def get_all_cached_data(self, use_isolated_connection=False) -> Dict[str, CacheData]:
-        results = self.__local.db_connection.executar_comando_sql_select("SELECT func_call_hash, func_output FROM CACHE")
+        results = self.__local.db_connection.select("SELECT func_call_hash, func_output FROM CACHE")
         data = {func_call_hash: CacheData(func_call_hash, pickle.loads(func_output))
                 for func_call_hash, func_output in results}
         return data
 
     @_set_db_connection
     def get_cached_data_of_a_function(self, func_name: str, use_isolated_connection=False) -> Dict[str, CacheData]:
-        results = self.__local.db_connection.executar_comando_sql_select("SELECT func_call_hash, func_output FROM CACHE WHERE func_name = ?", (func_name,))
+        results = self.__local.db_connection.select("SELECT func_call_hash, func_output FROM CACHE WHERE func_name = ?", (func_name,))
         data = {func_call_hash: CacheData(func_call_hash, pickle.loads(func_output), func_name=func_name)
                 for func_call_hash, func_output in results}
         return data
@@ -45,7 +45,7 @@ class SQLiteStorage(Storage):
     @_set_db_connection
     def get_cached_data_of_a_function_call(self, func_call_hash: str, func_name=None, use_isolated_connection=False) -> Optional[CacheData]:
         try:
-            result = self.__local.db_connection.executar_comando_sql_select("SELECT func_output FROM CACHE WHERE func_call_hash = ?", (func_call_hash,))
+            result = self.__local.db_connection.select("SELECT func_output FROM CACHE WHERE func_call_hash = ?", (func_call_hash,))
             func_output = pickle.loads(result[0][0])
             return CacheData(func_call_hash, func_output, func_name=func_name)
         except IndexError: pass
@@ -67,8 +67,8 @@ class SQLiteStorage(Storage):
             sql_stmt = "INSERT OR IGNORE INTO CACHE(func_call_hash, func_output) VALUES" +\
                        len(data) * " (?, ?),"
         sql_stmt = sql_stmt[:-1]
-        self.__local.db_connection.executar_comando_sql_sem_retorno(sql_stmt, sql_params)
+        self.__local.db_connection.exec_without_output(sql_stmt, sql_params)
 
     def __del__(self):
-        self.__local.db_connection.salvar_alteracoes()
-        self.__local.db_connection.fechar_conexao()
+        self.__local.db_connection.commit()
+        self.__local.db_connection.close_connection()

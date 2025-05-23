@@ -31,7 +31,7 @@ class TestEnvironmentService(unittest.TestCase):
         expeceted_result = {('sqlite_sequence',), ('CACHE',), ('FUNCTION_CALLS_PROV',)}
         BancoSQLite.nome_banco = self.SQLITE_DB_FILENAME
         conexao_banco = BancoSQLite()
-        resp = conexao_banco.executar_comando_sql_select("SELECT tbl_name FROM sqlite_master WHERE type = 'table'")
+        resp = conexao_banco.select("SELECT tbl_name FROM sqlite_master WHERE type = 'table'")
         self.assertSetEqual(set(resp), expeceted_result)
 
     def test_cache_folder_exists_when_cache_folder_exists(self):

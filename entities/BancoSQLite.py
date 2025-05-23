@@ -26,7 +26,7 @@ class BancoSQLite():
 		func_name TEXT\
 		);"
 
-		self.executar_comando_sql_sem_retorno(stmt)
+		self.exec_without_output(stmt)
 
 	def _create_table_FUNCTION_CALLS_PROV(self):
 		stmt = "CREATE TABLE FUNCTION_CALLS_PROV(\
@@ -46,17 +46,17 @@ class BancoSQLite():
 		confidence_error REAL NOT NULL\
 		);"
 
-		self.executar_comando_sql_sem_retorno(stmt)
+		self.exec_without_output(stmt)
 
-	def executar_comando_sql_sem_retorno(self, sql, arguments=()):
+	def exec_without_output(self, sql, arguments=()):
 		self.cursor.execute(sql, arguments)
 
-	def executar_comando_sql_select(self, sql, arguments=()):
+	def select(self, sql, arguments=()):
 		self.cursor.execute(sql, arguments)
 		return self.cursor.fetchall()
 
-	def salvar_alteracoes(self):
+	def commit(self):
 		self.conexao.commit()
 
-	def fechar_conexao(self):
+	def close_connection(self):
 		self.conexao.close()

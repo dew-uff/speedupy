@@ -17,7 +17,7 @@ class TestSQLiteStorage(AbstractStorageTest, unittest.TestCase):
     def create_instance(self) -> Storage:
         self.create_database()
         storage = SQLiteStorage()
-        storage._SQLiteStorage__local.db_connection.salvar_alteracoes = Mock() # Preventing DB connection to commit changes when SQLiteStorage instance is destroyed
+        storage._SQLiteStorage__local.db_connection.commit = Mock() # Preventing DB connection to commit changes when SQLiteStorage instance is destroyed
         self.storage_conn = storage._SQLiteStorage__local.db_connection.conexao
         return storage
 

@@ -68,4 +68,4 @@ def _flush_redis_database():
 def _create_sqlite_database():
     conexao_banco = BancoSQLite()
     conexao_banco.create_database()
-    conexao_banco.fechar_conexao()
+    conexao_banco.close_connection()
