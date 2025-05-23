@@ -5,8 +5,9 @@ from util import deserialize_from_file, serialize_to_file
 from execute_exp.services.storages.Storage import Storage
 from execute_exp.entitites.CacheData import CacheData
 
+
 class FileSystemStorage(Storage):
-    def __init__(self, cache_folder:str):
+    def __init__(self, cache_folder: str):
         self.__CACHE_FOLDER_NAME = cache_folder
 
     def get_all_cached_data(self, use_isolated_connection=False) -> Dict[str, CacheData]:
@@ -15,8 +16,8 @@ class FileSystemStorage(Storage):
             file_path = os.path.join(self.__CACHE_FOLDER_NAME, file)
             data[file] = CacheData(file, deserialize_from_file(file_path))
         return data
-    
-    def get_cached_data_of_a_function(self, func_name:str, use_isolated_connection=False) -> Dict[str, CacheData]:
+
+    def get_cached_data_of_a_function(self, func_name: str, use_isolated_connection=False) -> Dict[str, CacheData]:
         try:
             data = {}
             folder_path = os.path.join(self.__CACHE_FOLDER_NAME, func_name)
@@ -25,8 +26,8 @@ class FileSystemStorage(Storage):
                 data[file] = CacheData(file, deserialize_from_file(file_path), func_name=func_name)
         except FileNotFoundError: pass
         finally: return data
-    
-    def get_cached_data_of_a_function_call(self, func_call_hash:str, func_name=None, use_isolated_connection=False) -> Optional[CacheData]:
+
+    def get_cached_data_of_a_function_call(self, func_call_hash: str, func_name=None, use_isolated_connection=False) -> Optional[CacheData]:
         try:
             folder_path = self.__CACHE_FOLDER_NAME
             if func_name:
@@ -34,13 +35,13 @@ class FileSystemStorage(Storage):
             file_path = os.path.join(folder_path, func_call_hash)
             return CacheData(func_call_hash, deserialize_from_file(file_path), func_name=func_name)
         except FileNotFoundError: pass
-    
-    def save_cache_data(self, data:Dict[str, CacheData], use_isolated_connection=False) -> None:
+
+    def save_cache_data(self, data: Dict[str, CacheData], use_isolated_connection=False) -> None:
         for func_call_hash, cache_data in data.items():
             self._save_cache_data_of_a_function_call(func_call_hash, cache_data.output,
-                                                    func_name=cache_data.func_name)
-        
-    def _save_cache_data_of_a_function_call(self, func_call_hash:str, func_output, func_name=None) -> None:
+                                                     func_name=cache_data.func_name)
+
+    def _save_cache_data_of_a_function_call(self, func_call_hash: str, func_output, func_name=None) -> None:
         folder_path = self.__CACHE_FOLDER_NAME
         if func_name:
             folder_path = os.path.join(folder_path, func_name)
