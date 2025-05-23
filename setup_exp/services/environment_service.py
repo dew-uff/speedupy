@@ -1,7 +1,9 @@
 import os
-from banco import Banco
 from logger.log import debug
 from constantes import Constantes
+from entities.BancoSQLite import BancoSQLite
+from entities.BancoRedis import BancoRedis
+
 
 def init_env():
     debug("cheking if speedupy environment exists")
@@ -12,19 +14,17 @@ def init_env():
     debug("creating speedupy environment")
     _create_folder()
     _create_cache_folder()
-    _create_database()
+    _create_databases()
 
 
 def _env_exists():
-    return _folder_exists() and _db_exists() and _cache_folder_exists()
+    return _folder_exists() and \
+           _cache_folder_exists() and \
+           BancoSQLite.database_exists()
 
 
 def _folder_exists():
     return os.path.exists(Constantes().FOLDER_NAME)
-
-
-def _db_exists():
-    return os.path.isfile(Constantes().BD_PATH)
 
 
 def _cache_folder_exists():
@@ -49,45 +49,23 @@ def _create_cache_folder():
     os.makedirs(Constantes().CACHE_FOLDER_NAME)
 
 
-def _create_database():
+def _create_databases():
     debug("creating database")
-    if _db_exists():
+    if BancoSQLite.database_exists():
         debug("database already exists")
         return
-    conexaoBanco = Banco(Constantes().BD_PATH)
-    _create_table_CACHE(conexaoBanco)
-    _create_table_FUNCTION_CALLS_PROV(conexaoBanco)
-    conexaoBanco.fecharConexao()
+
+    _flush_redis_database()
+    _create_sqlite_database()
 
 
-def _create_table_CACHE(banco: Banco):
-    debug("creating table CACHE")
+def _flush_redis_database():
+    redis = BancoRedis()
+    redis.flush_database()
+    redis.close_connection()
 
-    stmt = "CREATE TABLE IF NOT EXISTS CACHE (\
-    id INTEGER PRIMARY KEY AUTOINCREMENT,\
-    func_call_hash TEXT UNIQUE,\
-    func_output BLOB,\
-    func_name TEXT\
-    );"
 
-    banco.executarComandoSQLSemRetorno(stmt)
-
-def _create_table_FUNCTION_CALLS_PROV(banco: Banco):
-    stmt = "CREATE TABLE FUNCTION_CALLS_PROV(\
-    id INTEGER PRIMARY KEY AUTOINCREMENT,\
-    function_call_hash TEXT NOT NULL,\
-    outputs BLOB NOT NULL,\
-    total_num_exec INTEGER NOT NULL,\
-    next_revalidation INTEGER NOT NULL,\
-    next_index_weighted_seq INTEGER NOT NULL,\
-    mode_rel_freq REAL NOT NULL,\
-    mode_output BLOB NOT NULL,\
-    weighted_output_seq BLOB NOT NULL,\
-    mean_output BLOB NOT NULL,\
-    confidence_lv REAL NOT NULL,\
-    confidence_low_limit REAL NOT NULL,\
-    confidence_up_limit REAL NOT NULL,\
-    confidence_error REAL NOT NULL\
-    );"
-
-    banco.executarComandoSQLSemRetorno(stmt)
+def _create_sqlite_database():
+    conexao_banco = BancoSQLite()
+    conexao_banco.create_database()
+    conexao_banco.close_connection()
