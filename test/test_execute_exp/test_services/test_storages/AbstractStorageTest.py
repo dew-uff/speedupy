@@ -1,7 +1,6 @@
-import sqlite3, unittest, os, sys
-from unittest.mock import Mock
+import os, sys
 from typing import Dict
-from pickle import dumps, loads
+from pickle import dumps
 
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
@@ -11,7 +10,6 @@ from execute_exp.entitites.CacheData import CacheData
 from constantes import Constantes
 
 
-# XXX: CONTINUAR REFATORAÇÃO
 class AbstractStorageTest(object):
     def setUp(self):
         self.drop_env()
@@ -28,7 +26,7 @@ class AbstractStorageTest(object):
     def create_instance(self) -> Storage: pass
     def assert_storage_is_empty(self): pass
     def assert_cached_data(self, expected_data: Dict[str, CacheData]): pass
-    def manually_cache_a_record(self, func_hash: str, func_return, func_name=None, commit=False): pass
+    def manually_cache_a_record(self, func_hash: str, func_return, func_name=None, **kwargs): pass
 
     def assert_data_gotten_is_correct(self, data_gotten: Dict[str, CacheData], expected_data: Dict[str, CacheData]):
         self.assertEqual(len(data_gotten), len(expected_data))
@@ -61,13 +59,12 @@ class AbstractStorageTest(object):
 
         dicio = self.storage.get_all_cached_data()
 
-        expected_data = {'func_call_hash1':CacheData('func_call_hash1', (True, 2, 5)),
-                         'func_call_hash2':CacheData('func_call_hash2', [{'key1': 10, 'key_2': False}]),
-                         'func_call_hash3':CacheData('func_call_hash3', -123.213),
-                         'func_call_hash4':CacheData('func_call_hash4', [1, 2.213, 'test'])}
+        expected_data = {'func_call_hash1': CacheData('func_call_hash1', (True, 2, 5)),
+                         'func_call_hash2': CacheData('func_call_hash2', [{'key1': 10, 'key_2': False}]),
+                         'func_call_hash3': CacheData('func_call_hash3', -123.213),
+                         'func_call_hash4': CacheData('func_call_hash4', [1, 2.213, 'test'])}
         self.assert_data_gotten_is_correct(dicio, expected_data)
 
-    # XXX: TALVEZ ESSE TESTE SÓ FAÇA SENTIDO PARA SQLiteStorage
     def test_get_all_cached_data_using_an_isolated_connection(self):
         self.manually_cache_a_record('func_call_hash1', -123.3, commit=True)
         self.manually_cache_a_record('func_call_hash2', True, commit=True)
@@ -98,8 +95,8 @@ class AbstractStorageTest(object):
 
         dicio = self.storage.get_cached_data_of_a_function('f1')
 
-        expected_data = {'func_call_hash1':CacheData('func_call_hash1', 5000.00, func_name='f1'),
-                         'func_call_hash11':CacheData('func_call_hash11', (True, 2, 5), func_name='f1')}
+        expected_data = {'func_call_hash1': CacheData('func_call_hash1', 5000.00, func_name='f1'),
+                         'func_call_hash11': CacheData('func_call_hash11', (True, 2, 5), func_name='f1')}
         self.assert_data_gotten_is_correct(dicio, expected_data)
 
     def test_get_cached_data_of_a_function_when_there_are_many_cached_data_records_for_it(self):
@@ -110,12 +107,11 @@ class AbstractStorageTest(object):
 
         dicio = self.storage.get_cached_data_of_a_function('f1')
 
-        expected_data = {'func_call_hash1':CacheData('func_call_hash1', 'testing', func_name='f1'),
-                         'func_call_hash2':CacheData('func_call_hash2', (1,), func_name='f1'),
-                         'func_call_hash3':CacheData('func_call_hash3', [10, -4, False], func_name='f1')}
+        expected_data = {'func_call_hash1': CacheData('func_call_hash1', 'testing', func_name='f1'),
+                         'func_call_hash2': CacheData('func_call_hash2', (1,), func_name='f1'),
+                         'func_call_hash3': CacheData('func_call_hash3', [10, -4, False], func_name='f1')}
         self.assert_data_gotten_is_correct(dicio, expected_data)
 
-    # XXX: TALVEZ ESSE TESTE SÓ FAÇA SENTIDO PARA SQLiteStorage
     def test_get_cached_data_of_a_function_using_an_isolated_connection(self):
         self.manually_cache_a_record('func_call_hash1', 'My Test', func_name='f1', commit=True)
         self.manually_cache_a_record('func_call_hash2', {1, 4, -2}, func_name='f1', commit=True)
@@ -158,7 +154,6 @@ class AbstractStorageTest(object):
         cache_data = self.storage.get_cached_data_of_a_function_call('func_call_hash', func_name='f1')
         self.assert_two_cache_data_are_equal(cache_data, CacheData('func_call_hash', 'my_string', func_name='f1'))
 
-    # XXX: TALVEZ ESSE TESTE SÓ FAÇA SENTIDO PARA SQLiteStorage
     def test_get_cached_data_of_a_function_call_using_an_isolated_connection(self):
         self.manually_cache_a_record('func_call_hash1', -3.1415, commit=True)
         self.manually_cache_a_record('func_call_hash2', [1, {2, 4, 1}, -2], commit=True)
@@ -197,6 +192,16 @@ class AbstractStorageTest(object):
         self.storage.save_cache_data(data)
         self.assert_cached_data(data)
 
+    def test_save_cache_data_with_func_name_when_there_are_already_other_entries_for_this_func_name(self):
+        self.manually_cache_a_record('func_call_hash1', MyClass(), func_name='f1')
+
+        data = {'func_call_hash2': CacheData('func_call_hash2', {1, True}, func_name='f1'),
+                'func_call_hash3': CacheData('func_call_hash3', ('test',), func_name='f1')}
+        self.storage.save_cache_data(data)
+
+        data.update({'func_call_hash1': CacheData('func_call_hash1', MyClass(), func_name='f1')})
+        self.assert_cached_data(data)
+
     def test_save_cache_data_of_a_function_call_when_function_call_record_already_exists(self):
         self.manually_cache_a_record('func_call_hash', (True, 2, 5))
 
@@ -204,7 +209,6 @@ class AbstractStorageTest(object):
         self.storage.save_cache_data(data)
         self.assert_cached_data(data)
 
-    # XXX: TALVEZ ESSE TESTE SÓ FAÇA SENTIDO PARA SQLiteStorage
     def test_save_cache_data_using_an_isolated_connection(self):
         data = {'func_call_hash1': CacheData('func_call_hash1', {1, True}, func_name='f1'),
                 'func_call_hash2': CacheData('func_call_hash2', -23.123, func_name='f2'),

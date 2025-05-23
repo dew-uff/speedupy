@@ -13,8 +13,14 @@ from constantes import Constantes
 from test_execute_exp.test_services.test_storages.AbstractStorageTest import AbstractStorageTest
 
 
-# XXX: CONTINUAR REFATORAÇÃO
 class TestSQLiteStorage(AbstractStorageTest, unittest.TestCase):
+    def create_instance(self) -> Storage:
+        self.create_database()
+        storage = SQLiteStorage()
+        storage._SQLiteStorage__local.db_connection.salvar_alteracoes = Mock() # Preventing DB connection to commit changes when SQLiteStorage instance is destroyed
+        self.storage_conn = storage._SQLiteStorage__local.db_connection.conexao
+        return storage
+
     def create_database(self):
         stmt = "CREATE TABLE IF NOT EXISTS CACHE (\
         id INTEGER PRIMARY KEY AUTOINCREMENT,\
@@ -26,13 +32,6 @@ class TestSQLiteStorage(AbstractStorageTest, unittest.TestCase):
         self.conn.execute(stmt)
         self.conn.commit()
         self.conn.close()
-
-    def create_instance(self) -> Storage:
-        self.create_database()
-        storage = SQLiteStorage()
-        storage._SQLiteStorage__local.db_connection.salvar_alteracoes = Mock() # Preventing DB connection to commit changes when SQLiteStorage instance is destroyed
-        self.storage_conn = storage._SQLiteStorage__local.db_connection.conexao
-        return storage
 
     def assert_storage_is_empty(self):
         resp = self.storage_conn.execute("SELECT * FROM CACHE").fetchall()
@@ -49,11 +48,11 @@ class TestSQLiteStorage(AbstractStorageTest, unittest.TestCase):
             data_gotten[fc_hash] = CacheData(fc_hash, fc_output, func_name=fc_name)
         self.assert_data_gotten_is_correct(data_gotten, expected_data)
 
-    def manually_cache_a_record(self, func_hash, func_return, func_name=None, commit=False):
+    def manually_cache_a_record(self, func_hash, func_return, func_name=None, **kwargs):
         sql_stmt = 'INSERT INTO CACHE(func_call_hash, func_output) VALUES (?, ?)'
         sql_params = [func_hash, dumps(func_return)]
         if func_name:
             sql_stmt = 'INSERT INTO CACHE(func_call_hash, func_output, func_name) VALUES (?, ?, ?)'
             sql_params.append(func_name)
         self.storage_conn.execute(sql_stmt, sql_params)
-        if commit: self.storage_conn.commit()
+        if 'commit' in kwargs and kwargs['commit']: self.storage_conn.commit()
