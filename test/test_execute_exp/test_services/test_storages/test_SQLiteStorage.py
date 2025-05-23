@@ -15,18 +15,17 @@ from test_execute_exp.test_services.test_storages.AbstractStorageTest import Abs
 
 # XXX: CONTINUAR REFATORAÇÃO
 class TestSQLiteStorage(AbstractStorageTest, unittest.TestCase):
-    @classmethod
-    def create_database(cls):
+    def create_database(self):
         stmt = "CREATE TABLE IF NOT EXISTS CACHE (\
         id INTEGER PRIMARY KEY AUTOINCREMENT,\
         func_call_hash TEXT UNIQUE,\
         func_output BLOB,\
         func_name TEXT\
         );"
-        cls.conn = sqlite3.connect(Constantes().BD_PATH)
-        cls.conn.execute(stmt)
-        cls.conn.commit()
-        cls.conn.close()
+        self.conn = sqlite3.connect(Constantes().BD_PATH)
+        self.conn.execute(stmt)
+        self.conn.commit()
+        self.conn.close()
 
     def create_instance(self) -> Storage:
         self.create_database()
@@ -39,7 +38,7 @@ class TestSQLiteStorage(AbstractStorageTest, unittest.TestCase):
         resp = self.storage_conn.execute("SELECT * FROM CACHE").fetchall()
         self.assertListEqual(resp, [])
 
-    def assert_cache_data_correctly_inserted(self, expected_data: Dict[str, CacheData]):
+    def assert_cached_data(self, expected_data: Dict[str, CacheData]):
         sql = 'SELECT func_call_hash, func_output, func_name FROM CACHE'
         resp = self.storage_conn.execute(sql).fetchall()
         data_gotten = {}
@@ -49,17 +48,6 @@ class TestSQLiteStorage(AbstractStorageTest, unittest.TestCase):
             fc_name = row[2]
             data_gotten[fc_hash] = CacheData(fc_hash, fc_output, func_name=fc_name)
         self.assert_data_gotten_is_correct(data_gotten, expected_data)
-
-    def assert_data_gotten_is_correct(self, data_gotten: Dict[str, CacheData], expected_data: Dict[str, CacheData]):
-        self.assertListEqual(list(data_gotten.keys()), list(expected_data.keys()))
-        for func_call_hash in data_gotten:
-            self.assert_two_cache_data_are_equal(data_gotten[func_call_hash],
-                                                 expected_data[func_call_hash])
-
-    def assert_two_cache_data_are_equal(self, cache_data_1: CacheData, cache_data_2: CacheData):
-        self.assertEqual(cache_data_1.function_call_hash, cache_data_2.function_call_hash)
-        self.assertEqual(cache_data_1.func_name, cache_data_2.func_name)
-        self.assertEqual(dumps(cache_data_1.output), dumps(cache_data_2.output))
 
     def manually_cache_a_record(self, func_hash, func_return, func_name=None, commit=False):
         sql_stmt = 'INSERT INTO CACHE(func_call_hash, func_output) VALUES (?, ?)'

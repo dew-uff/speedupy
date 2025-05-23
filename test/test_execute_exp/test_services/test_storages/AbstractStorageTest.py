@@ -27,9 +27,14 @@ class AbstractStorageTest(object):
 
     def create_instance(self) -> Storage: pass
     def assert_storage_is_empty(self): pass
-    def assert_cache_data_correctly_inserted(self, expected_data: Dict[str, CacheData]): pass
-    def assert_data_gotten_is_correct(self, data_gotten: Dict[str, CacheData], expected_data: Dict[str, CacheData]): pass
+    def assert_cached_data(self, expected_data: Dict[str, CacheData]): pass
     def manually_cache_a_record(self, func_hash: str, func_return, func_name=None, commit=False): pass
+
+    def assert_data_gotten_is_correct(self, data_gotten: Dict[str, CacheData], expected_data: Dict[str, CacheData]):
+        self.assertEqual(len(data_gotten), len(expected_data))
+        self.assertSetEqual(set(data_gotten.keys()), set(expected_data.keys()))
+        for func_call_hash in data_gotten:
+            self.assert_two_cache_data_are_equal(data_gotten[func_call_hash], expected_data[func_call_hash])
 
     def assert_two_cache_data_are_equal(self, cache_data_1: CacheData, cache_data_2: CacheData):
         self.assertEqual(cache_data_1.function_call_hash, cache_data_2.function_call_hash)
@@ -165,24 +170,24 @@ class AbstractStorageTest(object):
 
     def test_save_cache_data_when_there_is_no_data_to_save(self):
         self.storage.save_cache_data({})
-        self.assert_cache_data_correctly_inserted({})
+        self.assert_cached_data({})
 
     def test_save_cache_data_when_there_is_one_record_to_save_without_func_name(self):
         data = {'func_call_hash': CacheData('func_call_hash', {1, 5, 4})}
         self.storage.save_cache_data(data)
-        self.assert_cache_data_correctly_inserted(data)
+        self.assert_cached_data(data)
 
     def test_save_cache_data_when_there_is_one_record_to_save_with_func_name(self):
         data = {'func_call_hash': CacheData('func_call_hash', {1, True}, func_name='f1')}
         self.storage.save_cache_data(data)
-        self.assert_cache_data_correctly_inserted(data)
+        self.assert_cached_data(data)
 
     def test_save_cache_data_when_there_are_many_records_to_save_without_func_name(self):
         data = {'func_call_hash1': CacheData('func_call_hash1', {1, True}),
                 'func_call_hash2': CacheData('func_call_hash2', ('test',)),
                 'func_call_hash3': CacheData('func_call_hash3', -23.123)}
         self.storage.save_cache_data(data)
-        self.assert_cache_data_correctly_inserted(data)
+        self.assert_cached_data(data)
 
     def test_save_cache_data_when_there_are_many_records_to_save_with_func_name(self):
         data = {'func_call_hash1': CacheData('func_call_hash1', {1, True}, func_name='f1'),
@@ -190,14 +195,14 @@ class AbstractStorageTest(object):
                 'func_call_hash3': CacheData('func_call_hash3', -23.123, func_name='f2'),
                 'func_call_hash4': CacheData('func_call_hash4', MyClass(), func_name='f3')}
         self.storage.save_cache_data(data)
-        self.assert_cache_data_correctly_inserted(data)
+        self.assert_cached_data(data)
 
     def test_save_cache_data_of_a_function_call_when_function_call_record_already_exists(self):
         self.manually_cache_a_record('func_call_hash', (True, 2, 5))
 
         data = {'func_call_hash': CacheData('func_call_hash', (True, 2, 5))}
         self.storage.save_cache_data(data)
-        self.assert_cache_data_correctly_inserted(data)
+        self.assert_cached_data(data)
 
     # XXX: TALVEZ ESSE TESTE SÓ FAÇA SENTIDO PARA SQLiteStorage
     def test_save_cache_data_using_an_isolated_connection(self):
@@ -205,7 +210,7 @@ class AbstractStorageTest(object):
                 'func_call_hash2': CacheData('func_call_hash2', -23.123, func_name='f2'),
                 'func_call_hash3': CacheData('func_call_hash3', MyClass(), func_name='f3')}
         self.storage.save_cache_data(data, use_isolated_connection=True)
-        self.assert_cache_data_correctly_inserted(data)
+        self.assert_cached_data(data)
 
 
 class MyClass():
