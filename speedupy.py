@@ -1,7 +1,9 @@
 import time, sys, os
 from functools import wraps
+from typing import Dict, List, Tuple, Any
 sys.path.append(os.path.dirname(__file__))
 
+from execute_exp.entitites.FunctionCallProv import FunctionCallProv
 from execute_exp.services.factory import init_exec_mode, init_revalidation
 from execute_exp.services.DataAccess import DataAccess, get_id
 from execute_exp.SpeeduPySettings import SpeeduPySettings
@@ -9,11 +11,6 @@ from execute_exp.entitites.Metadata import Metadata
 from SingletonMeta import SingletonMeta
 from util import check_python_version
 from logger.log import debug
-
-class SpeeduPy(metaclass=SingletonMeta):
-    def __init__(self):
-        self.exec_mode = init_exec_mode()
-        self.revalidation = init_revalidation(self.exec_mode)
 
 def initialize_speedupy(f):
     @wraps(f)
@@ -25,67 +22,6 @@ def initialize_speedupy(f):
         end = time.perf_counter()
         print(f"TOTAL EXECUTION TIME: {end - start}")
     return wrapper
-
-#TODO: CORRIGIR IMPLEMENTAÇÃO
-def maybe_deterministic(f):
-    @wraps(f)
-    def wrapper(*method_args, **method_kwargs):
-        func_hash = DataAccess().get_function_hash(f.__qualname__)
-        func_call_hash = get_id(func_hash, method_args, method_kwargs)
-        if SpeeduPy().revalidation.revalidation_in_current_execution(func_call_hash):
-            return_value, elapsed_time = _execute_func_measuring_time(f, *method_args, **method_kwargs)
-            
-            md = Metadata(func_hash, method_args, method_kwargs, return_value, elapsed_time)
-            DataAccess().add_to_metadata(func_call_hash, md)
-            SpeeduPy().revalidation.calculate_next_revalidation(func_call_hash, md)
-            DataAccess().add_metadata_collected_to_a_func_call_prov(func_call_hash)
-        # else:
-        #     if (num_exec_BD < num_exec_min) and \
-        #        (num_exec_BD + num_exec_metadados >= num_exec_min):
-        #         atualizar_dados_BD_com_metadados()
-        #     if num_exec_BD >= num_exec_min:
-        #         if exec_mode.pode_acelerar_funcao():
-        #             Acelera! (exec_mode.get_func_call_cache)
-        #             revalidation.decrementar_cont_prox_revalidacao()
-        #         else:
-        #             Executa função!
-        #     else:
-        #         Executa função + Coleta Metadados!
-
-
-        # OLD IMPLEMENTATION
-        # c = DataAccess().get_cache_entry(f.__qualname__, method_args, method_kwargs)
-        # returns_2_freq = _get_function_call_return_freqs(f, method_args, method_kwargs)
-        # if _cache_exists(c):
-        #     debug("cache hit for {0}({1})".format(f.__name__, *method_args))
-        #     return c
-        # if _returns_exist(returns_2_freq):
-        #     debug("simulating {0}({1})".format(f.__name__, *method_args))
-        #     ret = _simulate_func_exec(returns_2_freq)
-        #     return ret
-        # else:
-        #     debug("cache miss for {0}({1})".format(f.__name__, *method_args))
-        #     return_value, elapsed_time = _execute_func(f, *method_args, **method_kwargs)
-        #     if _function_call_maybe_deterministic(f, method_args, method_kwargs):
-        #         debug("{0}({1} may be deterministic!)".format(f.__name__, *method_args))
-        #         # DataAccess().add_to_metadata(f.__qualname__, method_args, method_kwargs, return_value, elapsed_time)
-        #     return return_value
-    return wrapper
-
-# OLD IMPLEMENTATION
-# def _returns_exist(rets_2_freq:Optional[Dict]) -> bool:
-#     return rets_2_freq is not None
-
-# def _get_function_call_return_freqs(f, args:List, kwargs:Dict) -> Optional[Dict]:
-#     f_hash = DataAccess().FUNCTIONS_2_HASHES[f.__qualname__]
-#     return get_function_call_return_freqs(f_hash, args, kwargs)
-
-#TODO: CORRIGIR IMPLEMENTAÇÃO
-# def _function_call_maybe_deterministic(func: Callable, func_args:List, func_kwargs:Dict) -> bool:
-#     func_hash = DataAccess().FUNCTIONS_2_HASHES[func.__qualname__]
-#     func_call_hash = get_id(func_hash, func_args, func_kwargs)
-#     #return func_call_hash not in Constantes().DONT_CACHE_FUNCTION_CALLS
-#     return True
 
 def deterministic(f):
     @wraps(f)
@@ -105,11 +41,61 @@ def deterministic(f):
 def _cache_doesnt_exist(cache) -> bool:
     return cache is None
 
+class SpeeduPy(metaclass=SingletonMeta):
+    def __init__(self):
+        self.exec_mode = init_exec_mode()
+        self.revalidation = init_revalidation(self.exec_mode)
+
+#TODO: TEST
+def maybe_deterministic(f):
+    @wraps(f)
+    def wrapper(*method_args, **method_kwargs):
+        f_hash = DataAccess().get_function_hash(f.__qualname__)
+        fc_hash = get_id(f_hash, method_args, method_kwargs)
+        fc_prov = DataAccess().get_function_call_prov_entry(fc_hash)
+        if SpeeduPy().revalidation.revalidation_in_current_execution(fc_prov):
+            result = _revalidate_func(f, method_args, method_kwargs, f_hash, fc_hash, fc_prov)
+        else:
+            if _updating_FunctionCallProv_may_speed_up_func_call(fc_hash, fc_prov):
+                DataAccess().add_metadata_collected_to_a_func_call_prov(fc_prov)
+
+            if _FunctionCallProv_has_enough_data_to_classify_func_call(fc_prov):
+                if SpeeduPy().exec_mode.func_call_can_be_cached(fc_prov):
+                    SpeeduPy().revalidation.decrement_num_exec_to_next_revalidation(fc_prov)
+                    result = SpeeduPy().exec_mode.get_func_call_cache(fc_prov)
+                else:
+                    result = f(*method_args, **method_kwargs)
+            else:
+                result, _ = _execute_func_collecting_metadata(f, method_args, method_kwargs, f_hash, fc_hash)
+        return result
+    return wrapper
+
+def _revalidate_func(f, method_args:List, method_kwargs:Dict, f_hash:str, fc_hash:str, fc_prov:FunctionCallProv) -> Any:
+    result, md = _execute_func_collecting_metadata(f, method_args, method_kwargs, f_hash, fc_hash)
+    SpeeduPy().revalidation.calculate_next_revalidation(fc_prov, md)
+    DataAccess().add_metadata_collected_to_a_func_call_prov(fc_prov)
+    return result
+
+def _execute_func_collecting_metadata(f, method_args:List, method_kwargs:Dict,
+                                      func_hash:str, func_call_hash:str) -> Tuple[Any, Metadata]:
+    return_value, elapsed_time = _execute_func_measuring_time(f, *method_args, **method_kwargs)
+    md = Metadata(func_hash, method_args, method_kwargs, return_value, elapsed_time)
+    DataAccess().add_to_metadata(func_call_hash, md)
+    return return_value, md
+
 def _execute_func_measuring_time(f, method_args, method_kwargs):
     start = time.perf_counter()
     result_value = f(*method_args, **method_kwargs)
     end = time.perf_counter()
     return result_value, end - start
+
+def _updating_FunctionCallProv_may_speed_up_func_call(fc_hash:str, fc_prov:FunctionCallProv) -> bool:
+    num_metadata = DataAccess().get_amount_of_collected_metadata(fc_hash)
+    return (fc_prov.total_num_exec < SpeeduPy().exec_mode.min_num_exec) and \
+           (fc_prov.total_num_exec + num_metadata >= SpeeduPy().exec_mode.min_num_exec)
+
+def _FunctionCallProv_has_enough_data_to_classify_func_call(fc_prov:FunctionCallProv) -> bool:
+    return fc_prov.total_num_exec >= SpeeduPy().exec_mode.min_num_exec
 
 check_python_version()
 
