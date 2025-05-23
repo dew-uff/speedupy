@@ -47,7 +47,7 @@ def _init_storage() -> Storage:
 
     if SpeeduPySettings().storage == ['sqlite']: return SQLiteStorage()
     elif SpeeduPySettings().storage == ['redis']: return RedisStorage()
-    elif SpeeduPySettings().storage == ['file']: return FileSystemStorage(Constantes().CACHE_FOLDER_NAME)
+    elif SpeeduPySettings().storage == ['file']: return FileSystemStorage()
 
 
 def init_exec_mode() -> Optional[AbstractExecutionMode]:

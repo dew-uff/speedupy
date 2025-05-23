@@ -15,7 +15,9 @@ from test_execute_exp.test_services.test_storages.AbstractStorageTest import Abs
 class TestFileSystemStorage(AbstractStorageTest, unittest.TestCase):
     def create_instance(self) -> Storage:
         os.makedirs(Constantes().CACHE_FOLDER_NAME)
-        return FileSystemStorage(Constantes().CACHE_FOLDER_NAME)
+        storage = FileSystemStorage()
+        storage.CACHE_FOLDER_NAME = Constantes().CACHE_FOLDER_NAME
+        return storage
 
     def assert_storage_is_empty(self):
         self.assertListEqual(os.listdir(Constantes().CACHE_FOLDER_NAME), [])
