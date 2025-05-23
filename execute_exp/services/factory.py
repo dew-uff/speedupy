@@ -42,9 +42,11 @@ def _init_retrieval_strategy() -> AbstractRetrievalStrategy:
 
 def _init_storage() -> Storage:
     from execute_exp.services.storages.SQLiteStorage import SQLiteStorage
+    from execute_exp.services.storages.RedisStorage import RedisStorage
     from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
 
-    if SpeeduPySettings().storage == ['db']: return SQLiteStorage()
+    if SpeeduPySettings().storage == ['sqlite']: return SQLiteStorage()
+    elif SpeeduPySettings().storage == ['redis']: return RedisStorage()
     elif SpeeduPySettings().storage == ['file']: return FileSystemStorage(Constantes().CACHE_FOLDER_NAME)
 
 

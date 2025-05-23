@@ -44,7 +44,8 @@ def hashes_msg():
 
 def storage_msg():
     return "\nStorage:\n\
-    =>db     : use a database to store data\n\
+    =>sqlite : use a SQLite database to store data\n\
+    =>redis  : use a Redis database to store data\n\
     =>file   : use the filesystem to store data.\n"
 
 
@@ -77,7 +78,7 @@ def get_params():
     retrieval_exec_modes = ['sequential', 'thread']
     num_dicts = ['0', '1', '2', '2-fast']
     hashes = ['md5', 'murmur', 'xxhash']
-    storage_options = ['db', 'file']
+    storage_options = ['sqlite', 'redis', 'file']
 
     speedupy_arg_parser = argparse.ArgumentParser(usage=help_msg())
 
@@ -184,7 +185,7 @@ def get_params():
                                      choices=storage_options,
                                      metavar='',
                                      nargs=1,
-                                     default=['db'],
+                                     default=['sqlite'],
                                      help='SpeeduPy\'s mechanism of storage: choose one of the following options: ' + ', '.join(storage_options))
 
     args = speedupy_arg_parser.parse_args()
