@@ -17,14 +17,14 @@ class SQLiteStorage(Storage):
             if use_isolated_connection:
                 self.__local.previous_conn = self.__local.db_connection
                 self.__local.db_connection = BancoSQLite()
-                result = func(self, *args, use_isolated_connection, **kwargs)
+                result = func(self, *args, **kwargs, use_isolated_connection=use_isolated_connection)
 
                 if func.__qualname__ == 'SQLiteStorage.save_cache_data':
                     self.__local.db_connection.salvar_alteracoes()
                 self.__local.db_connection.fechar_conexao()
                 self.__local.db_connection = self.__local.previous_conn
             else:
-                result = func(self, *args, use_isolated_connection, **kwargs)
+                result = func(self, *args, **kwargs, use_isolated_connection=use_isolated_connection)
             return result
         return wrapper
 
@@ -47,7 +47,7 @@ class SQLiteStorage(Storage):
         try:
             result = self.__local.db_connection.executar_comando_sql_select("SELECT func_output FROM CACHE WHERE func_call_hash = ?", (func_call_hash,))
             func_output = pickle.loads(result[0][0])
-            return CacheData(func_call_hash, func_output)
+            return CacheData(func_call_hash, func_output, func_name=func_name)
         except IndexError: pass
 
     @_set_db_connection
