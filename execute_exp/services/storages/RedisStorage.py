@@ -6,17 +6,14 @@ from execute_exp.entitites.CacheData import CacheData
 from entities.BancoRedis import BancoRedis
 
 
-# XXX: IMPLEMENTAR E TESTAR!
 class RedisStorage(Storage):
     def __init__(self):
         self.redis = BancoRedis()
 
-    # XXX: TALVEZ SEJA POSSÍVEL JÁ SALVAR NO REDIS OS DADOS NESSA ESTRUTURA
     def get_all_cached_data(self, use_isolated_connection=False) -> Dict[str, CacheData]:
         return {func_call_hash: CacheData(func_call_hash, pickle.loads(func_output))
                 for func_call_hash, func_output in self.redis.get_all_key_value_pairs().items()}
 
-    # XXX: TALVEZ SEJA POSSÍVEL JÁ SALVAR NO REDIS OS DADOS NESSA ESTRUTURA
     def get_cached_data_of_a_function(self, func_name: str, use_isolated_connection=False) -> Dict[str, CacheData]:
         results = self.redis.get_all_key_value_pairs_inside_hash(func_name).items()
         return {func_call_hash: CacheData(func_call_hash, pickle.loads(func_output), func_name=func_name)
