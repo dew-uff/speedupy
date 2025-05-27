@@ -3,6 +3,7 @@ from logger.log import debug
 from constantes import Constantes
 from entities.BancoSQLite import BancoSQLite
 from entities.BancoRedis import BancoRedis
+from entities.BancoMongo import BancoMongo
 
 
 def init_env():
@@ -49,6 +50,7 @@ def _create_cache_folder():
     os.makedirs(Constantes().CACHE_FOLDER_NAME)
 
 
+# XXX: TESTAR
 def _create_databases():
     debug("creating database")
     if BancoSQLite.database_exists():
@@ -56,7 +58,15 @@ def _create_databases():
         return
 
     _flush_redis_database()
+    _flush_mongo_database()
     _create_sqlite_database()
+
+
+# XXX: TESTAR
+def _flush_mongo_database():
+    conexao_banco = BancoMongo()
+    conexao_banco.flush_database()
+    conexao_banco.close_connection()
 
 
 def _flush_redis_database():
