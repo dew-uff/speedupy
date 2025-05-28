@@ -35,5 +35,5 @@ class BancoRedis(metaclass=SingletonMeta):
 		for h_key, value in data.items(): pipe.hset(h_key, mapping=value)
 		pipe.execute()
 
-	def close_connection(self):
+	def __del__(self):
 		self.client.close()
