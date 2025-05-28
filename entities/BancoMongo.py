@@ -1,3 +1,4 @@
+import atexit
 from pymongo import MongoClient, UpdateOne
 from typing import Optional, Dict
 from SingletonMeta import SingletonMeta
@@ -15,6 +16,8 @@ class BancoMongo(metaclass=SingletonMeta):
 	def __init__(self):
 		self.client = MongoClient("mongodb://localhost:27017/")
 		self.cache = self.client[self.DB_NAME][self.COLLECTION_NAME]
+		atexit.register(self.cleanup)
+
 
 	def flush_database(self) -> None:
 		self.client.drop_database(self.DB_NAME)
@@ -39,5 +42,5 @@ class BancoMongo(metaclass=SingletonMeta):
 		operations = [UpdateOne({"_id": h_key}, {"$set": value}, upsert=True) for h_key, value in data.items()]
 		self.cache.bulk_write(operations)
 
-	def __del__(self):
+	def cleanup(self):
 		self.client.close()
