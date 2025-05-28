@@ -4,7 +4,6 @@ from typing import Optional, Dict
 from SingletonMeta import SingletonMeta
 
 
-# XXX: IMPLEMENT + TEST
 class BancoMongo(metaclass=SingletonMeta):
 	DB_NAME = 'speedupy'
 	COLLECTION_NAME = 'CACHE'
@@ -17,7 +16,6 @@ class BancoMongo(metaclass=SingletonMeta):
 		self.client = MongoClient("mongodb://localhost:27017/")
 		self.cache = self.client[self.DB_NAME][self.COLLECTION_NAME]
 		atexit.register(self.cleanup)
-
 
 	def flush_database(self) -> None:
 		self.client.drop_database(self.DB_NAME)
