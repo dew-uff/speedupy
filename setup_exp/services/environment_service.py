@@ -66,13 +66,11 @@ def _create_databases():
 def _flush_mongo_database():
     conexao_banco = BancoMongo()
     conexao_banco.flush_database()
-    conexao_banco.close_connection()
 
 
 def _flush_redis_database():
     redis = BancoRedis()
     redis.flush_database()
-    redis.close_connection()
 
 
 def _create_sqlite_database():
