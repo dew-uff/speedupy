@@ -43,10 +43,12 @@ def _init_retrieval_strategy() -> AbstractRetrievalStrategy:
 def _init_storage() -> Storage:
     from execute_exp.services.storages.SQLiteStorage import SQLiteStorage
     from execute_exp.services.storages.RedisStorage import RedisStorage
+    from execute_exp.services.storages.MongoStorage import MongoStorage
     from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
 
     if SpeeduPySettings().storage == ['sqlite']: return SQLiteStorage()
     elif SpeeduPySettings().storage == ['redis']: return RedisStorage()
+    elif SpeeduPySettings().storage == ['mongo']: return MongoStorage()
     elif SpeeduPySettings().storage == ['file']: return FileSystemStorage()
 
 

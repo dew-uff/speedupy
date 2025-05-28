@@ -1,4 +1,4 @@
-import redis
+import atexit, redis
 from typing import Dict
 from SingletonMeta import SingletonMeta
 
@@ -6,6 +6,7 @@ from SingletonMeta import SingletonMeta
 class BancoRedis(metaclass=SingletonMeta):
 	def __init__(self):
 		self.client = redis.Redis(host='localhost', port=6379, db=0)
+		atexit.register(self.cleanup)
 
 	def flush_database(self):
 		self.client.flushdb()
@@ -35,5 +36,5 @@ class BancoRedis(metaclass=SingletonMeta):
 		for h_key, value in data.items(): pipe.hset(h_key, mapping=value)
 		pipe.execute()
 
-	def close_connection(self):
+	def cleanup(self):
 		self.client.close()

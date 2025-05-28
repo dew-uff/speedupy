@@ -3,6 +3,7 @@ from logger.log import debug
 from constantes import Constantes
 from entities.BancoSQLite import BancoSQLite
 from entities.BancoRedis import BancoRedis
+from entities.BancoMongo import BancoMongo
 
 
 def init_env():
@@ -56,13 +57,18 @@ def _create_databases():
         return
 
     _flush_redis_database()
+    _flush_mongo_database()
     _create_sqlite_database()
+
+
+def _flush_mongo_database():
+    conexao_banco = BancoMongo()
+    conexao_banco.flush_database()
 
 
 def _flush_redis_database():
     redis = BancoRedis()
     redis.flush_database()
-    redis.close_connection()
 
 
 def _create_sqlite_database():

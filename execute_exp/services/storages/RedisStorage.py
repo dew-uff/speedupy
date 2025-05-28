@@ -39,6 +39,3 @@ class RedisStorage(Storage):
         else:
             for func_call_hash, cache_data in data.items(): records[func_call_hash] = pickle.dumps(cache_data.output)
             self.redis.set_group_of_key_value_pairs(records)
-
-    def __del__(self):
-        self.redis.close_connection()
