@@ -36,3 +36,6 @@ class TestRedisStorage(AbstractStorageTest, unittest.TestCase):
     def manually_cache_a_record(self, func_hash, func_return, func_name=None, **kwargs):
         if func_name: self.redis.hset(func_name, func_hash, dumps(func_return))
         else: self.redis.set(func_hash, dumps(func_return))
+
+    def __del__(self):
+        self.redis.close()
