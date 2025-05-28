@@ -50,7 +50,6 @@ def _create_cache_folder():
     os.makedirs(Constantes().CACHE_FOLDER_NAME)
 
 
-# XXX: TESTAR
 def _create_databases():
     debug("creating database")
     if BancoSQLite.database_exists():
@@ -62,7 +61,6 @@ def _create_databases():
     _create_sqlite_database()
 
 
-# XXX: TESTAR
 def _flush_mongo_database():
     conexao_banco = BancoMongo()
     conexao_banco.flush_database()

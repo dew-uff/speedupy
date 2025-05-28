@@ -1,11 +1,10 @@
-import unittest, unittest.mock, os, sys, random, pickle
+import unittest, redis, pymongo, os, sys, random, pickle
 from pathlib import Path
 
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
 from entities.BancoSQLite import BancoSQLite
-from entities.BancoRedis import BancoRedis
 from setup_exp.services.environment_service import _create_databases, _create_cache_folder, _create_folder, _cache_folder_exists, _folder_exists, _env_exists, init_env
 
 
@@ -16,15 +15,25 @@ class TestEnvironmentService(unittest.TestCase):
         cls.CACHE_FOLDER_NAME = os.path.join(cls.FOLDER_NAME, "cache")
         cls.SQLITE_DB_FILENAME = os.path.join(cls.FOLDER_NAME, "speedupy.db")
 
-        cls.redis = BancoRedis()
+        cls.redis = redis.Redis(host='localhost', port=6379, db=0)
+        cls.mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
+        cls.mongo = cls.mongo_client['speedupy']['CACHE']
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.redis.close()
+        cls.mongo_client.close()
 
     def tearDown(self):
         os.system("rm -rf {}".format(self.FOLDER_NAME))
-        self.redis.flush_database()
+        self.redis.flushdb()
+        self.mongo_client.drop_database('speedupy')
 
     def populate_redis_database(self):
-        data = {str(i): pickle.dumps(random.random()) for i in range(5)}
-        self.redis.set_group_of_key_value_pairs(data)
+        for i in range(5): self.redis.set(str(i), pickle.dumps(random.random()))
+
+    def populate_mongo_database(self):
+        for i in range(5): self.mongo.insert_one({"_id": str(i), "value": pickle.dumps(random.random())})
 
     def assert_sqlite_db_exists(self):
         self.assertTrue(os.path.exists(self.SQLITE_DB_FILENAME))
@@ -71,23 +80,28 @@ class TestEnvironmentService(unittest.TestCase):
     def test_create_database_when_sqlite_database_does_not_exist(self):
         os.mkdir(self.FOLDER_NAME)
         self.populate_redis_database()
+        self.populate_mongo_database()
 
         self.assertFalse(os.path.exists(self.SQLITE_DB_FILENAME))
         self.assertEqual(self.redis.dbsize(), 5)
+        self.assertEqual(self.mongo.count_documents({}), 5)
 
         _create_databases()
 
         self.assert_sqlite_db_exists()
         self.assertEqual(self.redis.dbsize(), 0)
+        self.assertEqual(self.mongo.count_documents({}), 0)
 
     def test_create_database_when_sqlite_database_exists(self):
         os.mkdir(self.FOLDER_NAME)
         Path(self.SQLITE_DB_FILENAME).touch()
         self.populate_redis_database()
+        self.populate_mongo_database()
 
         _create_databases()
 
         self.assertEqual(self.redis.dbsize(), 5)
+        self.assertEqual(self.mongo.count_documents({}), 5)
 
     def test_create_cache_folder(self):
         self.assertFalse(os.path.exists(self.CACHE_FOLDER_NAME))
