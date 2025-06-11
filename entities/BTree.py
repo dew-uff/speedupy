@@ -162,14 +162,14 @@ class DiskBTree:
         parent.keys.insert(i, y.keys[mid])
         parent.value_offsets.insert(i, y.value_offsets[mid])
 
-        y.keys = y.keys[:mid]
-        y.value_offsets = y.value_offsets[:mid]
         z.keys = y.keys[mid + 1:]
         z.value_offsets = y.value_offsets[mid + 1:]
+        y.keys = y.keys[:mid]
+        y.value_offsets = y.value_offsets[:mid]
 
         if not y.is_leaf:
-            y.children = y.children[:mid + 1]
             z.children = y.children[mid + 1:]
+            y.children = y.children[:mid + 1]
 
         parent.children.insert(i + 1, z.self_offset)
         parent.children = parent.children[:ORDER]
