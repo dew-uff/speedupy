@@ -1,6 +1,6 @@
 import os
 import struct
-import pickle
+from pickle import dumps, load
 
 # Constants
 ORDER = 4  # B-Tree order (max children per node)
@@ -50,6 +50,18 @@ class BTreeNode:
         key_bytes = unpacked[:MAX_KEYS]
         offsets = list(unpacked[MAX_KEYS:2 * MAX_KEYS])
 
+
+        #XXX: DEBUG
+        # print('\n\n===============================================')
+        # print(unpacked)
+        # print(key_bytes)
+        # print(offsets)
+        # print('\n\n')
+        # for k in key_bytes:
+        #     print('******************************************************')
+        #     print(k)
+        #     print(k.decode('utf-8'))
+        #     print(k.decode('utf-8').rstrip('\x00'))
         keys = [k.decode('utf-8').rstrip('\x00') for k in key_bytes]
         key_offset_pairs = [(k, off) for k, off in zip(keys, offsets) if k]
         keys, value_offsets = zip(*key_offset_pairs) if key_offset_pairs else ([], [])
@@ -59,6 +71,16 @@ class BTreeNode:
         self_offset = unpacked[-1]
 
         return BTreeNode(list(keys), list(value_offsets), children, is_leaf, self_offset)
+
+    # XXX: DEBUG
+    def print_node(self):
+        print('*********************************************')
+        print(f"self.keys: {self.keys}")
+        print(f"self.value_offsets: {self.value_offsets}")
+        print(f"self.children: {self.children}")
+        print(f"self.is_leaf: {self.is_leaf}")
+        print(f"self.self_offset: {self.self_offset}")
+        print('*********************************************')
 
 
 # XXX: IMPLEMENTAR + TESTAR
@@ -85,7 +107,7 @@ class DiskBTree:
     def _write_node(self, node: BTreeNode):
         self.file.seek(node.self_offset)
         self.file.write(node.serialize())
-        # self.file.flush()
+        self.file.flush()
 
     def _read_node(self, offset: int) -> BTreeNode:
         self.file.seek(offset)
@@ -93,38 +115,41 @@ class DiskBTree:
         return BTreeNode.deserialize(data)
 
     def _write_value(self, obj) -> int:
-        data = pickle.dumps(obj)
+        self.value_file.seek(0, os.SEEK_END)
         offset = self.value_file.tell()
-        self.value_file.write(data)
-        # self.value_file.flush()
+        self.value_file.write(dumps(obj))
+        self.value_file.flush()
         return offset
 
     def _read_value(self, offset: int):
         self.value_file.seek(offset)
-        return pickle.load(self.value_file)
+        return load(self.value_file)
 
     def search(self, key: str, node: BTreeNode = None):
         node = node or self.root
         i = 0
         while i < len(node.keys) and key > node.keys[i]:
             i += 1
+
         if i < len(node.keys) and key == node.keys[i]:
             return self._read_value(node.value_offsets[i])
-        if node.is_leaf:
+
+        if node.is_leaf or node.children[i] == 0:
             return None
+
         child = self._read_node(node.children[i])
         return self.search(key, child)
 
     def insert(self, key: str, value):
         value_offset = self._write_value(value)
         root = self.root
-        if len(root.keys) == MAX_KEYS:
+        if len(root.keys) == MAX_KEYS:  # XXX: VERIFICAR
             new_root = self._new_node(is_leaf=False)
             new_root.children[0] = root.self_offset
+            self._write_node(new_root)
             self._split_child(new_root, 0)
             self.root = new_root
             self._insert_nonfull(new_root, key, value_offset)
-            self._write_node(new_root)
         else:
             self._insert_nonfull(root, key, value_offset)
             self._write_node(root)
@@ -146,7 +171,7 @@ class DiskBTree:
                 i -= 1
             i += 1
             child = self._read_node(node.children[i])
-            if len(child.keys) == MAX_KEYS:
+            if len(child.keys) == MAX_KEYS:  # XXX: VERIFICAR
                 self._split_child(node, i)
                 if key > node.keys[i]:
                     i += 1
@@ -178,6 +203,11 @@ class DiskBTree:
         self._write_node(z)
         self._write_node(parent)
 
+        # XXX: DEBUG
+        parent.print_node()
+        y.print_node()
+        z.print_node()
+
     def traverse(self, node: BTreeNode = None):
         node = node or self.root
         result = []
@@ -193,6 +223,21 @@ class DiskBTree:
             result.extend(self.traverse(child))
 
         return result
+
+    # XXX: DEBUG
+    def traverse_pretty(self, node: BTreeNode = None, level: int = 0, prefix: str = "Root"):
+        node = node or self.root
+
+        indent = "    " * level
+        print(f"{indent}{prefix}: {node.keys}")
+
+        if not node.is_leaf:
+            for i, child_offset in enumerate(node.children):
+                if i > len(node.keys):
+                    continue  # skip uninitialized pointers
+                child = self._read_node(child_offset)
+                self.traverse_pretty(child, level + 1, prefix=f"Child {i}")
+
 
     def close(self):
         self.file.close()
