@@ -107,7 +107,7 @@ class DiskBTree:
     def _write_node(self, node: BTreeNode):
         self.file.seek(node.self_offset)
         self.file.write(node.serialize())
-        self.file.flush()
+        #self.file.flush()
 
     def _read_node(self, offset: int) -> BTreeNode:
         self.file.seek(offset)
@@ -118,7 +118,7 @@ class DiskBTree:
         self.value_file.seek(0, os.SEEK_END)
         offset = self.value_file.tell()
         self.value_file.write(dumps(obj))
-        self.value_file.flush()
+        #self.value_file.flush()
         return offset
 
     def _read_value(self, offset: int):
@@ -194,19 +194,23 @@ class DiskBTree:
 
         if not y.is_leaf:
             z.children = y.children[mid + 1:]
+            while len(z.children) < ORDER: z.children.append(0)
+
             y.children = y.children[:mid + 1]
+            while len(y.children) < ORDER: y.children.append(0)
 
         parent.children.insert(i + 1, z.self_offset)
         parent.children = parent.children[:ORDER]
-
-        self._write_node(y)
-        self._write_node(z)
-        self._write_node(parent)
 
         # XXX: DEBUG
         parent.print_node()
         y.print_node()
         z.print_node()
+
+        self._write_node(y)
+        self._write_node(z)
+        self._write_node(parent)
+
 
     def traverse(self, node: BTreeNode = None):
         node = node or self.root
