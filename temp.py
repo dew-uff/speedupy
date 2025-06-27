@@ -11,21 +11,33 @@ def main():
 
     # Sample data insertion
     print("Inserting key-value pairs...")
-    for i in range(4):
+    for i in range(20):
         key = generate_xxh128_key(f"sample-{i}")
         value = {"index": i, "data": f"this is value {i}"}
+        
+        print(f"Inserted key: {key} - i: {i}")
+        
         tree.insert(key, value)
-        print(f"Inserted key: {key}")
+
+        print('\n\n')
+        # tree.root.print_node()
+        tree.traverse_pretty()
+        print('\n\n')
+
+    tree.traverse_pretty()
 
     # Retrieve a value
-    test_key = generate_xxh128_key("sample-5")
-    result = tree.search(test_key)
-    print(f"\nRetrieved for key {test_key}: {result}")
+    for i in range(20):
+        test_key = generate_xxh128_key(f"sample-{i}")
+        result = tree.search(test_key)
+        print(f"\nRetrieved for key {test_key}: {result}")
 
-    # Traverse the tree
-    print("\nTraversing all key-value pairs:")
-    for k, v in tree.traverse():
-        print(f"Key: {k} => Value: {v}")
+    # # Traverse the tree
+    # print("\nTraversing all key-value pairs:")
+    # for k, v in tree.traverse():
+    #     print(f"Key: {k} => Value: {v}")
+
+    # print(tree.traverse_pretty())
 
     tree.close()
 

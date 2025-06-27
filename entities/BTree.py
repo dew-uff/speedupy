@@ -95,14 +95,15 @@ class DiskBTree:
 
         if os.path.getsize(filename) == 0:
             self.root = self._new_node(is_leaf=True)
-            self._write_node(self.root)
         else:
             self.root = self._read_node(0)
 
     def _new_node(self, is_leaf=True) -> BTreeNode:
         self.file.seek(0, os.SEEK_END)
         offset = self.file.tell()
-        return BTreeNode([], [], [0] * ORDER, is_leaf, offset)
+        node = BTreeNode([], [], [0] * ORDER, is_leaf, offset)
+        self._write_node(node)
+        return node
 
     def _write_node(self, node: BTreeNode):
         self.file.seek(node.self_offset)
@@ -145,7 +146,10 @@ class DiskBTree:
         root = self.root
         if len(root.keys) == MAX_KEYS:  # XXX: VERIFICAR
             new_root = self._new_node(is_leaf=False)
+            root.self_offset = new_root.self_offset
+            new_root.self_offset = 0
             new_root.children[0] = root.self_offset
+            self._write_node(root)
             self._write_node(new_root)
             self._split_child(new_root, 0)
             self.root = new_root
@@ -203,15 +207,15 @@ class DiskBTree:
         parent.children = parent.children[:ORDER]
 
         # XXX: DEBUG
-        parent.print_node()
-        y.print_node()
-        z.print_node()
+        # parent.print_node()
+        # y.print_node()
+        # z.print_node()
 
         self._write_node(y)
         self._write_node(z)
         self._write_node(parent)
 
-
+    # XXX: TESTAR
     def traverse(self, node: BTreeNode = None):
         node = node or self.root
         result = []
