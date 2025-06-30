@@ -20,7 +20,13 @@ class CacheData():
     @property
     def func_name(self):
         return self.__func_name
-    
+
     @func_name.setter
     def func_name(self, func_name):
         self.__func_name = func_name
+
+    def __eq__(self, other):
+        if not isinstance(other, CacheData): return NotImplemented
+        return self.__function_call_hash == other.__function_call_hash and \
+               self.__output == other.__output and \
+               self.__func_name == other.__func_name
