@@ -3,6 +3,11 @@
 DBS_DIR="/app/dbs"
 
 start_redis() {
+  if [ -f "$DBS_DIR/redis.pid" ] && kill -0 $(cat "$DBS_DIR/redis.pid") 2>/dev/null; then
+    echo "Redis is already running (PID $(cat "$DBS_DIR/redis.pid"))."
+    return 0
+  fi
+
   echo "Starting Redis with dir: $DBS_DIR/redis"
   conda activate dev_env
   redis-server --dir "$DBS_DIR/redis" &> "$DBS_DIR/redis.log" &
@@ -11,6 +16,11 @@ start_redis() {
 }
 
 start_mongo() {
+  if [ -f "$DBS_DIR/mongo.pid" ] && kill -0 $(cat "$DBS_DIR/mongo.pid") 2>/dev/null; then
+    echo "MongoDB is already running (PID $(cat "$DBS_DIR/mongo.pid"))."
+    return 0
+  fi
+
   echo "Starting MongoDB with dbpath: $DBS_DIR/mongo"
   conda activate dev_env
   mongod --dbpath "$DBS_DIR/mongo" > "$DBS_DIR/mongo.log" 2>&1 &
