@@ -30,6 +30,8 @@ RUN conda init
 
 RUN echo "conda deactivate" >> /root/.bashrc
 
+RUN mkdir /app/dbs
+
 # Set working directory
 WORKDIR /app
 
