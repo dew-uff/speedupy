@@ -3,7 +3,7 @@ import sys
 
 
 def help_msg() -> str:
-    return tool_options_msg() + exec_mode_msg() + strategy_msg() + revalidation_msg() + hashes_msg() + storage_msg() + serializer_msg() + num_dicts_msg() + retrieval_strategies_msg() + retrieval_exec_modes_msg()
+    return tool_options_msg() + exec_mode_msg() + revalidation_msg() + hashes_msg() + storage_msg() + serializer_msg() + num_dicts_msg() + retrieval_strategies_msg() + retrieval_exec_modes_msg()
 
 
 def tool_options_msg():
@@ -19,13 +19,8 @@ def exec_mode_msg():
     =>no-cache      : SpeeduPy will cache no functions\n\
     =>manual        : SpeeduPy only caches the functions annotated by the user with @deterministic\n\
     =>accurate      : SpeeduPy looks for statistically pure functions and only caches function calls that always returned the same output\n\
-    =>probabilistic : SpeeduPy looks for statistically pure functions and caches function calls that sometimes returned different outputs, according to the policy set on --strategy param\n"
-
-
-def strategy_msg():
-    return "\nStrategy - Defines SpeeduPy\'s policy for caching function calls when executing in probabilistic mode\n\
-    =>error    : SpeeduPy only caches function calls that introduce errors up to a user-specified limit\n\
-    =>counting : SpeeduPy only caches function calls whose most produced output occurred at least a minimum percentage of times defined by the user. The output that appeared most times will always be returned.\n"
+    =>probabilistic-counting : SpeeduPy looks for statistically pure functions and caches function calls whose most produced output occurred at least a minimum percentage of times defined by the user. The output that appeared most times will always be returned.\n\
+    =>probabilistic-error : SpeeduPy looks for statistically pure functions and caches function calls that introduce errors up to a user-specified limit\n"
 
 
 def revalidation_msg():
@@ -78,8 +73,7 @@ def retrieval_exec_modes_msg():
 
 
 def get_params():
-    exec_modes = ['no-cache', 'manual', 'accurate', 'probabilistic']
-    prob_mode_strategies = ['counting', 'error']
+    exec_modes = ['no-cache', 'manual', 'accurate', 'probabilistic-counting', 'probabilistic-error']
     revalidations = ['none', 'fixed', 'adaptative']
     retrieval_strategies = ['lazy', 'function', 'eager']
     retrieval_exec_modes = ['sequential', 'thread']
@@ -100,16 +94,8 @@ def get_params():
                                      choices=exec_modes,
                                      metavar='',
                                      nargs=1,
-                                     default=None,
+                                     default=['manual'],
                                      help='defines how SpeeduPy will execute')
-
-    #XXX: REMOVER ESTE ARGUMENTO DA CLI E INCLUIR COMO NOVOS EXEC MODES
-    speedupy_arg_parser.add_argument('--strategy',
-                                     choices=prob_mode_strategies,
-                                     metavar='',
-                                     default=None,
-                                     nargs=1,
-                                     help='defines SpeeduPy\'s policy for caching function calls when executing in probabilistic mode')
 
     speedupy_arg_parser.add_argument('--revalidation',
                                      choices=revalidations,
@@ -143,19 +129,19 @@ def get_params():
                                      default=0.8,
                                      metavar='',
                                      nargs=1,
-                                     help='used when "exec-mode=probabilistic strategy={counting, frequency}" is set. Defines the minimum frequency of appearances (in percentage) that the statistical mode must have for a function to be accelerated. The value informed must be between 0 and 1.')
+                                     help='used when "exec-mode=probabilistic-counting" is set. Defines the minimum frequency of appearances (in percentage) that the statistical mode must have for a function to be accelerated. The value informed must be between 0 and 1.')
 
     speedupy_arg_parser.add_argument('--confidence-level',
                                      default=0.95,
                                      metavar='',
                                      nargs=1,
-                                     help='used when "exec-mode=probabilistic strategy=error" is set. Defines the confidence level used to estimate the margim of error and confidence interval of a function. The value informed must be between 0 and 1.')
+                                     help='used when "exec-mode=probabilistic-error" is set. Defines the confidence level used to estimate the margim of error and confidence interval of a function. The value informed must be between 0 and 1.')
 
     speedupy_arg_parser.add_argument('--max-error-per-function',
                                      default=None,
                                      metavar='',
                                      nargs=1,
-                                     help='used when "exec-mode=probabilistic strategy=error" is set. Defines the maximum error the user considers acceptable for a function to introduce when it is cached. This error correspond to the margin of error of the confidence interval calculated. Notice, that an execution of a function can produce an output that is not inside the confidence interval, in which case the error produced by the function would be greater then the margin of error the confidence interval. The probability of this occurring is (1 - confidence_level).')
+                                     help='used when "exec-mode=probabilistic-error" is set. Defines the maximum error the user considers acceptable for a function to introduce when it is cached. This error correspond to the margin of error of the confidence interval calculated. Notice, that an execution of a function can produce an output that is not inside the confidence interval, in which case the error produced by the function would be greater then the margin of error the confidence interval. The probability of this occurring is (1 - confidence_level).')
 
     speedupy_arg_parser.add_argument('--retrieval-strategy',
                                      choices=retrieval_strategies,
@@ -214,7 +200,6 @@ def get_params():
     argsp_serializer = args.serializer
 
     argsp_exec_mode = args.exec_mode
-    argsp_strategy = args.strategy
     argsp_revalidation = args.revalidation
     argsp_max_num_exec_til_revalidation = args.max_num_exec_til_revalidation
     argsp_reduction_factor = args.reduction_factor
@@ -223,4 +208,4 @@ def get_params():
     argsp_confidence_level = args.confidence_level
     argsp_max_error_per_function = args.max_error_per_function
 
-    return argsp_num_dict, argsp_retrieval_strategy, argsp_retrieval_exec_mode, argsp_hash, argsp_s, argsp_serializer, argsp_exec_mode, argsp_strategy, argsp_revalidation, argsp_max_num_exec_til_revalidation, argsp_reduction_factor, argsp_min_num_exec, argsp_min_mode_occurrence, argsp_confidence_level, argsp_max_error_per_function
+    return argsp_num_dict, argsp_retrieval_strategy, argsp_retrieval_exec_mode, argsp_hash, argsp_s, argsp_serializer, argsp_exec_mode, argsp_revalidation, argsp_max_num_exec_til_revalidation, argsp_reduction_factor, argsp_min_num_exec, argsp_min_mode_occurrence, argsp_confidence_level, argsp_max_error_per_function
