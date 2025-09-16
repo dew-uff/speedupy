@@ -29,7 +29,7 @@ class TestSpeeduPyExecMode(unittest.TestCase):
         self.assertEqual(my_func, speedupy.maybe_deterministic(my_func))
 
     def test_initialize_speedupy_source_code_is_equal_on_manual_accurate_and_probabilistic_exec_modes(self):
-        exec_modes = ['manual', 'accurate', 'probabilistic']
+        exec_modes = ['manual', 'accurate', 'probabilistic-counting', 'probabilistic-error']
         func_source_codes = [] 
         for mode in exec_modes:
             SpeeduPySettings().exec_mode = [mode]
@@ -39,7 +39,7 @@ class TestSpeeduPyExecMode(unittest.TestCase):
         self.assertEqual(func_source_codes[1], func_source_codes[2])
 
     def test_deterministic_decorator_source_code_is_equal_on_manual_accurate_and_probabilistic_exec_modes(self):
-        exec_modes = ['manual', 'accurate', 'probabilistic']
+        exec_modes = ['manual', 'accurate', 'probabilistic-counting', 'probabilistic-error']
         func_source_codes = [] 
         for mode in exec_modes:
             SpeeduPySettings().exec_mode = [mode]
@@ -49,7 +49,7 @@ class TestSpeeduPyExecMode(unittest.TestCase):
         self.assertEqual(func_source_codes[1], func_source_codes[2])
 
     def test_maybe_deterministic_decorator_source_code_is_equal_on_accurate_and_probabilistic_exec_modes(self):
-        exec_modes = ['accurate', 'probabilistic']
+        exec_modes = ['accurate', 'probabilistic-counting', 'probabilistic-error']
         func_source_codes = [] 
         for mode in exec_modes:
             SpeeduPySettings().exec_mode = [mode]
