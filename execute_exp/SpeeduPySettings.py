@@ -9,6 +9,7 @@ class SpeeduPySettings(metaclass=SingletonMeta):
             self.retrieval_exec_mode, \
             self.hash, \
             self.storage, \
+            self.serializer, \
             self.exec_mode, \
             self.strategy, \
             self.revalidation, \

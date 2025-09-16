@@ -3,7 +3,7 @@ import sys
 
 
 def help_msg() -> str:
-    return tool_options_msg() + exec_mode_msg() + strategy_msg() + revalidation_msg() + hashes_msg() + storage_msg() + num_dicts_msg() + retrieval_strategies_msg() + retrieval_exec_modes_msg()
+    return tool_options_msg() + exec_mode_msg() + strategy_msg() + revalidation_msg() + hashes_msg() + storage_msg() + serializer_msg() + num_dicts_msg() + retrieval_strategies_msg() + retrieval_exec_modes_msg()
 
 
 def tool_options_msg():
@@ -50,6 +50,12 @@ def storage_msg():
     =>file   : use the filesystem to store data.\n"
 
 
+def serializer_msg():
+    return "\nSerializer:\n\
+    =>pickle      : use Pickle as serialization mechanism\n\
+    =>cloudpickle : use Cloudpickle as serialization mechanism\n"
+
+
 def num_dicts_msg():
     return "\nNumber of dictionaries options:\n\
     =>0      : SpeeduPy will always request and save data directly on the storage.\n\
@@ -80,6 +86,7 @@ def get_params():
     num_dicts = ['0', '1', '2', '2-fast']
     hashes = ['md5', 'murmur', 'xxhash']
     storage_options = ['sqlite', 'redis', 'mongo', 'file']
+    serializer_options = ['pickle', 'cloudpickle']
 
     speedupy_arg_parser = argparse.ArgumentParser(usage=help_msg())
 
@@ -96,6 +103,7 @@ def get_params():
                                      default=None,
                                      help='defines how SpeeduPy will execute')
 
+    #XXX: REMOVER ESTE ARGUMENTO DA CLI E INCLUIR COMO NOVOS EXEC MODES
     speedupy_arg_parser.add_argument('--strategy',
                                      choices=prob_mode_strategies,
                                      metavar='',
@@ -188,6 +196,13 @@ def get_params():
                                      nargs=1,
                                      default=['sqlite'],
                                      help='SpeeduPy\'s mechanism of storage: choose one of the following options: ' + ', '.join(storage_options))
+    
+    speedupy_arg_parser.add_argument('--serializer',
+                                     choices=serializer_options,
+                                     metavar='',
+                                     nargs=1,
+                                     default=['cloudpickle'],
+                                     help='SpeeduPy\'s serialization mechanism: choose one of the following options: ' + ', '.join(serializer_options))
 
     args = speedupy_arg_parser.parse_args()
 
@@ -196,6 +211,7 @@ def get_params():
     argsp_retrieval_exec_mode = args.retrieval_exec_mode
     argsp_hash = args.hash
     argsp_s = args.storage
+    argsp_serializer = args.serializer
 
     argsp_exec_mode = args.exec_mode
     argsp_strategy = args.strategy
@@ -207,4 +223,4 @@ def get_params():
     argsp_confidence_level = args.confidence_level
     argsp_max_error_per_function = args.max_error_per_function
 
-    return argsp_num_dict, argsp_retrieval_strategy, argsp_retrieval_exec_mode, argsp_hash, argsp_s, argsp_exec_mode, argsp_strategy, argsp_revalidation, argsp_max_num_exec_til_revalidation, argsp_reduction_factor, argsp_min_num_exec, argsp_min_mode_occurrence, argsp_confidence_level, argsp_max_error_per_function
+    return argsp_num_dict, argsp_retrieval_strategy, argsp_retrieval_exec_mode, argsp_hash, argsp_s, argsp_serializer, argsp_exec_mode, argsp_strategy, argsp_revalidation, argsp_max_num_exec_til_revalidation, argsp_reduction_factor, argsp_min_num_exec, argsp_min_mode_occurrence, argsp_confidence_level, argsp_max_error_per_function
