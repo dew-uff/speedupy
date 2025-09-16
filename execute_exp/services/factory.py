@@ -5,6 +5,7 @@ from execute_exp.services.revalidations.AbstractRevalidation import AbstractReva
 from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
 from execute_exp.services.retrieval_strategies.AbstractRetrievalStrategy import AbstractRetrievalStrategy
 from execute_exp.services.storages.Storage import Storage
+from execute_exp.services.serializers.Serializer import Serializer
 from execute_exp.SpeeduPySettings import SpeeduPySettings
 
 
@@ -84,3 +85,11 @@ def init_revalidation(exec_mode: Optional[AbstractExecutionMode]) -> Optional[Ab
         return AdaptativeRevalidation(exec_mode,
                                       SpeeduPySettings().max_num_exec_til_reval,
                                       SpeeduPySettings().reduction_factor)
+
+
+def get_serializer() -> Serializer:
+    from execute_exp.services.serializers.PickleSerializer import PickleSerializer
+    from execute_exp.services.serializers.CloudpickleSerializer import CloudpickleSerializer
+
+    if SpeeduPySettings().serializer == ['pickle']: return PickleSerializer()
+    elif SpeeduPySettings().serializer == ['cloudpickle']: return CloudpickleSerializer()
