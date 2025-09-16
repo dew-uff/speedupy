@@ -1,5 +1,4 @@
 from typing import Optional
-from constantes import Constantes
 from execute_exp.services.execution_modes.AbstractExecutionMode import AbstractExecutionMode
 from execute_exp.services.revalidations.AbstractRevalidation import AbstractRevalidation
 from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
