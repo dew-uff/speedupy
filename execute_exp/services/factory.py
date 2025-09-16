@@ -60,12 +60,10 @@ def init_exec_mode() -> Optional[AbstractExecutionMode]:
 
     if SpeeduPySettings().exec_mode == ['accurate']:
         return AccurateMode(SpeeduPySettings().min_num_exec)
-    elif SpeeduPySettings().exec_mode == ['probabilistic'] and \
-         SpeeduPySettings().strategy == ['counting']:
+    elif SpeeduPySettings().exec_mode == ['probabilistic-counting']:
         return ProbabilisticCountingMode(SpeeduPySettings().min_num_exec,
                                          SpeeduPySettings().min_mode_occurrence)
-    elif SpeeduPySettings().exec_mode == ['probabilistic'] and \
-         SpeeduPySettings().strategy == ['error']:
+    elif SpeeduPySettings().exec_mode == ['probabilistic-error']:
         return ProbabilisticErrorMode(SpeeduPySettings().min_num_exec,
                                       SpeeduPySettings().max_error_per_function,
                                       SpeeduPySettings().confidence_lv)
