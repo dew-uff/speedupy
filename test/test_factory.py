@@ -5,13 +5,45 @@ current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 
-from execute_exp.services.factory import get_serializer
+from execute_exp.services.factory import get_serializer, init_revalidation
 from execute_exp.services.serializers.PickleSerializer import PickleSerializer
 from execute_exp.services.serializers.CloudpickleSerializer import CloudpickleSerializer
+from execute_exp.services.execution_modes.AccurateMode import AccurateMode
+from execute_exp.services.execution_modes.ProbabilisticCountingMode import ProbabilisticCountingMode
+from execute_exp.services.execution_modes.ProbabilisticErrorMode import ProbabilisticErrorMode
+from execute_exp.services.revalidations.NoRevalidation import NoRevalidation
+from execute_exp.services.revalidations.FixedRevalidation import FixedRevalidation
+from execute_exp.services.revalidations.AdaptativeRevalidation import AdaptativeRevalidation
 import sys, random
 
 
 class TestFactory(unittest.TestCase):
+    @patch("execute_exp.services.factory.SpeeduPySettings")
+    def test_init_revalidation_when_exec_mode_is_none(self, SpeeduPySettings):
+        exec_mode = None
+        revalidation = random.choice(['none', 'fixed', 'adaptative'])
+        SpeeduPySettings().revalidation = revalidation
+        self.assertIsNone(init_revalidation(exec_mode))
+    
+    @patch("execute_exp.services.factory.SpeeduPySettings")
+    def test_init_revalidation_when_exec_mode_is_not_none(self, SpeeduPySettings):
+        exec_mode = random.choice([AccurateMode, ProbabilisticCountingMode, ProbabilisticErrorMode])
+        revalidation = random.choice([['none', NoRevalidation],
+                                      ['fixed', FixedRevalidation],
+                                      ['adaptative', AdaptativeRevalidation]])
+        SpeeduPySettings().revalidation = [revalidation[0]]
+        SpeeduPySettings().max_num_exec_til_reval = random.randint(10, 50)
+        SpeeduPySettings().reduction_factor = random.random()
+
+        result = init_revalidation(exec_mode)
+
+        self.assertIsInstance(result, revalidation[1])
+        if revalidation[1] == FixedRevalidation:
+            self.assertEqual(result._FixedRevalidation__fixed_num_exec_til_reval, SpeeduPySettings().max_num_exec_til_reval)
+        elif revalidation[1] == AdaptativeRevalidation:
+            self.assertEqual(result._AdaptativeRevalidation__current_num_exec_til_reval, SpeeduPySettings().max_num_exec_til_reval)
+            self.assertEqual(result._AdaptativeRevalidation__adaptative_factor, SpeeduPySettings().reduction_factor)
+
     @patch("execute_exp.services.factory.SpeeduPySettings")
     def test_get_serializer(self, SpeeduPySettings):
         serializer = random.choice([['pickle', PickleSerializer],
