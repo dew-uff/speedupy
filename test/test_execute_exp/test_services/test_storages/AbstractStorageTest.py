@@ -8,13 +8,15 @@ sys.path.append(project_folder)
 from execute_exp.services.storages.Storage import Storage
 from execute_exp.entitites.CacheData import CacheData
 from constantes import Constantes
+from test.util.RandomFakeSerializer import RandomFakeSerializer
 
 
 class AbstractStorageTest(object):
     def setUp(self):
         self.drop_env()
         self.create_env()
-        self.storage = self.create_instance()
+        self.serializer = RandomFakeSerializer()
+        self.storage = self.create_instance(self.serializer)
         self.assert_storage_is_empty()
 
     def tearDown(self): self.drop_env()
