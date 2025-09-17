@@ -1,8 +1,8 @@
 import os
 from typing import Dict, Optional
-from util import deserialize_from_file, serialize_to_file
 
 from constantes import Constantes
+from execute_exp.services.serializers.Serializer import Serializer
 from execute_exp.services.storages.Storage import Storage
 from execute_exp.entitites.CacheData import CacheData
 
@@ -10,11 +10,14 @@ from execute_exp.entitites.CacheData import CacheData
 class FileSystemStorage(Storage):
     CACHE_FOLDER_NAME = Constantes().CACHE_FOLDER_NAME
 
+    def __init__(self, serializer: Serializer):
+        super().__init__(serializer)
+
     def get_all_cached_data(self, use_isolated_connection=False) -> Dict[str, CacheData]:
         data = {}
         for file in os.listdir(self.CACHE_FOLDER_NAME):
             file_path = os.path.join(self.CACHE_FOLDER_NAME, file)
-            data[file] = CacheData(file, deserialize_from_file(file_path))
+            data[file] = CacheData(file, self._serializer.deserialize_from_file(file_path))
         return data
 
     def get_cached_data_of_a_function(self, func_name: str, use_isolated_connection=False) -> Dict[str, CacheData]:
@@ -23,7 +26,7 @@ class FileSystemStorage(Storage):
             folder_path = os.path.join(self.CACHE_FOLDER_NAME, func_name)
             for file in os.listdir(folder_path):
                 file_path = os.path.join(folder_path, file)
-                data[file] = CacheData(file, deserialize_from_file(file_path), func_name=func_name)
+                data[file] = CacheData(file, self._serializer.deserialize_from_file(file_path), func_name=func_name)
         except FileNotFoundError: pass
         finally: return data
 
@@ -33,7 +36,7 @@ class FileSystemStorage(Storage):
             if func_name:
                 folder_path = os.path.join(folder_path, func_name)
             file_path = os.path.join(folder_path, func_call_hash)
-            return CacheData(func_call_hash, deserialize_from_file(file_path), func_name=func_name)
+            return CacheData(func_call_hash, self._serializer.deserialize_from_file(file_path), func_name=func_name)
         except FileNotFoundError: pass
 
     def save_cache_data(self, data: Dict[str, CacheData], use_isolated_connection=False) -> None:
@@ -47,4 +50,4 @@ class FileSystemStorage(Storage):
             folder_path = os.path.join(folder_path, func_name)
             os.makedirs(folder_path, exist_ok=True)
         file_path = os.path.join(folder_path, func_call_hash)
-        serialize_to_file(func_output, file_path)
+        self._serializer.serialize_to_file(func_output, file_path)

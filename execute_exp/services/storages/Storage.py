@@ -1,8 +1,12 @@
 from typing import Dict, Optional
 from execute_exp.entitites.CacheData import CacheData
+from execute_exp.services.serializers.Serializer import Serializer
 
 
 class Storage():
+    def __init__(self, serializer: Serializer):
+        self._serializer = serializer
+
     def get_all_cached_data(self, use_isolated_connection=False) -> Dict[str, CacheData]: pass
     def get_cached_data_of_a_function(self, func_name: str, use_isolated_connection=False) -> Dict[str, CacheData]: pass
     # TODO: ADICIONAR fun_name=None nos métodos que chamam Storage
