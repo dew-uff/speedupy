@@ -1,6 +1,5 @@
 import os, sys, random
 from typing import Dict
-from pickle import dumps
 
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
@@ -40,7 +39,7 @@ class AbstractStorageTest(object):
     def assert_two_cache_data_are_equal(self, cache_data_1: CacheData, cache_data_2: CacheData):
         self.assertEqual(cache_data_1.function_call_hash, cache_data_2.function_call_hash)
         self.assertEqual(cache_data_1.func_name, cache_data_2.func_name)
-        self.assertEqual(dumps(cache_data_1.output), dumps(cache_data_2.output))
+        self.assertEqual(self.serializer.dumps(cache_data_1.output), self.serializer.dumps(cache_data_2.output))
 
     def test_get_all_cached_data_when_there_is_no_cache_record(self):
         dicio = self.storage.get_all_cached_data()
