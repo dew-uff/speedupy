@@ -11,7 +11,7 @@ class ProbabilisticCountingMode(AbstractExecutionMode):
         self._min_mode_occurrence = min_mode_occurrence
 
     def func_call_can_be_cached(self, fc_prov: FunctionCallProv) -> bool:
-        return func_call_mode_output_occurs_enough(fc_prov, self._min_mode_occurrence)
+        return func_call_mode_output_occurs_enough(self._serializer, fc_prov, self._min_mode_occurrence)
 
     def get_func_call_cache(self, fc_prov: FunctionCallProv):
         return fc_prov.mode_output

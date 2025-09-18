@@ -23,7 +23,7 @@ class ProbabilisticErrorMode(AbstractExecutionMode):
 
     # Implemented according to https://www.geeksforgeeks.org/how-to-calculate-confidence-intervals-in-python/
     def _set_necessary_helpers(self) -> None:
-        data = function_outputs_dict_2_array(self._fc_prov.outputs)
+        data = function_outputs_dict_2_array(self._serializer, self._fc_prov.outputs)
         self._fc_prov.mean_output = st.tmean(data)
         self._fc_prov.confidence_lv = self._confidence_lv
         scale = st.sem(data)
@@ -48,7 +48,7 @@ class ProbabilisticErrorMode(AbstractExecutionMode):
 
     def get_func_call_cache(self, fc_prov: FunctionCallProv):
         if fc_prov.mean_output is None:
-            data = function_outputs_dict_2_array(fc_prov.outputs)
+            data = function_outputs_dict_2_array(self._serializer, fc_prov.outputs)
             fc_prov.mean_output = st.tmean(data)
         return fc_prov.mean_output
 
