@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, random
 from typing import Dict
 from pickle import dumps
 
@@ -8,14 +8,15 @@ sys.path.append(project_folder)
 from execute_exp.services.storages.Storage import Storage
 from execute_exp.entitites.CacheData import CacheData
 from constantes import Constantes
-from test.util.RandomFakeSerializer import RandomFakeSerializer
+from execute_exp.services.serializers.PickleSerializer import PickleSerializer
+from execute_exp.services.serializers.CloudpickleSerializer import CloudpickleSerializer
 
 
 class AbstractStorageTest(object):
     def setUp(self):
         self.drop_env()
         self.create_env()
-        self.serializer = RandomFakeSerializer()
+        self.serializer = random.choice([PickleSerializer(), CloudpickleSerializer()])
         self.storage = self.create_instance(self.serializer)
         self.assert_storage_is_empty()
 
