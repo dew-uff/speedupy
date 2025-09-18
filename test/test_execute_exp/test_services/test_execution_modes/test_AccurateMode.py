@@ -1,6 +1,4 @@
-import unittest, os, sys
-from pickle import dumps
-from unittest.mock import patch
+import unittest, os, sys, random
 
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
@@ -8,80 +6,86 @@ sys.path.append(project_folder)
 from execute_exp.services.execution_modes.AccurateMode import AccurateMode
 from execute_exp.entitites.FunctionCallProv import FunctionCallProv
 from execute_exp.entitites.Metadata import Metadata
+from execute_exp.services.serializers.PickleSerializer import PickleSerializer
+from execute_exp.services.serializers.CloudpickleSerializer import CloudpickleSerializer
+
 
 class TestAccurateMode(unittest.TestCase):
     def setUp(self):
-        self.accurateMode = AccurateMode(10)
+        self.serializer = random.choice([PickleSerializer(), CloudpickleSerializer()])
+        self.accurateMode = AccurateMode(self.serializer, 10)
         self.fc_prov = FunctionCallProv(None, None, None, None, None, None, None, None, None, None, None, None, None)
         self.get_function_call_prov_entry_namespace = 'execute_exp.services.execution_modes.AccurateMode.DataAccess.get_function_call_prov_entry'
-    
+
     def test_func_call_can_be_cached_when_func_has_one_output(self):
-        self.fc_prov._FunctionCallProv__outputs = {dumps(1):12}
+        self.fc_prov._FunctionCallProv__outputs = {self.serializer.dumps(1): 12}
         self.assertTrue(self.accurateMode.func_call_can_be_cached(self.fc_prov))
-        
+
     def test_func_call_can_be_cached_when_func_has_2_outputs(self):
-        self.fc_prov._FunctionCallProv__outputs = {dumps(2): 5,
-                                                   dumps(3): 3}
+        self.fc_prov._FunctionCallProv__outputs = {self.serializer.dumps(2): 5,
+                                                   self.serializer.dumps(3): 3}
         self.assertFalse(self.accurateMode.func_call_can_be_cached(self.fc_prov))
 
     def test_func_call_can_be_cached_when_func_has_many_outputs(self):
-        self.fc_prov._FunctionCallProv__outputs = {dumps(1):12,
-                                                   dumps(2):5,
-                                                   dumps(3):3,
-                                                   dumps(4):1}
+        self.fc_prov._FunctionCallProv__outputs = {self.serializer.dumps(1): 12,
+                                                   self.serializer.dumps(2): 5,
+                                                   self.serializer.dumps(3): 3,
+                                                   self.serializer.dumps(4): 1}
         self.assertFalse(self.accurateMode.func_call_can_be_cached(self.fc_prov))
 
     def test_get_func_call_cache_with_different_types(self):
-        self.fc_prov._FunctionCallProv__outputs = {dumps(1):12}
+        self.fc_prov._FunctionCallProv__outputs = {self.serializer.dumps(1): 12}
         self.assertEqual(self.accurateMode.get_func_call_cache(self.fc_prov), 1)
 
-        self.fc_prov._FunctionCallProv__outputs = {dumps('my_result'):12}
+        self.fc_prov._FunctionCallProv__outputs = {self.serializer.dumps('my_result'): 12}
         self.assertEqual(self.accurateMode.get_func_call_cache(self.fc_prov), 'my_result')
 
-        self.fc_prov._FunctionCallProv__outputs = {dumps({1, 2, 3}):12}
+        self.fc_prov._FunctionCallProv__outputs = {self.serializer.dumps({1, 2, 3}): 12}
         self.assertEqual(self.accurateMode.get_func_call_cache(self.fc_prov), {1, 2, 3})
 
-        self.fc_prov._FunctionCallProv__outputs = {dumps(MyClass()):12}
-        self.assertEqual(dumps(self.accurateMode.get_func_call_cache(self.fc_prov)),
-                         dumps(MyClass()))
+        self.fc_prov._FunctionCallProv__outputs = {self.serializer.dumps(MyClass()): 12}
+        self.assertEqual(self.serializer.dumps(self.accurateMode.get_func_call_cache(self.fc_prov)),
+                         self.serializer.dumps(MyClass()))
 
     def test_func_call_acted_as_expected_when_metadata_returned_a_second_output(self):
         metadata = Metadata('func_call_hash', [], {}, True, 0)
-        self.fc_prov._FunctionCallProv__outputs = {dumps(1):12}
+        self.fc_prov._FunctionCallProv__outputs = {self.serializer.dumps(1): 12}
         self.assertFalse(self.accurateMode.func_call_acted_as_expected(self.fc_prov, metadata))
-        
+
     def test_func_call_acted_as_expected_when_function_outputs_already_had_more_than_one_output(self):
         metadata = Metadata('func_call_hash', [], {}, 1, 0)
-        self.fc_prov._FunctionCallProv__outputs = {dumps(1):12,
-                                                   dumps(False): 3}
+        self.fc_prov._FunctionCallProv__outputs = {self.serializer.dumps(1): 12,
+                                                   self.serializer.dumps(False): 3}
         self.assertFalse(self.accurateMode.func_call_acted_as_expected(self.fc_prov, metadata))
 
     def test_func_call_acted_as_expected_when_function_acted_as_expected(self):
         metadata = Metadata('func_call_hash', [], {}, 1, 0)
-        self.fc_prov._FunctionCallProv__outputs = {dumps(1):12}
+        self.fc_prov._FunctionCallProv__outputs = {self.serializer.dumps(1): 12}
         self.assertTrue(self.accurateMode.func_call_acted_as_expected(self.fc_prov, metadata))
-        
+
     def test_func_call_acted_as_expected_when_function_acted_as_expected_with_different_data_types(self):
         metadata = Metadata('func_call_hash', [], {}, True, 0)
-        self.fc_prov._FunctionCallProv__outputs = {dumps(True):12}
+        self.fc_prov._FunctionCallProv__outputs = {self.serializer.dumps(True): 12}
         self.assertTrue(self.accurateMode.func_call_acted_as_expected(self.fc_prov, metadata))
 
         metadata = Metadata('func_call_hash', [], {}, {1, 4, 'test', 7, MyClass()}, 0)
-        self.fc_prov._FunctionCallProv__outputs = {dumps({1, 4, 'test', 7, MyClass()}):12}
+        self.fc_prov._FunctionCallProv__outputs = {self.serializer.dumps({1, 4, 'test', 7, MyClass()}): 12}
         self.assertTrue(self.accurateMode.func_call_acted_as_expected(self.fc_prov, metadata))
 
         metadata = Metadata('func_call_hash', [], {}, MyClass(), 0)
-        self.fc_prov._FunctionCallProv__outputs = {dumps(MyClass()):12}
+        self.fc_prov._FunctionCallProv__outputs = {self.serializer.dumps(MyClass()): 12}
         self.assertTrue(self.accurateMode.func_call_acted_as_expected(self.fc_prov, metadata))
 
-        metadata = Metadata('func_call_hash', [], {}, (1, {2:False}, False, 7.123), 0)
-        self.fc_prov._FunctionCallProv__outputs = {dumps((1, {2:False}, False, 7.123)):12}
+        metadata = Metadata('func_call_hash', [], {}, (1, {2: False}, False, 7.123), 0)
+        self.fc_prov._FunctionCallProv__outputs = {self.serializer.dumps((1, {2: False}, False, 7.123)): 12}
         self.assertTrue(self.accurateMode.func_call_acted_as_expected(self.fc_prov, metadata))
+
 
 class MyClass():
     def __init__(self):
         self.__x = 10
         self.__y = 20
+
 
 if __name__ == '__main__':
     unittest.main()
