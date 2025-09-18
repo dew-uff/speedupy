@@ -61,7 +61,7 @@ class TestFactory(unittest.TestCase):
         SpeeduPySettings().storage = [self.storage[0]]
 
         self.serializer = random.choice([['pickle', PickleSerializer],
-                                         ['cloudpickle',  CloudpickleSerializer]])
+                                         ['cloudpickle', CloudpickleSerializer]])
         SpeeduPySettings().serializer = [self.serializer[0]]
 
         self.exec_mode = random.choice([['no-cache', None],
@@ -114,10 +114,10 @@ class TestFactory(unittest.TestCase):
         self.assertEqual(result._min_num_exec, SpeeduPySettings().min_num_exec)
 
         if self.exec_mode[1] == ProbabilisticCountingMode:
-            self.assertEqual(result._ProbabilisticCountingMode__min_mode_occurrence, SpeeduPySettings().min_mode_occurrence)
+            self.assertEqual(result._min_mode_occurrence, SpeeduPySettings().min_mode_occurrence)
         elif self.exec_mode[1] == ProbabilisticErrorMode:
-            self.assertEqual(result._ProbabilisticErrorMode__max_error_per_function, SpeeduPySettings().max_error_per_function)
-            self.assertEqual(result._ProbabilisticErrorMode__confidence_lv, SpeeduPySettings().confidence_lv)
+            self.assertEqual(result._max_error_per_function, SpeeduPySettings().max_error_per_function)
+            self.assertEqual(result._confidence_lv, SpeeduPySettings().confidence_lv)
 
     @patch("execute_exp.services.factory.SpeeduPySettings")
     def test_init_revalidation(self, SpeeduPySettings):
