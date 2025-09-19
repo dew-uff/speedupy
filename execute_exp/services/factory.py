@@ -45,11 +45,13 @@ def _init_storage() -> Storage:
     from execute_exp.services.storages.RedisStorage import RedisStorage
     from execute_exp.services.storages.MongoStorage import MongoStorage
     from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
+    from execute_exp.services.storages.MySQLStorage import MySQLStorage
 
     if SpeeduPySettings().storage == ['sqlite']: return SQLiteStorage()
     elif SpeeduPySettings().storage == ['redis']: return RedisStorage()
     elif SpeeduPySettings().storage == ['mongo']: return MongoStorage()
     elif SpeeduPySettings().storage == ['file']: return FileSystemStorage()
+    elif SpeeduPySettings().storage == ['mysql']: return MySQLStorage()
 
 
 def init_exec_mode() -> Optional[AbstractExecutionMode]:

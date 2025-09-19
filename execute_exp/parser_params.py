@@ -47,6 +47,7 @@ def storage_msg():
     =>sqlite : use a SQLite database to store data\n\
     =>redis  : use a Redis database to store data\n\
     =>mongo  : use a Mongo database to store data\n\
+    =>mysql  : use a MySQL database to store data\n\
     =>file   : use the filesystem to store data.\n"
 
 
@@ -79,7 +80,7 @@ def get_params():
     retrieval_exec_modes = ['sequential', 'thread']
     num_dicts = ['0', '1', '2', '2-fast']
     hashes = ['md5', 'murmur', 'xxhash']
-    storage_options = ['sqlite', 'redis', 'mongo', 'file']
+    storage_options = ['sqlite', 'redis', 'mongo', 'file', 'mysql']
 
     speedupy_arg_parser = argparse.ArgumentParser(usage=help_msg())
 

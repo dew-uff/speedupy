@@ -4,3 +4,4 @@ scipy==1.12.0
 xxhash==3.4.1
 redis==4.3.6
 pymongo==4.13.0
+mysql-connector-python==9.4.0
