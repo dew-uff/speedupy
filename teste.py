@@ -1,7 +1,7 @@
 import time
 import sys
 
-from intpy import deterministic,initialize_intpy
+from speedupy.speedupy import deterministic,initialize_speedupy
 
 
 @deterministic
@@ -11,7 +11,7 @@ def fib(n):
     else:
         return fib(n-1) + fib(n-2)
 
-@initialize_intpy(__file__)
+@initialize_speedupy
 def main(n):
     print(fib(n))
 
@@ -21,4 +21,3 @@ if __name__ =='__main__':
     start = time.perf_counter()
     main(n)
     print(time.perf_counter()-start)
-    
