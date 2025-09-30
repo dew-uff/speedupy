@@ -1,11 +1,9 @@
 from unittest.mock import patch
 import unittest, os, sys
 
-current = os.path.dirname(os.path.realpath(__file__))
-parent = os.path.dirname(current)
-sys.path.append(parent)
+project_folder = os.path.realpath(__file__).split('test/')[0]
+sys.path.append(project_folder)
 
-from entities.BancoSQLite import BancoSQLite
 from execute_exp.services.factory import get_serializer, init_revalidation, init_exec_mode, init_mem_arch
 from execute_exp.services.serializers.PickleSerializer import PickleSerializer
 from execute_exp.services.serializers.CloudpickleSerializer import CloudpickleSerializer
@@ -30,16 +28,6 @@ import sys, random
 
 
 class TestFactory(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.BD_PATH = 'speedupy.db'
-        BancoSQLite.nome_banco = cls.BD_PATH
-
-    @classmethod
-    def tearDownClass(cls):
-        if os.path.exists(cls.BD_PATH):
-            os.remove(cls.BD_PATH)
-
     def set_random_values(self, SpeeduPySettings):
         self.mem_arch = random.choice([['0', ZeroDictMemArch],
                                        ['1', OneDictMemArch],
