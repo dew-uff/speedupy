@@ -4,7 +4,7 @@ from typing import Dict, List, Tuple, Any
 sys.path.append(os.path.dirname(__file__))
 
 from execute_exp.entitites.FunctionCallProv import FunctionCallProv
-from execute_exp.services.factory import init_exec_mode, init_revalidation
+from execute_exp.services.factory import init_exec_mode, init_revalidation, get_serializer
 from execute_exp.services.DataAccess import DataAccess, get_id
 from execute_exp.SpeeduPySettings import SpeeduPySettings
 from execute_exp.entitites.Metadata import Metadata
@@ -42,13 +42,14 @@ class SpeeduPy(metaclass=SingletonMeta):
     def __init__(self):
         self.exec_mode = init_exec_mode()
         self.revalidation = init_revalidation(self.exec_mode)
+        self.serializer = get_serializer()
 
 #TODO: TEST
 def maybe_deterministic(f):
     @wraps(f)
     def wrapper(*method_args, **method_kwargs):
         f_hash = DataAccess().get_function_hash(f.__qualname__)
-        fc_hash = get_id(f_hash, method_args, method_kwargs)
+        fc_hash = get_id(f_hash, method_args, method_kwargs, SpeeduPy().serializer)
         fc_prov = DataAccess().get_function_call_prov_entry(fc_hash)
         if SpeeduPy().revalidation.revalidation_in_current_execution(fc_prov):
             result = _revalidate_func(f, method_args, method_kwargs, f_hash, fc_hash, fc_prov)
