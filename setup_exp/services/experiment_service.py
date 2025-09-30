@@ -1,10 +1,9 @@
-import os
+import os, hashlib
 from typing import List, Dict, Set
 
 from setup_exp.entities.Script import Script
 from setup_exp.entities.Experiment import Experiment
 from setup_exp.entities.FunctionGraph import FunctionGraph
-from execute_exp.services.DataAccess import get_id
 from setup_exp.services.script_service import create_script, create_script_function_graph, decorate_script_functions, overwrite_decorated_script, add_decorator_import
 from setup_exp.services.function_service import decorate_main_function
 from util import is_an_user_defined_script, get_script_path
@@ -64,7 +63,7 @@ def get_experiment_functions_hashes(experiment_function_graph:FunctionGraph) -> 
     functions2hashes = {}
     for vertice in experiment_function_graph.graph:
         source_code = experiment_function_graph.get_source_code_executed(vertice)
-        hash = get_id(source_code)
+        hash = hashlib.md5(source_code.encode('utf')).hexdigest()
         functions2hashes[vertice.qualname] = hash
     return functions2hashes
 
