@@ -16,7 +16,7 @@ class TestHash(unittest.TestCase):
 
         self.hash = Hash(self.serializer)
 
-        self.hash.hash = Mock()
+        self.hash._hash = Mock()
 
     def test_get_id_without_fun_args(self):
         source = 'print("Testando!")\ninput("...")\nreturn x + y / -z'
@@ -24,9 +24,9 @@ class TestHash(unittest.TestCase):
 
         expected_args = ((str(self.first_output) + source).encode('utf'),)
 
-        self.hash.hash.assert_called_once()
-        self.assertTupleEqual(self.hash.hash.call_args[0], expected_args)
-        self.assertDictEqual(self.hash.hash.call_args[1], {})
+        self.hash._hash.assert_called_once()
+        self.assertTupleEqual(self.hash._hash.call_args[0], expected_args)
+        self.assertDictEqual(self.hash._hash.call_args[1], {})
 
     def test_get_id_without_fun_kwargs(self):
         source = 'print("Testando!")\nos.path.exists("/")\nrandom.randint()\nreturn x + y / -z'
@@ -34,9 +34,9 @@ class TestHash(unittest.TestCase):
 
         expected_args = ((str(self.first_output) + source).encode('utf'),)
 
-        self.hash.hash.assert_called_once()
-        self.assertTupleEqual(self.hash.hash.call_args[0], expected_args)
-        self.assertDictEqual(self.hash.hash.call_args[1], {})
+        self.hash._hash.assert_called_once()
+        self.assertTupleEqual(self.hash._hash.call_args[0], expected_args)
+        self.assertDictEqual(self.hash._hash.call_args[1], {})
 
     def test_get_id_only_with_fun_source(self):
         source = 'print("Testando!")\nreturn x / y ** 2'
@@ -44,9 +44,9 @@ class TestHash(unittest.TestCase):
 
         expected_args = (("b''" + source).encode('utf'),)
 
-        self.hash.hash.assert_called_once()
-        self.assertTupleEqual(self.hash.hash.call_args[0], expected_args)
-        self.assertDictEqual(self.hash.hash.call_args[1], {})
+        self.hash._hash.assert_called_once()
+        self.assertTupleEqual(self.hash._hash.call_args[0], expected_args)
+        self.assertDictEqual(self.hash._hash.call_args[1], {})
 
     def test_get_id_with_source_args_and_kwargs(self):
         source = 'print("Testando!")\ninput("...")\nreturn x + y / -z'
@@ -54,9 +54,9 @@ class TestHash(unittest.TestCase):
 
         expected_args = ((str(self.first_output + self.second_output) + source).encode('utf'),)
 
-        self.hash.hash.assert_called_once()
-        self.assertTupleEqual(self.hash.hash.call_args[0], expected_args)
-        self.assertDictEqual(self.hash.hash.call_args[1], {})
+        self.hash._hash.assert_called_once()
+        self.assertTupleEqual(self.hash._hash.call_args[0], expected_args)
+        self.assertDictEqual(self.hash._hash.call_args[1], {})
 
 
 if __name__ == '__main__':

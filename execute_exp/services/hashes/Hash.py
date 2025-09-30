@@ -12,6 +12,6 @@ class Hash():
 
         data = str(data) + fun_source
         data = data.encode('utf')
-        return self.hash(data)
+        return self._hash(data)
 
-    def hash(self, data: bytes) -> str: pass
+    def _hash(self, data: bytes) -> str: pass
