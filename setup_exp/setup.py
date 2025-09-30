@@ -5,7 +5,7 @@ sys.path.append(project_folder)
 from constantes import Constantes
 from setup_exp.services.experiment_service import create_experiment, overwrite_decorated_experiment, create_experiment_function_graph, decorate_experiment_functions, get_experiment_functions_hashes
 from setup_exp.services.environment_service import init_env
-from util import save_json_file, serialize_to_file, check_python_version
+from util import save_json_file, check_python_version
     
 def validate_main_script_specified():
     if len(sys.argv) != 2:
@@ -19,7 +19,6 @@ def setup_experiment(main_script_path:str) -> None:
     decorate_experiment_functions(experiment)
     overwrite_decorated_experiment(experiment)
     save_json_file(functions2hashes, Constantes().EXP_FUNCTIONS_FILENAME)
-    serialize_to_file(experiment, Constantes().EXP_SERIALIZED_FILENAME)
 
 if __name__ == '__main__':
     check_python_version()
