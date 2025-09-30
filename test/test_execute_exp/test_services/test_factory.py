@@ -4,9 +4,12 @@ import unittest, os, sys
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
-from execute_exp.services.factory import get_serializer, init_revalidation, init_exec_mode, init_mem_arch
+from execute_exp.services.factory import init_revalidation, init_exec_mode, init_mem_arch, get_hash
 from execute_exp.services.serializers.PickleSerializer import PickleSerializer
 from execute_exp.services.serializers.CloudpickleSerializer import CloudpickleSerializer
+from execute_exp.services.hashes.MD5Hash import MD5Hash
+from execute_exp.services.hashes.MurmurHash import MurmurHash
+from execute_exp.services.hashes.XXHashHash import XXHashHash
 from execute_exp.services.storages.SQLiteStorage import SQLiteStorage
 from execute_exp.services.storages.RedisStorage import RedisStorage
 from execute_exp.services.storages.MongoStorage import MongoStorage
@@ -51,6 +54,11 @@ class TestFactory(unittest.TestCase):
         self.serializer = random.choice([['pickle', PickleSerializer],
                                          ['cloudpickle', CloudpickleSerializer]])
         SpeeduPySettings().serializer = [self.serializer[0]]
+
+        self.hash = random.choice([['md5', MD5Hash],
+                                   ['murmur', MurmurHash],
+                                   ['xxhash', XXHashHash]])
+        SpeeduPySettings().hash = [self.hash[0]]
 
         self.exec_mode = random.choice([['no-cache', None],
                                         ['manual', None],
@@ -125,9 +133,14 @@ class TestFactory(unittest.TestCase):
             self.assertEqual(result._AdaptativeRevalidation__adaptative_factor, SpeeduPySettings().reduction_factor)
 
     @patch("execute_exp.services.factory.SpeeduPySettings")
-    def test_get_serializer(self, SpeeduPySettings):
+    def test_get_hash(self, SpeeduPySettings):
         self.set_random_values(SpeeduPySettings)
-        self.assertIsInstance(get_serializer(), self.serializer[1])
+
+        hash = get_hash()
+        serializer = hash._serializer
+
+        self.assertIsInstance(hash, self.hash[1])
+        self.assertIsInstance(serializer, self.serializer[1])
 
 
 if __name__ == '__main__':

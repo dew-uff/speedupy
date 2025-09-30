@@ -5,6 +5,7 @@ from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMem
 from execute_exp.services.retrieval_strategies.AbstractRetrievalStrategy import AbstractRetrievalStrategy
 from execute_exp.services.storages.Storage import Storage
 from execute_exp.services.serializers.Serializer import Serializer
+from execute_exp.services.hashes.Hash import Hash
 from execute_exp.SpeeduPySettings import SpeeduPySettings
 
 
@@ -46,11 +47,19 @@ def _init_storage() -> Storage:
     from execute_exp.services.storages.MongoStorage import MongoStorage
     from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
 
-    serializer = get_serializer()
+    serializer = _get_serializer()
     if SpeeduPySettings().storage == ['sqlite']: return SQLiteStorage(serializer)
     elif SpeeduPySettings().storage == ['redis']: return RedisStorage(serializer)
     elif SpeeduPySettings().storage == ['mongo']: return MongoStorage(serializer)
     elif SpeeduPySettings().storage == ['file']: return FileSystemStorage(serializer)
+
+
+def _get_serializer() -> Serializer:
+    from execute_exp.services.serializers.PickleSerializer import PickleSerializer
+    from execute_exp.services.serializers.CloudpickleSerializer import CloudpickleSerializer
+
+    if SpeeduPySettings().serializer == ['pickle']: return PickleSerializer()
+    elif SpeeduPySettings().serializer == ['cloudpickle']: return CloudpickleSerializer()
 
 
 def init_exec_mode() -> Optional[AbstractExecutionMode]:
@@ -58,7 +67,7 @@ def init_exec_mode() -> Optional[AbstractExecutionMode]:
     from execute_exp.services.execution_modes.ProbabilisticCountingMode import ProbabilisticCountingMode
     from execute_exp.services.execution_modes.ProbabilisticErrorMode import ProbabilisticErrorMode
 
-    serializer = get_serializer()
+    serializer = _get_serializer()
     if SpeeduPySettings().exec_mode == ['accurate']:
         return AccurateMode(serializer, SpeeduPySettings().min_num_exec)
     elif SpeeduPySettings().exec_mode == ['probabilistic-counting']:
@@ -88,9 +97,12 @@ def init_revalidation(exec_mode: Optional[AbstractExecutionMode]) -> Optional[Ab
                                       SpeeduPySettings().reduction_factor)
 
 
-def get_serializer() -> Serializer:
-    from execute_exp.services.serializers.PickleSerializer import PickleSerializer
-    from execute_exp.services.serializers.CloudpickleSerializer import CloudpickleSerializer
+def get_hash() -> Hash:
+    from execute_exp.services.hashes.MD5Hash import MD5Hash
+    from execute_exp.services.hashes.MurmurHash import MurmurHash
+    from execute_exp.services.hashes.XXHashHash import XXHashHash
 
-    if SpeeduPySettings().serializer == ['pickle']: return PickleSerializer()
-    elif SpeeduPySettings().serializer == ['cloudpickle']: return CloudpickleSerializer()
+    serializer = _get_serializer()
+    if SpeeduPySettings().hash == ['md5']: return MD5Hash(serializer)
+    elif SpeeduPySettings().hash == ['murmur']: return MurmurHash(serializer)
+    elif SpeeduPySettings().hash == ['xxhash']: return XXHashHash(serializer)
