@@ -3,7 +3,7 @@ import unittest, os, sys, hashlib, mmh3, xxhash, random
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
-from execute_exp.services.DataAccess import DataAccess, get_id
+from execute_exp.services.DataAccess import DataAccess
 from execute_exp.SpeeduPySettings import SpeeduPySettings
 from execute_exp.services.serializers.PickleSerializer import PickleSerializer
 from execute_exp.services.serializers.CloudpickleSerializer import CloudpickleSerializer
@@ -34,48 +34,6 @@ class TestDataAccess(unittest.TestCase):
         elif hash_algorithm == ['xxhash']:
             f_call_hash = xxhash.xxh128_hexdigest(f_call_hash.encode('utf'))
         return f_call_hash
-
-    def test_get_id_with_hash_md5(self):
-        SpeeduPySettings().hash = ['md5']
-        source = 'print("Essa é uma função de teste!")\nreturn x ** y / z'
-        hash = get_id(source, [1, 5], {'z': -12.5}, self.serializer)
-        expected = self.manually_get_id(source, [1, 5], {'z': -12.5})
-        self.assertEqual(hash, expected)
-
-    def test_get_id_with_hash_xxhash(self):
-        SpeeduPySettings().hash = ['xxhash']
-        source = 'print("Essa é uma função de teste!")\nreturn x ** y / z'
-        hash = get_id(source, [1, 5], {'z': -12.5}, self.serializer)
-        expected = self.manually_get_id(source, [1, 5], {'z': -12.5}, hash_algorithm=['xxhash'])
-        self.assertEqual(hash, expected)
-
-    def test_get_id_with_hash_murmur(self):
-        SpeeduPySettings().hash = ['murmur']
-        source = 'print("Essa é uma função de teste!")\nreturn x ** y / z'
-        hash = get_id(source, [1, 5], {'z': -12.5}, self.serializer)
-        expected = self.manually_get_id(source, [1, 5], {'z': -12.5}, hash_algorithm=['murmur'])
-        self.assertEqual(hash, expected)
-
-    def test_get_id_without_fun_args(self):
-        SpeeduPySettings().hash = ['xxhash']
-        source = 'print("Testando!")\ninput("...")\nreturn x + y / -z'
-        hash = get_id(source, fun_kwargs={'z': -12.5}, serializer=self.serializer)
-        expected = self.manually_get_id(source, [], {'z': -12.5}, hash_algorithm=['xxhash'])
-        self.assertEqual(hash, expected)
-
-    def test_get_id_without_fun_kwargs(self):
-        SpeeduPySettings().hash = ['md5']
-        source = 'print("Testando!")\nos.path.exists("/")\nrandom.randint()\nreturn x + y / -z'
-        hash = get_id(source, fun_args=[-1.227, 0], serializer=self.serializer)
-        expected = self.manually_get_id(source, [-1.227, 0], {})
-        self.assertEqual(hash, expected)
-
-    def test_get_id_only_with_fun_source(self):
-        SpeeduPySettings().hash = ['murmur']
-        source = 'print("Testando!")\nreturn x / y ** 2'
-        hash = get_id(source)
-        expected = self.manually_get_id(source, [], {}, hash_algorithm=['murmur'])
-        self.assertEqual(hash, expected)
 
     def test_add_to_metadata(self):
         self.assertDictEqual(self.dataAccess._DataAccess__METADATA, {})
