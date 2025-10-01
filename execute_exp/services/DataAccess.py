@@ -15,10 +15,10 @@ class DataAccess(metaclass=SingletonMeta):
         self.__function_calls_prov_table: FunctionCallsProvTable
 
     def init_data_access(self):
-        from execute_exp.services.factory import init_mem_arch, get_hash
+        from execute_exp.services.factory import init_mem_arch, get_hash, get_serializer
         self.__mem_arch = init_mem_arch()
         self._hash = get_hash()
-        self.__function_calls_prov_table = FunctionCallsProvTable()
+        self.__function_calls_prov_table = FunctionCallsProvTable(get_serializer())
         self.__FUNCTIONS_2_HASHES = get_content_json_file(Constantes().EXP_FUNCTIONS_FILENAME)
 
         self.__mem_arch.get_initial_cache_entries()
