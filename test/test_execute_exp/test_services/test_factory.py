@@ -4,7 +4,7 @@ import unittest, os, sys
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
-from execute_exp.services.factory import init_revalidation, init_exec_mode, init_mem_arch, get_hash
+from execute_exp.services.factory import init_revalidation, get_serializer, init_exec_mode, init_mem_arch, get_hash
 from execute_exp.services.serializers.PickleSerializer import PickleSerializer
 from execute_exp.services.serializers.CloudpickleSerializer import CloudpickleSerializer
 from execute_exp.services.hashes.MD5Hash import MD5Hash
@@ -94,6 +94,11 @@ class TestFactory(unittest.TestCase):
         self.assertIsInstance(serializer, self.serializer[1])
         if SpeeduPySettings().retrieval_exec_mode == ['sequential']: self.assertFalse(mem_arch._use_threads)
         if SpeeduPySettings().retrieval_exec_mode == ['thread']: self.assertTrue(mem_arch._use_threads)
+
+    @patch("execute_exp.services.factory.SpeeduPySettings")
+    def test_get_serializer(self, SpeeduPySettings):
+        self.set_random_values(SpeeduPySettings)
+        self.assertIsInstance(get_serializer(), self.serializer[1])
 
     @patch("execute_exp.services.factory.SpeeduPySettings")
     def test_init_exec_mode(self, SpeeduPySettings):
