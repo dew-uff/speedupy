@@ -24,7 +24,7 @@ class DataAccess(metaclass=SingletonMeta):
         from execute_exp.services.factory import init_mem_arch, get_serializer
         self.__mem_arch = init_mem_arch()
         self.__serializer = get_serializer()
-        self.__function_calls_prov_table = FunctionCallsProvTable()
+        self.__function_calls_prov_table = FunctionCallsProvTable(self.__serializer)
         self.__FUNCTIONS_2_HASHES = get_content_json_file(Constantes().EXP_FUNCTIONS_FILENAME)
 
         self.__mem_arch.get_initial_cache_entries()
