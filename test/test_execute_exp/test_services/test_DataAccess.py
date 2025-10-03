@@ -1,4 +1,5 @@
 import unittest, os, sys, hashlib, mmh3, xxhash, random
+from unittest.mock import Mock
 
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
@@ -18,6 +19,10 @@ class TestDataAccess(unittest.TestCase):
         SpeeduPySettings().hash = [random.choice(['md5', 'murmur', 'xxhash'])]
         self.serializer = serializer[1]
         self.dataAccess = DataAccess()
+        self.dataAccess._FUNCTIONS_2_HASHES = {'f1': 'f1_hash',
+                                               'f2': 'f2_hash',
+                                               'f3': 'f3_hash'}
+        self.dataAccess._hash = Mock()
 
     def tearDown(self) -> None:
         self.dataAccess._DataAccess__METADATA = {}
@@ -34,6 +39,22 @@ class TestDataAccess(unittest.TestCase):
         elif hash_algorithm == ['xxhash']:
             f_call_hash = xxhash.xxh128_hexdigest(f_call_hash.encode('utf'))
         return f_call_hash
+
+    def test_get_function_hash(self):
+        func = random.choice(list(self.dataAccess._FUNCTIONS_2_HASHES.keys()))
+        func_hash = self.dataAccess.get_function_hash(func)
+        self.assertEqual(func_hash, self.dataAccess._FUNCTIONS_2_HASHES[func])
+
+    def test_get_id(self):
+        self.dataAccess._hash.get_id = Mock(return_value='fc_hash')
+
+        func = random.choice(list(self.dataAccess._FUNCTIONS_2_HASHES.keys()))
+        args = (1,)
+        kwargs = {'a': True}
+        id = self.dataAccess.get_id(func, args, kwargs)
+
+        self.dataAccess._hash.get_id.assert_called_once_with(self.dataAccess._FUNCTIONS_2_HASHES[func], args, kwargs)
+        self.assertEqual(id, 'fc_hash')
 
     def test_add_to_metadata(self):
         self.assertDictEqual(self.dataAccess._DataAccess__METADATA, {})

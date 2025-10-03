@@ -10,7 +10,7 @@ from util import get_content_json_file
 class DataAccess(metaclass=SingletonMeta):
     def __init__(self):
         self.__METADATA = {}
-        self.__FUNCTIONS_2_HASHES = {}
+        self._FUNCTIONS_2_HASHES = {}
         self.__mem_arch: AbstractMemArch
         self.__function_calls_prov_table: FunctionCallsProvTable
 
@@ -19,23 +19,23 @@ class DataAccess(metaclass=SingletonMeta):
         self.__mem_arch = init_mem_arch()
         self._hash = get_hash()
         self.__function_calls_prov_table = FunctionCallsProvTable(get_serializer())
-        self.__FUNCTIONS_2_HASHES = get_content_json_file(Constantes().EXP_FUNCTIONS_FILENAME)
+        self._FUNCTIONS_2_HASHES = get_content_json_file(Constantes().EXP_FUNCTIONS_FILENAME)
 
         self.__mem_arch.get_initial_cache_entries()
         self.__function_calls_prov_table.get_initial_function_calls_prov_entries()
 
     def get_function_hash(self, func_qualname: str) -> str:
-        return self.__FUNCTIONS_2_HASHES[func_qualname]
+        return self._FUNCTIONS_2_HASHES[func_qualname]
 
     ############# CACHE
-    def get_cache_entry(self, func_qualname, func_args, func_kwargs):
-        func_hash = self.__FUNCTIONS_2_HASHES[func_qualname]
-        func_call_hash = self._hash.get_id(func_hash, func_args, func_kwargs)
+    def get_id(self, func_qualname, func_args, func_kwargs):
+        func_hash = self.get_function_hash(func_qualname)
+        return self._hash.get_id(func_hash, func_args, func_kwargs)
+
+    def get_cache_entry(self, func_call_hash, func_qualname):
         return self.__mem_arch.get_cache_entry(func_call_hash, func_qualname)
 
-    def create_cache_entry(self, func_qualname, func_args, func_kwargs, func_return):
-        func_hash = self.__FUNCTIONS_2_HASHES[func_qualname]
-        func_call_hash = self._hash.get_id(func_hash, func_args, func_kwargs)
+    def create_cache_entry(self, func_call_hash, func_return, func_qualname):
         self.__mem_arch.create_cache_entry(func_call_hash, func_return, func_qualname)
 
     ############# METADATA
