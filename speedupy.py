@@ -24,11 +24,12 @@ def deterministic(f):
     @wraps(f)
     def wrapper(*method_args, **method_kwargs):
         debug("calling {0}".format(f.__qualname__))
-        c = DataAccess().get_cache_entry(f.__qualname__, method_args, method_kwargs)
+        func_call_hash = DataAccess().get_id(f.__qualname__, method_args, method_kwargs)
+        c = DataAccess().get_cache_entry(func_call_hash, f.__qualname__)
         if _cache_doesnt_exist(c):
             debug("cache miss for {0}({1})".format(f.__qualname__, method_args))
             return_value = f(*method_args, **method_kwargs)
-            DataAccess().create_cache_entry(f.__qualname__, method_args, method_kwargs, return_value)
+            DataAccess().create_cache_entry(func_call_hash, return_value, f.__qualname__)
             return return_value
         else:
             debug("cache hit for {0}({1})".format(f.__qualname__, method_args))

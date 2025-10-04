@@ -1,150 +1,142 @@
-import unittest, os, sys
+import unittest, os, sys, random
 from unittest.mock import patch, Mock
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 
 from execute_exp.services.DataAccess import DataAccess
+from execute_exp.services.serializers.PickleSerializer import PickleSerializer
+from execute_exp.services.serializers.CloudpickleSerializer import CloudpickleSerializer
 from speedupy import deterministic, _execute_func_measuring_time
 
 class TestSpeeduPy(unittest.TestCase):
     def setUp(self):
         self.dataAccess = Mock(DataAccess)
+        self.fc_hash = 'fc_hash'
+        self.dataAccess.get_id = Mock(return_value=self.fc_hash)
+        self.dataAccess.get_cache_entry = Mock(return_value=None)
+        self.dataAccess.create_cache_entry = Mock(return_value=None)
 
     def test_deterministic_when_cache_hit(self):
         with patch('speedupy.DataAccess', return_value=self.dataAccess):
             self.dataAccess.get_cache_entry = Mock(return_value=10)
-            self.dataAccess.create_cache_entry = Mock()
             func = Mock()
             func.__qualname__ = 'func'
 
             self.assertEqual(deterministic(func)(8, 4), 10)
 
-            self.dataAccess.get_cache_entry.assert_called_once()
-            self.assertTupleEqual(self.dataAccess.get_cache_entry.call_args.args,
-                                  ('func', (8, 4), {}))
+            self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (8, 4), {})
+            self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
             func.assert_not_called()
             self.dataAccess.create_cache_entry.assert_not_called()
 
     def test_deterministic_when_cache_miss(self):
         with patch('speedupy.DataAccess', return_value=self.dataAccess):
-            self.dataAccess.get_cache_entry = Mock(return_value=None)
-            self.dataAccess.create_cache_entry = Mock()
             func = Mock(return_value=2)
             func.__qualname__ = 'func'
 
             self.assertEqual(deterministic(func)(8, v=1), 2)
 
-
-            self.dataAccess.get_cache_entry.assert_called_once()
-            self.assertTupleEqual(self.dataAccess.get_cache_entry.call_args.args,
-                                  ('func', (8,), {'v':1}))
-            
-            func.assert_called_once()
-            self.assertTupleEqual(func.call_args.args, (8,))
-            self.assertDictEqual(func.call_args.kwargs, {'v':1})
-            
-            self.dataAccess.create_cache_entry.assert_called_once()
-            self.assertTupleEqual(self.dataAccess.create_cache_entry.call_args.args,
-                                  ('func', (8,), {'v':1}, 2))
+            self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (8,), {'v': 1})
+            self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
+            func.assert_called_once_with(8, v=1)
+            self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, 2, func.__qualname__)
 
     def test_deterministic_when_function_has_no_args(self):
         with patch('speedupy.DataAccess', return_value=self.dataAccess):
-            self.dataAccess.get_cache_entry = Mock(return_value=None)
-            self.dataAccess.create_cache_entry = Mock()
             func = Mock(return_value=False)
             func.__qualname__ = 'func'
 
             self.assertFalse(deterministic(func)(x=1, y=2, z=3))
 
-
-            self.dataAccess.get_cache_entry.assert_called_once()
-            self.assertTupleEqual(self.dataAccess.get_cache_entry.call_args.args,
-                                  ('func', (), {'x':1, 'y':2, 'z':3}))
-            
-            func.assert_called_once()
-            self.assertTupleEqual(func.call_args.args, ())
-            self.assertDictEqual(func.call_args.kwargs, {'x':1, 'y':2, 'z':3})
-            
-            self.dataAccess.create_cache_entry.assert_called_once()
-            self.assertTupleEqual(self.dataAccess.create_cache_entry.call_args.args,
-                                  ('func', (), {'x':1, 'y':2, 'z':3}, False))
+            self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (), {'x': 1, 'y': 2, 'z': 3})
+            self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
+            func.assert_called_once_with(x=1, y=2, z=3)
+            self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, False, func.__qualname__)
 
     def test_deterministic_when_function_has_no_kwargs(self):
         with patch('speedupy.DataAccess', return_value=self.dataAccess):
-            self.dataAccess.get_cache_entry = Mock(return_value=None)
-            self.dataAccess.create_cache_entry = Mock()
             func = Mock(return_value={'my', 'set', '!'})
             func.__qualname__ = 'func'
 
             self.assertSetEqual(deterministic(func)(1, 2, 3), {'my', 'set', '!'})
 
-
-            self.dataAccess.get_cache_entry.assert_called_once()
-            self.assertTupleEqual(self.dataAccess.get_cache_entry.call_args.args,
-                                  ('func', (1, 2, 3), {}))
-            
-            func.assert_called_once()
-            self.assertTupleEqual(func.call_args.args, (1, 2, 3))
-            self.assertDictEqual(func.call_args.kwargs, {})
-            
-            self.dataAccess.create_cache_entry.assert_called_once()
-            self.assertTupleEqual(self.dataAccess.create_cache_entry.call_args.args,
-                                  ('func', (1, 2, 3), {}, {'my', 'set', '!'}))
+            self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (1, 2, 3), {})
+            self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
+            func.assert_called_once_with(1, 2, 3)
+            self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, {'my', 'set', '!'}, func.__qualname__)
 
     def test_deterministic_when_function_has_no_input(self):
         with patch('speedupy.DataAccess', return_value=self.dataAccess):
-            self.dataAccess.get_cache_entry = Mock(return_value=None)
-            self.dataAccess.create_cache_entry = Mock()
             func = Mock(return_value=['my', -2.3, False])
             func.__qualname__ = 'func'
 
             self.assertListEqual(deterministic(func)(), ['my', -2.3, False])
 
+            self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (), {})
+            self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
+            func.assert_called_once_with()
+            self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, ['my', -2.3, False], func.__qualname__)
 
-            self.dataAccess.get_cache_entry.assert_called_once()
-            self.assertTupleEqual(self.dataAccess.get_cache_entry.call_args.args,
-                                  ('func', (), {}))
-            
-            func.assert_called_once()
-            self.assertTupleEqual(func.call_args.args, ())
-            self.assertDictEqual(func.call_args.kwargs, {})
-            
+    def test_deterministic_when_cache_miss_occurs_but_function_args_and_kwargs_are_changed_during_the_execution_of_the_pure_function(self):
+        with patch('speedupy.DataAccess', return_value=self.dataAccess):
+
+            def get_id_side_effect(*args):
+                if args == (func.__qualname__, ([1, 2, 3],), {'s': {'a', 'b', 'c'}}): return 'fc_hash'
+
+                raise Exception()
+
+            self.dataAccess.get_id.side_effect=get_id_side_effect
+
+            def create_cache_entry_side_effect(*args):
+                if args == ('fc_hash', ([1, 2], {'b', 'c'}), func.__qualname__): return
+
+                raise Exception()
+
+            self.dataAccess.create_cache_entry.side_effect=create_cache_entry_side_effect
+
+            lista = [1, 2, 3]
+            conjunto = {'a', 'b', 'c'}
+
+            deterministic(func)(lista, s=conjunto)
+
+            self.assertListEqual(lista, [1, 2])
+            self.assertSetEqual(conjunto, {'b', 'c'})
+            self.dataAccess.get_id.assert_called_once()
+            self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
             self.dataAccess.create_cache_entry.assert_called_once()
-            self.assertTupleEqual(self.dataAccess.create_cache_entry.call_args.args,
-                                  ('func', (), {}, ['my', -2.3, False])) 
 
     def test_execute_func_measuring_time_when_a_function_is_passed(self):
         def func2(a, b, c, x=1, y=True):
             return 20
 
-        result, _ = _execute_func_measuring_time(func2, (1, 3, 2), {'x':1.213, 'y':False})
+        result, _ = _execute_func_measuring_time(func2, (1, 3, 2), {'x': 1.213, 'y': False})
         self.assertEqual(result, 20)
-            
+
     def test_execute_func_measuring_time_when_an_instance_method_is_passed(self):
         class MyClass():
             def my_method(self, a, b, c, x=1, y=True):
                 return True
 
-        result, _ = _execute_func_measuring_time(MyClass().my_method, (1, 3, 2), {'x':1.213, 'y':False})
+        result, _ = _execute_func_measuring_time(MyClass().my_method, (1, 3, 2), {'x': 1.213, 'y': False})
         self.assertTrue(result)
 
     def test_execute_func_measuring_time_when_a_class_method_is_passed(self):
         class MyClass():
             @classmethod
             def my_classmethod(cls, a, b, c, x=1, y=True):
-                return {-b, c*c, x+a, y}
+                return {-b, c * c, x + a, y}
 
-        result, _ = _execute_func_measuring_time(MyClass.my_classmethod, (1, 3, 2), {'x':1.213, 'y':False})
+        result, _ = _execute_func_measuring_time(MyClass.my_classmethod, (1, 3, 2), {'x': 1.213, 'y': False})
         self.assertSetEqual(result, {-3, 4, 2.213, False})
 
     def test_execute_func_measuring_time_when_a_function_without_args_is_passed(self):
         def func2(x=1.12312, y=[1, 5, 2]):
             return 3.14
 
-        result, _ = _execute_func_measuring_time(func2, (), {'x':1.213, 'y':[3]})
+        result, _ = _execute_func_measuring_time(func2, (), {'x': 1.213, 'y': [3]})
         self.assertEqual(result, 3.14)
-        
+
     def test_execute_func_measuring_time_when_a_function_without_kwargs_is_passed(self):
         def func2(a, b, c):
             return False
@@ -219,9 +211,13 @@ class TestSpeeduPy(unittest.TestCase):
     #         random.assert_not_called()
     #         get_id.assert_called_once()
     #         add_to_metadata.assert_called_once()
- 
-def func(x, y):
-    return x / y
+
+
+def func(lista: list, s: set = {}):
+    lista.pop()
+    s.remove('a')
+    return lista, s
+
 
 if __name__ == '__main__':
     unittest.main()
