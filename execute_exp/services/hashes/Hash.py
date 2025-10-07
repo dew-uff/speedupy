@@ -7,8 +7,12 @@ class Hash():
 
     def get_id(self, fun_source: str, fun_args=(), fun_kwargs={}) -> str:
         data = b''
-        if fun_args != (): data += self._serializer.dumps(fun_args)
-        if fun_kwargs != {}: data += self._serializer.dumps(fun_kwargs)
+        if fun_args != ():
+            fun_args = self._serializer.clean_data(fun_args)
+            data += self._serializer.dumps(fun_args)
+        if fun_kwargs != {}:
+            fun_kwargs = self._serializer.clean_data(fun_kwargs)
+            data += self._serializer.dumps(fun_kwargs)
 
         data = str(data) + fun_source
         data = data.encode('utf')
