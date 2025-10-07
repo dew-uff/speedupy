@@ -11,6 +11,8 @@ class SpeeduPySettings(metaclass=SingletonMeta):
             self.storage, \
             self.serializer, \
             self.min_exec_time_to_memoize, \
+            self.measure_time, \
+            self.profile, \
             self.exec_mode, \
             self.revalidation, \
             self.max_num_exec_til_reval, \
