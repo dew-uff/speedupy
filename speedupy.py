@@ -12,6 +12,7 @@ from SingletonMeta import SingletonMeta
 from util import check_python_version
 from logger.log import debug
 
+
 def initialize_speedupy(f):
     @wraps(f)
     def wrapper(*method_args, **method_kwargs):
@@ -19,6 +20,7 @@ def initialize_speedupy(f):
         f(*method_args, **method_kwargs)
         DataAccess().close_data_access()
     return wrapper
+
 
 def deterministic(f):
     @wraps(f)
@@ -28,24 +30,35 @@ def deterministic(f):
         c = DataAccess().get_cache_entry(func_call_hash, f.__qualname__)
         if _cache_doesnt_exist(c):
             debug("cache miss for {0}({1})".format(f.__qualname__, method_args))
-            return_value = f(*method_args, **method_kwargs)
-            DataAccess().create_cache_entry(func_call_hash, return_value, f.__qualname__)
+            return_value, elapsed_time = _execute_func_measuring_time(f, method_args, method_kwargs)
+            if elapsed_time > SpeeduPy().min_exec_time_to_memoize:
+                DataAccess().create_cache_entry(func_call_hash, return_value, f.__qualname__)
             return return_value
         else:
             debug("cache hit for {0}({1})".format(f.__qualname__, method_args))
             return c
     return wrapper
 
+
 def _cache_doesnt_exist(cache) -> bool:
     return cache is None
+
+
+def _execute_func_measuring_time(f, method_args, method_kwargs):
+    start = time.perf_counter()
+    return_value = f(*method_args, **method_kwargs)
+    end = time.perf_counter()
+    return return_value, end - start
+
 
 class SpeeduPy(metaclass=SingletonMeta):
     def __init__(self):
         self.exec_mode = init_exec_mode()
         self.revalidation = init_revalidation(self.exec_mode)
         self.hash = get_hash()
+        self.min_exec_time_to_memoize = SpeeduPySettings().min_exec_time_to_memoize
 
-#TODO: TEST
+# TODO: TEST
 def maybe_deterministic(f):
     @wraps(f)
     def wrapper(*method_args, **method_kwargs):
@@ -69,32 +82,31 @@ def maybe_deterministic(f):
         return result
     return wrapper
 
-def _revalidate_func(f, method_args:List, method_kwargs:Dict, f_hash:str, fc_hash:str, fc_prov:FunctionCallProv) -> Any:
+
+def _revalidate_func(f, method_args: List, method_kwargs: Dict, f_hash: str, fc_hash: str, fc_prov: FunctionCallProv) -> Any:
     result, md = _execute_func_collecting_metadata(f, method_args, method_kwargs, f_hash, fc_hash)
     SpeeduPy().revalidation.calculate_next_revalidation(fc_prov, md)
     DataAccess().add_metadata_collected_to_a_func_call_prov(fc_prov)
     return result
 
-def _execute_func_collecting_metadata(f, method_args:List, method_kwargs:Dict,
-                                      func_hash:str, func_call_hash:str) -> Tuple[Any, Metadata]:
+
+def _execute_func_collecting_metadata(f, method_args: List, method_kwargs: Dict,
+                                      func_hash: str, func_call_hash: str) -> Tuple[Any, Metadata]:
     return_value, elapsed_time = _execute_func_measuring_time(f, *method_args, **method_kwargs)
     md = Metadata(func_hash, method_args, method_kwargs, return_value, elapsed_time)
     DataAccess().add_to_metadata(func_call_hash, md)
     return return_value, md
 
-def _execute_func_measuring_time(f, method_args, method_kwargs):
-    start = time.perf_counter()
-    result_value = f(*method_args, **method_kwargs)
-    end = time.perf_counter()
-    return result_value, end - start
 
-def _updating_FunctionCallProv_may_speed_up_func_call(fc_hash:str, fc_prov:FunctionCallProv) -> bool:
+def _updating_FunctionCallProv_may_speed_up_func_call(fc_hash: str, fc_prov: FunctionCallProv) -> bool:
     num_metadata = DataAccess().get_amount_of_collected_metadata(fc_hash)
     return (fc_prov.total_num_exec < SpeeduPy().exec_mode.min_num_exec) and \
            (fc_prov.total_num_exec + num_metadata >= SpeeduPy().exec_mode.min_num_exec)
 
-def _FunctionCallProv_has_enough_data_to_classify_func_call(fc_prov:FunctionCallProv) -> bool:
+
+def _FunctionCallProv_has_enough_data_to_classify_func_call(fc_prov: FunctionCallProv) -> bool:
     return fc_prov.total_num_exec >= SpeeduPy().exec_mode.min_num_exec
+
 
 check_python_version()
 
@@ -104,7 +116,7 @@ if SpeeduPySettings().exec_mode == ['no-cache']:
 
     def deterministic(f):
         return f
-    
+
     def maybe_deterministic(f):
         return f
 

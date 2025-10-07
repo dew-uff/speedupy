@@ -11,100 +11,126 @@ from speedupy import deterministic, _execute_func_measuring_time
 
 class TestSpeeduPy(unittest.TestCase):
     def setUp(self):
-        self.dataAccess = Mock(DataAccess)
         self.fc_hash = 'fc_hash'
+
+        self.patcher_DataAccess = patch('speedupy.DataAccess')
+        self.dataAccess = self.patcher_DataAccess.start().return_value
         self.dataAccess.get_id = Mock(return_value=self.fc_hash)
         self.dataAccess.get_cache_entry = Mock(return_value=None)
         self.dataAccess.create_cache_entry = Mock(return_value=None)
 
+        self.patcher_Speedupy = patch('speedupy.SpeeduPy')
+        self.speedupy = self.patcher_Speedupy.start().return_value
+        self.speedupy.min_exec_time_to_memoize = 0
+
+    def tearDown(self):
+        self.patcher_DataAccess.stop()
+        self.patcher_Speedupy.stop()
+
     def test_deterministic_when_cache_hit(self):
-        with patch('speedupy.DataAccess', return_value=self.dataAccess):
-            self.dataAccess.get_cache_entry = Mock(return_value=10)
-            func = Mock()
-            func.__qualname__ = 'func'
+        self.dataAccess.get_cache_entry = Mock(return_value=10)
+        func = Mock()
+        func.__qualname__ = 'func'
 
-            self.assertEqual(deterministic(func)(8, 4), 10)
+        self.assertEqual(deterministic(func)(8, 4), 10)
 
-            self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (8, 4), {})
-            self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
-            func.assert_not_called()
-            self.dataAccess.create_cache_entry.assert_not_called()
+        self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (8, 4), {})
+        self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
+        func.assert_not_called()
+        self.dataAccess.create_cache_entry.assert_not_called()
 
     def test_deterministic_when_cache_miss(self):
-        with patch('speedupy.DataAccess', return_value=self.dataAccess):
-            func = Mock(return_value=2)
-            func.__qualname__ = 'func'
+        func = Mock(return_value=2)
+        func.__qualname__ = 'func'
 
-            self.assertEqual(deterministic(func)(8, v=1), 2)
+        self.assertEqual(deterministic(func)(8, v=1), 2)
 
-            self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (8,), {'v': 1})
-            self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
-            func.assert_called_once_with(8, v=1)
-            self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, 2, func.__qualname__)
+        self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (8,), {'v': 1})
+        self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
+        func.assert_called_once_with(8, v=1)
+        self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, 2, func.__qualname__)
 
     def test_deterministic_when_function_has_no_args(self):
-        with patch('speedupy.DataAccess', return_value=self.dataAccess):
-            func = Mock(return_value=False)
-            func.__qualname__ = 'func'
+        func = Mock(return_value=False)
+        func.__qualname__ = 'func'
 
-            self.assertFalse(deterministic(func)(x=1, y=2, z=3))
+        self.assertFalse(deterministic(func)(x=1, y=2, z=3))
 
-            self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (), {'x': 1, 'y': 2, 'z': 3})
-            self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
-            func.assert_called_once_with(x=1, y=2, z=3)
-            self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, False, func.__qualname__)
+        self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (), {'x': 1, 'y': 2, 'z': 3})
+        self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
+        func.assert_called_once_with(x=1, y=2, z=3)
+        self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, False, func.__qualname__)
 
     def test_deterministic_when_function_has_no_kwargs(self):
-        with patch('speedupy.DataAccess', return_value=self.dataAccess):
-            func = Mock(return_value={'my', 'set', '!'})
-            func.__qualname__ = 'func'
+        func = Mock(return_value={'my', 'set', '!'})
+        func.__qualname__ = 'func'
 
-            self.assertSetEqual(deterministic(func)(1, 2, 3), {'my', 'set', '!'})
+        self.assertSetEqual(deterministic(func)(1, 2, 3), {'my', 'set', '!'})
 
-            self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (1, 2, 3), {})
-            self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
-            func.assert_called_once_with(1, 2, 3)
-            self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, {'my', 'set', '!'}, func.__qualname__)
+        self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (1, 2, 3), {})
+        self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
+        func.assert_called_once_with(1, 2, 3)
+        self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, {'my', 'set', '!'}, func.__qualname__)
 
     def test_deterministic_when_function_has_no_input(self):
-        with patch('speedupy.DataAccess', return_value=self.dataAccess):
-            func = Mock(return_value=['my', -2.3, False])
-            func.__qualname__ = 'func'
+        func = Mock(return_value=['my', -2.3, False])
+        func.__qualname__ = 'func'
 
-            self.assertListEqual(deterministic(func)(), ['my', -2.3, False])
+        self.assertListEqual(deterministic(func)(), ['my', -2.3, False])
 
-            self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (), {})
-            self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
-            func.assert_called_once_with()
-            self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, ['my', -2.3, False], func.__qualname__)
+        self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (), {})
+        self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
+        func.assert_called_once_with()
+        self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, ['my', -2.3, False], func.__qualname__)
 
     def test_deterministic_when_cache_miss_occurs_but_function_args_and_kwargs_are_changed_during_the_execution_of_the_pure_function(self):
-        with patch('speedupy.DataAccess', return_value=self.dataAccess):
+        def get_id_side_effect(*args):
+            if args == (func.__qualname__, ([1, 2, 3],), {'s': {'a', 'b', 'c'}}): return 'fc_hash'
 
-            def get_id_side_effect(*args):
-                if args == (func.__qualname__, ([1, 2, 3],), {'s': {'a', 'b', 'c'}}): return 'fc_hash'
+            raise Exception()
 
-                raise Exception()
+        self.dataAccess.get_id.side_effect=get_id_side_effect
 
-            self.dataAccess.get_id.side_effect=get_id_side_effect
+        def create_cache_entry_side_effect(*args):
+            if args == ('fc_hash', ([1, 2], {'b', 'c'}), func.__qualname__): return
 
-            def create_cache_entry_side_effect(*args):
-                if args == ('fc_hash', ([1, 2], {'b', 'c'}), func.__qualname__): return
+            raise Exception()
 
-                raise Exception()
+        self.dataAccess.create_cache_entry.side_effect=create_cache_entry_side_effect
 
-            self.dataAccess.create_cache_entry.side_effect=create_cache_entry_side_effect
+        lista = [1, 2, 3]
+        conjunto = {'a', 'b', 'c'}
 
-            lista = [1, 2, 3]
-            conjunto = {'a', 'b', 'c'}
+        deterministic(func)(lista, s=conjunto)
 
-            deterministic(func)(lista, s=conjunto)
+        self.assertListEqual(lista, [1, 2])
+        self.assertSetEqual(conjunto, {'b', 'c'})
+        self.dataAccess.get_id.assert_called_once()
+        self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
+        self.dataAccess.create_cache_entry.assert_called_once()
 
-            self.assertListEqual(lista, [1, 2])
-            self.assertSetEqual(conjunto, {'b', 'c'})
-            self.dataAccess.get_id.assert_called_once()
-            self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
-            self.dataAccess.create_cache_entry.assert_called_once()
+    def test_deterministic_when_function_call_executes_below_min_exec_time_to_memoize(self):
+        self.speedupy.min_exec_time_to_memoize = 1
+        func = Mock(return_value=2)
+        func.__qualname__ = 'func'
+
+        self.assertEqual(deterministic(func)(8, v=1), 2)
+
+        self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (8,), {'v': 1})
+        self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
+        func.assert_called_once_with(8, v=1)
+        self.dataAccess.create_cache_entry.assert_not_called()
+
+    def test_deterministic_when_function_call_executes_above_min_exec_time_to_memoize(self):
+        func = Mock(return_value=2)
+        func.__qualname__ = 'func'
+
+        self.assertEqual(deterministic(func)(8, v=1), 2)
+
+        self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (8,), {'v': 1})
+        self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
+        func.assert_called_once_with(8, v=1)
+        self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, 2, func.__qualname__)
 
     def test_execute_func_measuring_time_when_a_function_is_passed(self):
         def func2(a, b, c, x=1, y=True):
