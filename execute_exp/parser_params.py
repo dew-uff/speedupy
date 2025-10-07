@@ -190,6 +190,14 @@ def get_params():
                                      default=['cloudpickle'],
                                      help='SpeeduPy\'s serialization mechanism: choose one of the following options: ' + ', '.join(serializer_options))
 
+    speedupy_arg_parser.add_argument('-mt',
+                                     '--min-exec-time-to-memoize',
+                                     default=0.1,
+                                     metavar='',
+                                     type=float,
+                                     nargs=1,
+                                     help='defines the minimum execution time a pure function call must have to be memoized by SpeeduPy.')
+
     args = speedupy_arg_parser.parse_args()
 
     argsp_num_dict = args.num_dict
@@ -198,6 +206,7 @@ def get_params():
     argsp_hash = args.hash
     argsp_s = args.storage
     argsp_serializer = args.serializer
+    argsp_mt = args.min_exec_time_to_memoize
 
     argsp_exec_mode = args.exec_mode
     argsp_revalidation = args.revalidation
@@ -208,4 +217,4 @@ def get_params():
     argsp_confidence_level = args.confidence_level
     argsp_max_error_per_function = args.max_error_per_function
 
-    return argsp_num_dict, argsp_retrieval_strategy, argsp_retrieval_exec_mode, argsp_hash, argsp_s, argsp_serializer, argsp_exec_mode, argsp_revalidation, argsp_max_num_exec_til_revalidation, argsp_reduction_factor, argsp_min_num_exec, argsp_min_mode_occurrence, argsp_confidence_level, argsp_max_error_per_function
+    return argsp_num_dict, argsp_retrieval_strategy, argsp_retrieval_exec_mode, argsp_hash, argsp_s, argsp_serializer, argsp_mt, argsp_exec_mode, argsp_revalidation, argsp_max_num_exec_til_revalidation, argsp_reduction_factor, argsp_min_num_exec, argsp_min_mode_occurrence, argsp_confidence_level, argsp_max_error_per_function
