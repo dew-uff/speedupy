@@ -2,6 +2,7 @@ import pickle
 from typing import Any, Union, BinaryIO
 
 from execute_exp.services.serializers.Serializer import Serializer
+from execute_exp.services.serializers.util import clean_data
 
 
 class PickleSerializer(Serializer):
@@ -24,3 +25,6 @@ class PickleSerializer(Serializer):
     def deserialize_from_file(self, filename: str) -> Any:
         with open(filename, 'rb') as file:
             return pickle.load(file)
+
+    def clean_data(self, obj: Any) -> Any:
+        return clean_data(obj)
