@@ -56,7 +56,7 @@ class SpeeduPy(metaclass=SingletonMeta):
         self.exec_mode = init_exec_mode()
         self.revalidation = init_revalidation(self.exec_mode)
         self.hash = get_hash()
-        self.min_exec_time_to_memoize = SpeeduPySettings().min_exec_time_to_memoize
+        self.min_exec_time_to_memoize = SpeeduPySettings().min_exec_time_to_memoize[0]
 
 # TODO: TEST
 def maybe_deterministic(f):
