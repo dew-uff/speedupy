@@ -41,7 +41,7 @@ def _profile(f):
     @wraps(f)
     def wrapper(*method_args, **method_kwargs):
         f(*method_args, **method_kwargs)
-        Profiler.report()
+        Profiler().report()
     return wrapper
 
 
