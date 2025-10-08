@@ -4,9 +4,7 @@ current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 
-from execute_exp.services.DataAccess import DataAccess
-from execute_exp.services.serializers.PickleSerializer import PickleSerializer
-from execute_exp.services.serializers.CloudpickleSerializer import CloudpickleSerializer
+from execute_exp.services.Profiler import Profiler
 from speedupy import deterministic, _execute_func_measuring_time
 
 class TestSpeeduPy(unittest.TestCase):
@@ -23,6 +21,10 @@ class TestSpeeduPy(unittest.TestCase):
         self.speedupy = self.patcher_Speedupy.start().return_value
         self.speedupy.min_exec_time_to_memoize = 0
 
+        Profiler().num_deterministic_calls = 0
+        Profiler().num_cache_hit = 0
+        Profiler().num_func_call_too_fast_to_memoize = 0
+
     def tearDown(self):
         self.patcher_DataAccess.stop()
         self.patcher_Speedupy.stop()
@@ -32,7 +34,13 @@ class TestSpeeduPy(unittest.TestCase):
         func = Mock()
         func.__qualname__ = 'func'
 
+        self.assertEqual(Profiler().num_deterministic_calls, 0)
+        self.assertEqual(Profiler().num_cache_hit, 0)
+        self.assertEqual(Profiler().num_func_call_too_fast_to_memoize, 0)
         self.assertEqual(deterministic(func)(8, 4), 10)
+        self.assertEqual(Profiler().num_deterministic_calls, 1)
+        self.assertEqual(Profiler().num_cache_hit, 1)
+        self.assertEqual(Profiler().num_func_call_too_fast_to_memoize, 0)
 
         self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (8, 4), {})
         self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
@@ -43,8 +51,14 @@ class TestSpeeduPy(unittest.TestCase):
         func = Mock(return_value=2)
         func.__qualname__ = 'func'
 
+        self.assertEqual(Profiler().num_deterministic_calls, 0)
+        self.assertEqual(Profiler().num_cache_hit, 0)
+        self.assertEqual(Profiler().num_func_call_too_fast_to_memoize, 0)
         self.assertEqual(deterministic(func)(8, v=1), 2)
-
+        self.assertEqual(Profiler().num_deterministic_calls, 1)
+        self.assertEqual(Profiler().num_cache_hit, 0)
+        self.assertEqual(Profiler().num_func_call_too_fast_to_memoize, 0)
+        
         self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (8,), {'v': 1})
         self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
         func.assert_called_once_with(8, v=1)
@@ -114,7 +128,13 @@ class TestSpeeduPy(unittest.TestCase):
         func = Mock(return_value=2)
         func.__qualname__ = 'func'
 
+        self.assertEqual(Profiler().num_deterministic_calls, 0)
+        self.assertEqual(Profiler().num_cache_hit, 0)
+        self.assertEqual(Profiler().num_func_call_too_fast_to_memoize, 0)
         self.assertEqual(deterministic(func)(8, v=1), 2)
+        self.assertEqual(Profiler().num_deterministic_calls, 1)
+        self.assertEqual(Profiler().num_cache_hit, 0)
+        self.assertEqual(Profiler().num_func_call_too_fast_to_memoize, 1)
 
         self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (8,), {'v': 1})
         self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
@@ -125,7 +145,13 @@ class TestSpeeduPy(unittest.TestCase):
         func = Mock(return_value=2)
         func.__qualname__ = 'func'
 
+        self.assertEqual(Profiler().num_deterministic_calls, 0)
+        self.assertEqual(Profiler().num_cache_hit, 0)
+        self.assertEqual(Profiler().num_func_call_too_fast_to_memoize, 0)
         self.assertEqual(deterministic(func)(8, v=1), 2)
+        self.assertEqual(Profiler().num_deterministic_calls, 1)
+        self.assertEqual(Profiler().num_cache_hit, 0)
+        self.assertEqual(Profiler().num_func_call_too_fast_to_memoize, 0)
 
         self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (8,), {'v': 1})
         self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)

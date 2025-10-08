@@ -6,11 +6,22 @@ sys.path.append(os.path.dirname(__file__))
 from execute_exp.entitites.FunctionCallProv import FunctionCallProv
 from execute_exp.services.factory import init_exec_mode, init_revalidation, get_hash
 from execute_exp.services.DataAccess import DataAccess
+from execute_exp.services.Profiler import Profiler
 from execute_exp.SpeeduPySettings import SpeeduPySettings
 from execute_exp.entitites.Metadata import Metadata
 from SingletonMeta import SingletonMeta
 from util import check_python_version
 from logger.log import debug
+
+
+class SpeeduPy(metaclass=SingletonMeta):
+    def __init__(self):
+        self.exec_mode = init_exec_mode()
+        self.revalidation = init_revalidation(self.exec_mode)
+        self.hash = get_hash()
+        self.min_exec_time_to_memoize = SpeeduPySettings().min_exec_time_to_memoize[0]
+        self.measure_time = SpeeduPySettings().measure_time
+        self.profile = SpeeduPySettings().profile
 
 
 def initialize_speedupy(f):
@@ -19,6 +30,28 @@ def initialize_speedupy(f):
         DataAccess().init_data_access()
         f(*method_args, **method_kwargs)
         DataAccess().close_data_access()
+
+    result = wrapper
+    if SpeeduPy().profile: result = _profile(result)
+    if SpeeduPy().measure_time: result = _measure_time(result)
+    return result
+
+
+def _profile(f):
+    @wraps(f)
+    def wrapper(*method_args, **method_kwargs):
+        f(*method_args, **method_kwargs)
+        Profiler.report()
+    return wrapper
+
+
+def _measure_time(f):
+    @wraps(f)
+    def wrapper(*method_args, **method_kwargs):
+        start = time.perf_counter()
+        f(*method_args, **method_kwargs)
+        end = time.perf_counter()
+        print(f'TOTAL EXECUTION TIME: {end - start}')
     return wrapper
 
 
@@ -26,6 +59,7 @@ def deterministic(f):
     @wraps(f)
     def wrapper(*method_args, **method_kwargs):
         debug("calling {0}".format(f.__qualname__))
+        Profiler().num_deterministic_calls += 1
         func_call_hash = DataAccess().get_id(f.__qualname__, method_args, method_kwargs)
         c = DataAccess().get_cache_entry(func_call_hash, f.__qualname__)
         if _cache_doesnt_exist(c):
@@ -33,9 +67,12 @@ def deterministic(f):
             return_value, elapsed_time = _execute_func_measuring_time(f, method_args, method_kwargs)
             if elapsed_time > SpeeduPy().min_exec_time_to_memoize:
                 DataAccess().create_cache_entry(func_call_hash, return_value, f.__qualname__)
+            else:
+                Profiler().num_func_call_too_fast_to_memoize += 1
             return return_value
         else:
             debug("cache hit for {0}({1})".format(f.__qualname__, method_args))
+            Profiler().num_cache_hit += 1
             return c
     return wrapper
 
@@ -50,13 +87,6 @@ def _execute_func_measuring_time(f, method_args, method_kwargs):
     end = time.perf_counter()
     return return_value, end - start
 
-
-class SpeeduPy(metaclass=SingletonMeta):
-    def __init__(self):
-        self.exec_mode = init_exec_mode()
-        self.revalidation = init_revalidation(self.exec_mode)
-        self.hash = get_hash()
-        self.min_exec_time_to_memoize = SpeeduPySettings().min_exec_time_to_memoize[0]
 
 # TODO: TEST
 def maybe_deterministic(f):
@@ -112,6 +142,8 @@ check_python_version()
 
 if SpeeduPySettings().exec_mode == ['no-cache']:
     def initialize_speedupy(f):
+        if SpeeduPy().measure_time: return _measure_time(f)
+
         return f
 
     def deterministic(f):
