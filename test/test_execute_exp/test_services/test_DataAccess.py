@@ -4,11 +4,13 @@ from unittest.mock import Mock
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
-from execute_exp.services.DataAccess import DataAccess
 from execute_exp.SpeeduPySettings import SpeeduPySettings
+from execute_exp.entitites.Metadata import Metadata
+from execute_exp.services.DataAccess import DataAccess
 from execute_exp.services.serializers.PickleSerializer import PickleSerializer
 from execute_exp.services.serializers.CloudpickleSerializer import CloudpickleSerializer
-from execute_exp.entitites.Metadata import Metadata
+from execute_exp.services.hashes.Hash import Hash
+from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
 
 
 class TestDataAccess(unittest.TestCase):
@@ -22,7 +24,8 @@ class TestDataAccess(unittest.TestCase):
         self.dataAccess._FUNCTIONS_2_HASHES = {'f1': 'f1_hash',
                                                'f2': 'f2_hash',
                                                'f3': 'f3_hash'}
-        self.dataAccess._hash = Mock()
+        self.dataAccess._hash = Mock(Hash)
+        self.dataAccess._mem_arch = Mock(AbstractMemArch)
 
     def tearDown(self) -> None:
         self.dataAccess._DataAccess__METADATA = {}
@@ -80,6 +83,10 @@ class TestDataAccess(unittest.TestCase):
         self.assertDictEqual(self.dataAccess._DataAccess__METADATA, {f_call_hash_1: [md1, md2],
                                                                      f_call_hash_2: [md3]})
 
+    def test_get_new_cache_entries_size(self):
+        self.dataAccess.get_new_cache_entries_size()
+
+        self.dataAccess._mem_arch.get_new_cache_entries_size.assert_called_once_with()
 
 if __name__ == '__main__':
     unittest.main()
