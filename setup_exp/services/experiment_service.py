@@ -4,7 +4,7 @@ from typing import List, Dict, Set
 from setup_exp.entities.Script import Script
 from setup_exp.entities.Experiment import Experiment
 from setup_exp.entities.FunctionGraph import FunctionGraph
-from setup_exp.services.script_service import create_script, create_script_function_graph, decorate_script_functions, overwrite_decorated_script, add_decorator_import
+from setup_exp.services.script_service import create_script, analyze_script_function_call_hierarchy, decorate_script_functions, overwrite_decorated_script, add_decorator_import
 from setup_exp.services.function_service import decorate_main_function
 from util import is_an_user_defined_script, get_script_path
 
@@ -54,8 +54,8 @@ def __script_needs_to_be_analyzed(script:str, experiment_base_dir:str, scripts_a
 def __script_already_analized(script_name:str, scripts_analized:List[str]) -> bool:
     return script_name in scripts_analized
     
-def create_experiment_function_graph(experiment:Experiment) -> FunctionGraph:
-    create_script_function_graph(experiment.main_script, experiment)
+def analyze_experiment_function_call_hierarchy(experiment:Experiment) -> FunctionGraph:
+    analyze_script_function_call_hierarchy(experiment.main_script, experiment)
     script = experiment.main_script
     return script.function_graph
 

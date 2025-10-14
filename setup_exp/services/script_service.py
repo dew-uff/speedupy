@@ -42,7 +42,7 @@ def _python_code_to_AST(file_name:str) -> ast.Module:
             print("Check if your Python script is correctly writen.")
             return None
 
-def create_script_function_graph(main_script:Script, experiment:Experiment) -> None:
+def analyze_script_function_call_hierarchy(main_script:Script, experiment:Experiment) -> None:
     u_def_imported_scripts = main_script.get_user_defined_imported_scripts(experiment.base_dir)
     __create_user_defined_imported_scripts_function_graphs(u_def_imported_scripts, experiment)
     script_function_graph = ScriptFunctionGraphCreatorService(main_script, u_def_imported_scripts, experiment).create_function_graph()
@@ -50,7 +50,7 @@ def create_script_function_graph(main_script:Script, experiment:Experiment) -> N
 
 def __create_user_defined_imported_scripts_function_graphs(u_def_imported_scripts:List[str], experiment:Experiment) -> None:
     for script_name in u_def_imported_scripts:
-        create_script_function_graph(experiment.scripts[script_name], experiment)
+        analyze_script_function_call_hierarchy(experiment.scripts[script_name], experiment)
 
 def decorate_script_functions(script:Script) -> bool:
     """This function decorates all functions of a script that can be decorated with @maybe_deterministic. It returns True if at least one function was decorated. If no functions were marked with @maybe_deterministic, this function returns False."""
