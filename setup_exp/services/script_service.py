@@ -44,11 +44,11 @@ def _python_code_to_AST(file_name:str) -> ast.Module:
 
 def analyze_script_function_call_hierarchy(main_script:Script, experiment:Experiment) -> None:
     u_def_imported_scripts = main_script.get_user_defined_imported_scripts(experiment.base_dir)
-    __create_user_defined_imported_scripts_function_graphs(u_def_imported_scripts, experiment)
+    __analyze_user_defined_imported_scripts_function_call_hierarchy(u_def_imported_scripts, experiment)
     script_function_graph = ScriptFunctionGraphCreatorService(main_script, u_def_imported_scripts, experiment).create_function_graph()
     main_script.function_graph = script_function_graph
 
-def __create_user_defined_imported_scripts_function_graphs(u_def_imported_scripts:List[str], experiment:Experiment) -> None:
+def __analyze_user_defined_imported_scripts_function_call_hierarchy(u_def_imported_scripts:List[str], experiment:Experiment) -> None:
     for script_name in u_def_imported_scripts:
         analyze_script_function_call_hierarchy(experiment.scripts[script_name], experiment)
 
