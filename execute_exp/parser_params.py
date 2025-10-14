@@ -172,7 +172,7 @@ def get_params():
                                      choices=hashes,
                                      metavar='',
                                      nargs=1,
-                                     default=['md5'],
+                                     default=['xxhash'],
                                      help='SpeeduPy\'s mechanism of hashes: choose one of the following options: ' + ', '.join(hashes))
 
     speedupy_arg_parser.add_argument('-s',
