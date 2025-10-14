@@ -1,14 +1,17 @@
+from collections import defaultdict
+
+
 class PubSub:
     def __init__(self):
-        self.subscribers = []
+        self.subscribers = defaultdict(list)
 
-    def subscribe(self, callback):
-        self.subscribers.append(callback)
+    def subscribe(self, topic, callback):
+        self.subscribers[topic].append(callback)
 
-    def unsubscribe(self, callback):
-        if callback in self.subscribers:
-            self.subscribers.remove(callback)
+    def unsubscribe(self, topic, callback):
+        if callback in self.subscribers[topic]:
+            self.subscribers[topic].remove(callback)
 
-    def publish(self, data):
-        for callback in self.subscribers:
+    def publish(self, topic, data):
+        for callback in self.subscribers[topic]:
             callback(data)

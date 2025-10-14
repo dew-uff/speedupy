@@ -32,6 +32,8 @@ class ScriptFunctionCallHierarchyAnalyzer(ast.NodeVisitor, PubSub):
         previous_function = self.__current_function
         self.__current_function = node
 
+        self.publish('function_def', node)
+
         self.generic_visit(node)
 
         self.__current_function_name = previous_function_name
@@ -69,6 +71,6 @@ class ScriptFunctionCallHierarchyAnalyzer(ast.NodeVisitor, PubSub):
                 function_called = self.__function_call_detector.find_function_called(function_called_name)
             
             if(function_called != None):
-                self.publish({'current_function': self.__current_function, 'function_called': function_called})
+                self.publish('function_call', {'current_function': self.__current_function, 'function_called': function_called})
 
         self.generic_visit(node)
