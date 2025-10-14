@@ -6,6 +6,7 @@ from setup_exp.entities.Script import Script
 from setup_exp.entities.Experiment import Experiment
 from setup_exp.services.ASTSearcherService import ASTSearcherService
 from setup_exp.services.ScriptFunctionGraphCreatorService import ScriptFunctionGraphCreatorService
+from setup_exp.services.ScriptFunctionCallHierarchyAnalyzer import ScriptFunctionCallHierarchyAnalyzer
 from setup_exp.services.function_service import decorate_function
 
 def create_script(script_name:str, experiment_base_dir:str) -> Script:
@@ -45,8 +46,13 @@ def _python_code_to_AST(file_name:str) -> ast.Module:
 def analyze_script_function_call_hierarchy(main_script:Script, experiment:Experiment) -> None:
     u_def_imported_scripts = main_script.get_user_defined_imported_scripts(experiment.base_dir)
     __analyze_user_defined_imported_scripts_function_call_hierarchy(u_def_imported_scripts, experiment)
-    script_function_graph = ScriptFunctionGraphCreatorService(main_script, u_def_imported_scripts, experiment).create_function_graph()
-    main_script.function_graph = script_function_graph
+
+    analyzer = ScriptFunctionCallHierarchyAnalyzer(main_script, experiment)
+    function_graph_creator = ScriptFunctionGraphCreatorService(main_script, u_def_imported_scripts, experiment)
+    analyzer.subscribe(function_graph_creator.callback)
+    analyzer.analyze()
+
+    main_script.function_graph = function_graph_creator.script_function_graph
 
 def __analyze_user_defined_imported_scripts_function_call_hierarchy(u_def_imported_scripts:List[str], experiment:Experiment) -> None:
     for script_name in u_def_imported_scripts:
