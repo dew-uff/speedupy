@@ -41,36 +41,36 @@ class ScriptFunctionCallHierarchyAnalyzer(ast.NodeVisitor, PubSub):
     
     
     def visit_Call(self, node):
-        #Testing if this node represents a call to some function done inside another function
-        if(self.__current_function_name != ""):
-            function_called = None
+        function_called = None
+        
+        if(isinstance(node.func, ast.Name)):
+            #In this case the function called can be either a function imported
+            #with the command "from ... import ..." or a function declared by the
+            #user in the file
+
+            function_called_name = node.func.id
+            function_called = self.__function_call_detector.find_function_called(function_called_name)
             
-            if(isinstance(node.func, ast.Name)):
-                #In this case the function called can be either a function imported
-                #with the command "from ... import ..." or a function declared by the
-                #user in the file
+        elif(isinstance(node.func, ast.Attribute)):
+            #In this case the function called is a function imported with the command
+            #"import ..."
 
-                function_called_name = node.func.id
-                function_called = self.__function_call_detector.find_function_called(function_called_name)
-                
-            elif(isinstance(node.func, ast.Attribute)):
-                #In this case the function called is a function imported with the command
-                #"import ..."
+            #Building the name of the function called
+            current_node = node.func
+            function_called_name_parts = []
+            while(isinstance(current_node, ast.Attribute)):
+                function_called_name_parts.append(current_node.attr)
+                current_node = current_node.value
+            function_called_name_parts.append(current_node.id)
 
-                #Building the name of the function called
-                current_node = node.func
-                function_called_name_parts = []
-                while(isinstance(current_node, ast.Attribute)):
-                    function_called_name_parts.append(current_node.attr)
-                    current_node = current_node.value
-                function_called_name_parts.append(current_node.id)
+            function_called_name_parts.reverse()
+            function_called_name = ".".join(function_called_name_parts)
 
-                function_called_name_parts.reverse()
-                function_called_name = ".".join(function_called_name_parts)
-
-                function_called = self.__function_call_detector.find_function_called(function_called_name)
-            
-            if(function_called != None):
-                self.publish('function_call', {'current_function': self.__current_function, 'function_called': function_called})
+            function_called = self.__function_call_detector.find_function_called(function_called_name)
+        
+        if(function_called != None):
+            self.publish('function_call', {'current_function': self.__current_function,
+                                           'function_called': function_called,
+                                           'function_call': node})
 
         self.generic_visit(node)

@@ -10,4 +10,5 @@ class ScriptFunctionGraphCreatorService(ast.NodeVisitor):
         self.script_function_graph = FunctionGraph(main_script, dependency_scripts_names, experiment)
 
     def callback(self, data):
-        self.script_function_graph.add(data['current_function'], data['function_called'])
+        if data['current_function'] is not None:
+            self.script_function_graph.add(data['current_function'], data['function_called'])
