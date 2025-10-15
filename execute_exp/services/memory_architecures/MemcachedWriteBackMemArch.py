@@ -9,7 +9,7 @@ class MemcachedWriteBackMemArch(AbstractMemArch):
         super().__init__(retrieval_strategy, use_threads)
         self.memcached = BancoMemcached()
         # Buffer local de novos dados ainda não persistidos
-        self._NEW_DATA_DICTIONARY = {}
+        self._dirty_entries = {}
 
     def get_cache_entry(self, func_call_hash: str, func_name=None):
         # 1️ Tenta pegar do memcached
@@ -35,13 +35,13 @@ class MemcachedWriteBackMemArch(AbstractMemArch):
         self.memcached.set(func_call_hash, cache_data)
 
         # 2️ Guarda localmente (para persistir depois)
-        self._NEW_DATA_DICTIONARY[func_call_hash] = cache_data
+        self._dirty_entries[func_call_hash] = cache_data
 
         #  Não salva ainda no banco
 
     def save_new_cache_entries(self) -> None:
         # 3️ No final, salva tudo de uma vez no storage persistente
-        if self._NEW_DATA_DICTIONARY:
-            self._retrieval_strategy.save_cache_data(self._NEW_DATA_DICTIONARY)
+        if self._dirty_entries:
+            self._retrieval_strategy.save_cache_data(self._dirty_entries)
             # Limpa o buffer após persistir
-            self._NEW_DATA_DICTIONARY.clear()
+            self._dirty_entries.clear()
