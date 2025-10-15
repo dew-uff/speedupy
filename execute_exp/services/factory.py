@@ -14,6 +14,8 @@ def init_mem_arch() -> AbstractMemArch:
     from execute_exp.services.memory_architecures.OneDictMemArch import OneDictMemArch
     from execute_exp.services.memory_architecures.OneDictOldDataOneDictNewDataMemArch import OneDictOldDataOneDictNewDataMemArch
     from execute_exp.services.memory_architecures.OneDictAllDataOneDictNewDataMemArch import OneDictAllDataOneDictNewDataMemArch
+    from execute_exp.services.memory_architecures.MemcachedWriteThroughMemArch import MemcachedWriteThroughMemArch
+    from execute_exp.services.memory_architecures.MemcachedWriteBackMemArch import MemcachedWriteBackMemArch
 
     retrieval_strategy = _init_retrieval_strategy()
     use_threads = SpeeduPySettings().retrieval_exec_mode == ['thread']
@@ -25,6 +27,10 @@ def init_mem_arch() -> AbstractMemArch:
         return OneDictOldDataOneDictNewDataMemArch(retrieval_strategy, use_threads)
     elif SpeeduPySettings().num_dict == ['2-fast']:
         return OneDictAllDataOneDictNewDataMemArch(retrieval_strategy, use_threads)
+    elif SpeeduPySettings().num_dict == ['memcached-wt']:
+        return MemcachedWriteThroughMemArch(retrieval_strategy, use_threads)
+    elif SpeeduPySettings().num_dict == ['memcached-wb']:
+        return MemcachedWriteThroughMemArch(retrieval_strategy, use_threads)
 
 
 def _init_retrieval_strategy() -> AbstractRetrievalStrategy:
