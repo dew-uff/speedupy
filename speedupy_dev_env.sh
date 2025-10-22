@@ -28,6 +28,20 @@ start_mongo() {
   conda deactivate
 }
 
+start_memcached() {
+  if [ -f "$DBS_DIR/memcached.pid" ] && kill -0 $(cat "$DBS_DIR/memcached.pid") 2>/dev/null; then
+    echo "Memcached is already running (PID $(cat "$DBS_DIR/memcached.pid"))."
+    return 0
+  fi
+
+  echo "Starting Memcached..."
+  conda activate dev_env
+  # O memcached é mais simples, geralmente não precisa de um diretório de dados
+  memcached &> "$DBS_DIR/memcached.log" &
+  echo $! > "$DBS_DIR/memcached.pid"
+  conda deactivate
+}
+
 stop_redis(){
   if [ -f "$DBS_DIR/redis.pid" ]; then
     echo "Stopping Redis..."
@@ -46,6 +60,15 @@ stop_mongo() {
   fi
 }
 
+stop_memcached(){
+  if [ -f "$DBS_DIR/memcached.pid" ]; then
+    echo "Stopping Memcached..."
+    kill $(cat "$DBS_DIR/memcached.pid") && rm "$DBS_DIR/memcached.pid"
+  else
+    echo "Memcached PID file not found."
+  fi
+}
+
 print_help() {
   cat <<EOF
 Usage: $0 {start|stop|help} {redis|mongo|all}
@@ -53,10 +76,12 @@ Usage: $0 {start|stop|help} {redis|mongo|all}
 Commands:
   start redis     Start Redis server
   start mongo     Start MongoDB server
+  start memcached Start Memcached server
   start all       Start both Redis and MongoDB servers
 
   stop redis      Stop Redis server
   stop mongo      Stop MongoDB server
+  start memcached Start Memcached server
   stop all        Stop both Redis and MongoDB servers
 
   help            Show this help message
@@ -64,6 +89,7 @@ Commands:
 Notes:
   - Redis logs:   $DBS_DIR/redis.log
   - MongoDB logs: $DBS_DIR/mongo.log
+  - Memcached logs: $DBS_DIR/memcached.log
 EOF
 }
 
