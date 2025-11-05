@@ -49,12 +49,8 @@ def analyze_script_function_call_hierarchy(main_script:Script, experiment:Experi
     __analyze_user_defined_imported_scripts_function_call_hierarchy(u_def_imported_scripts, experiment)
 
     analyzer = ScriptFunctionCallHierarchyAnalyzer(main_script, experiment)
-    function_graph_creator = ScriptFunctionGraphCreatorService(main_script, u_def_imported_scripts, experiment)
-    analyzer.subscribe('function_call', function_graph_creator.callback)
-
-    deterministic_function_updater = DeterministicFunctionUpdaterService(analyzer)
-
-
+    function_graph_creator = ScriptFunctionGraphCreatorService(main_script, u_def_imported_scripts, experiment, analyzer)
+    DeterministicFunctionUpdaterService(analyzer)
     analyzer.analyze()
 
     main_script.function_graph = function_graph_creator.script_function_graph

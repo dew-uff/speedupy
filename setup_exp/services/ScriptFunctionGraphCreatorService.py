@@ -4,9 +4,17 @@ from setup_exp.entities.Experiment import Experiment
 from setup_exp.entities.FunctionGraph import FunctionGraph
 from setup_exp.entities.Script import Script
 from setup_exp.services.FunctionCalledDetectorService import FunctionCalledDetectorService
+from setup_exp.services.ScriptFunctionCallHierarchyAnalyzer import ScriptFunctionCallHierarchyAnalyzer
+
 
 class ScriptFunctionGraphCreatorService(ast.NodeVisitor):
-    def __init__(self, main_script:Script, dependency_scripts_names:List[str], experiment:Experiment):
+    def __init__(self,
+                 main_script: Script,
+                 dependency_scripts_names: List[str],
+                 experiment: Experiment,
+                 analyzer: ScriptFunctionCallHierarchyAnalyzer):
+
+        analyzer.subscribe('function_call', self.callback)
         self.script_function_graph = FunctionGraph(main_script, dependency_scripts_names, experiment)
 
     def callback(self, data):
