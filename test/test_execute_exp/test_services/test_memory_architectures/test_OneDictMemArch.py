@@ -7,7 +7,7 @@ sys.path.append(project_folder)
 from execute_exp.services.retrieval_strategies.AbstractRetrievalStrategy import AbstractRetrievalStrategy
 from execute_exp.services.memory_architecures.OneDictMemArch import OneDictMemArch
 from execute_exp.entitites.CacheData import CacheData
-from test.test_helpers import random_str
+from test_helpers import random_str
 
 
 class TestOneDictMemArch(unittest.TestCase):
