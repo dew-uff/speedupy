@@ -1,12 +1,13 @@
-import pickle
 from typing import Dict, Optional
 
+from execute_exp.services.serializers.Serializer import Serializer
 from execute_exp.services.storages.Storage import Storage
 from execute_exp.entitites.CacheData import CacheData
 from entities.BancoMySQL import BancoMySQL
 
 class MySQLStorage(Storage):
-    def __init__(self, db_connection=None):
+    def __init__(self, serializer: Serializer, db_connection=None):
+        super().__init__(serializer)
         if db_connection:
             # Usado pelos testes, que "injetam" a conexão
             self.db_connection = db_connection
@@ -25,7 +26,7 @@ class MySQLStorage(Storage):
         for row in results:
             function_call_hash, output_blob, func_name = row
             try:
-                output = pickle.loads(output_blob)
+                output = self._serializer.loads(output_blob)
                 cache_data[function_call_hash] = CacheData(function_call_hash, output, func_name)
             except Exception:
                 continue # Ignora dados inválidos
@@ -40,7 +41,7 @@ class MySQLStorage(Storage):
         for row in results:
             function_call_hash, output_blob = row
             try:
-                output = pickle.loads(output_blob)
+                output = self._serializer.loads(output_blob)
                 cache_data[function_call_hash] = CacheData(function_call_hash, output, func_name)
             except Exception:
                 continue # Ignora dados inválidos
@@ -52,7 +53,7 @@ class MySQLStorage(Storage):
             sql = "SELECT func_output FROM CACHE WHERE func_call_hash = %s"
             result = self.db_connection.select(sql, (func_call_hash,))
             if result:
-                func_output = pickle.loads(result[0][0])
+                func_output = self._serializer.loads(result[0][0])
                 return CacheData(func_call_hash, func_output, func_name=func_name)
         except Exception:
             return None
@@ -71,7 +72,7 @@ class MySQLStorage(Storage):
         sql_params = [
             (
                 cache_entry.function_call_hash,
-                pickle.dumps(cache_entry.output),
+                self._serializer.dumps(cache_entry.output),
                 cache_entry.func_name
             ) for cache_entry in data.values()
         ]
