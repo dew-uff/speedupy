@@ -36,7 +36,6 @@ start_memcached() {
 
   echo "Starting Memcached..."
   conda activate dev_env
-  # O memcached é mais simples, geralmente não precisa de um diretório de dados
   memcached &> "$DBS_DIR/memcached.log" &
   echo $! > "$DBS_DIR/memcached.pid"
   conda deactivate
@@ -71,18 +70,18 @@ stop_memcached(){
 
 print_help() {
   cat <<EOF
-Usage: $0 {start|stop|help} {redis|mongo|all}
+Usage: $0 {start|stop|help} {redis|mongo|memcached|all}
 
 Commands:
   start redis     Start Redis server
   start mongo     Start MongoDB server
   start memcached Start Memcached server
-  start all       Start both Redis and MongoDB servers
+  start all       Start all servers
 
   stop redis      Stop Redis server
   stop mongo      Stop MongoDB server
-  start memcached Start Memcached server
-  stop all        Stop both Redis and MongoDB servers
+  stop memcached  Stop Memcached server
+  stop all        Stop all servers
 
   help            Show this help message
 
@@ -109,9 +108,11 @@ case "$1" in
     case "$2" in
       redis) start_redis ;;
       mongo) start_mongo ;;
+      memcached) start_memcached ;;
       all)
         start_redis
         start_mongo
+        start_memcached
         ;;
       *) print_help ;;
     esac
@@ -120,9 +121,11 @@ case "$1" in
     case "$2" in
       redis) stop_redis ;;
       mongo) stop_mongo ;;
+      memcached) stop_memcached ;;
       all)
         stop_redis
         stop_mongo
+        stop_memcached
         ;;
       *) print_help ;;
     esac
