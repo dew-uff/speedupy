@@ -45,7 +45,9 @@ class TestMySQLStorage(AbstractStorageTest, unittest.TestCase):
 
     def create_instance(self, serializer: Serializer) -> Storage:
         """ Cria a instância injetando a conexão do teste. """
-        return MySQLStorage(serializer, db_connection=self.banco)
+        mysql = MySQLStorage(serializer)
+        mysql.db_connection = self.banco
+        return mysql
 
     def assert_storage_is_empty(self):
         """ Verifica se a tabela CACHE no MySQL está vazia. """
