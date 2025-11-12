@@ -2,38 +2,43 @@ import mysql.connector
 from mysql.connector import errorcode
 # from SingletonMeta import SingletonMeta
 
-class BancoMySQL: # (metaclass=SingletonMeta)
+
+class BancoMySQL:
+    database = 'speedupy'
+
     def __init__(self):
         self.conexao = None
         self.cursor = None
         try:
-            self.conexao = mysql.connector.connect(
-                host="127.0.0.1",
-                user="root",
-                password="",
-                database="speedupy"
-            )
+            self.conexao = mysql.connector.connect(host="127.0.0.1", user="root")
             self.cursor = self.conexao.cursor()
+            self.cursor.execute(f"USE {self.database}")
         except mysql.connector.Error as err:
-            print(f"ERRO DE CONEXÃO COM MYSQL: {err}")
-            self.conexao = None
-            self.cursor = None
+            if err.errno == 1049:
+                # database does not exist!
+                pass
+            else:
+                print(f"ERRO DE CONEXÃO COM MYSQL: {err}")
+                self.conexao = None
+                self.cursor = None
 
     def create_database(self):
-        if not self.cursor: return
-        create_cache_table_sql = """
-        CREATE TABLE IF NOT EXISTS CACHE (
-            id INT PRIMARY KEY AUTO_INCREMENT,
-            func_call_hash TEXT,
-            func_output BLOB,
-            func_name TEXT,
-            UNIQUE (func_call_hash(255))
-        ) ENGINE=InnoDB;
-        """
         try:
+            create_cache_table_sql = """
+                CREATE TABLE IF NOT EXISTS CACHE (
+                    id INT PRIMARY KEY AUTO_INCREMENT,
+                    func_call_hash TEXT,
+                    func_output BLOB,
+                    func_name TEXT,
+                    UNIQUE (func_call_hash(255))
+                ) ENGINE=InnoDB;
+            """
+            self.cursor.execute(f"DROP DATABASE IF EXISTS {self.database}")
+            self.cursor.execute(f"CREATE DATABASE {self.database}")
+            self.cursor.execute(f"USE {self.database}")
             self.cursor.execute(create_cache_table_sql)
             self.conexao.commit()
-        except mysql.connector.Error as err:
+        except mysql.connector.Error:
             self.conexao.rollback()
 
     def select(self, sql, arguments=()):
