@@ -10,7 +10,7 @@ class BancoMySQL: # (metaclass=SingletonMeta)
             self.conexao = mysql.connector.connect(
                 host="127.0.0.1",
                 user="root",
-                password="root",
+                password="",
                 database="speedupy"
             )
             self.cursor = self.conexao.cursor()
