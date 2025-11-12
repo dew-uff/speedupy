@@ -6,7 +6,7 @@ from entities.BancoRedis import BancoRedis
 from entities.BancoMongo import BancoMongo
 
 
-def init_env():
+def init_env(storage_type: str = 'file'):
     debug("cheking if speedupy environment exists")
     if _env_exists():
         debug("environment already exists")
@@ -15,7 +15,8 @@ def init_env():
     debug("creating speedupy environment")
     _create_folder()
     _create_cache_folder()
-    _create_databases()
+    _create_sqlite_database()
+    _create_databases(storage_type)
 
 
 def _env_exists():
@@ -49,16 +50,23 @@ def _create_cache_folder():
     debug("creating cache folder")
     os.makedirs(Constantes().CACHE_FOLDER_NAME)
 
+def _create_databases(storage_type: str):
+    debug(f"checking and initializing database for storage type: {storage_type}")
 
-def _create_databases():
-    debug("creating database")
-    if BancoSQLite.database_exists():
-        debug("database already exists")
-        return
+    if storage_type == 'redis':
+        _flush_redis_database()
+        
+    elif storage_type == 'mongo':
+        _flush_mongo_database()
 
-    _flush_redis_database()
-    _flush_mongo_database()
-    _create_sqlite_database()
+    #elif storage_type == 'sqlite':
+    #    if BancoSQLite.database_exists():
+    #        debug("SQLite database already exists")
+    #        return
+    #    _create_sqlite_database()
+        
+    elif storage_type == 'file':
+        debug("Filesystem storage requires no special database initialization.")
 
 
 def _flush_mongo_database():
