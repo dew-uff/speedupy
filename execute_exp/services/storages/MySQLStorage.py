@@ -80,9 +80,5 @@ class MySQLStorage(Storage):
         if not sql_params:
             return
             
-        try:
-            self.db_connection.cursor.executemany(sql, sql_params)
-            self.db_connection.conexao.commit()
-        except Exception as e:
-            print(f"ERRO AO SALVAR DADOS NO MYSQL: {e}")
-            self.db_connection.conexao.rollback()
+        self.db_connection.executemany_without_output(sql, sql_params)
+        self.db_connection.commit()
