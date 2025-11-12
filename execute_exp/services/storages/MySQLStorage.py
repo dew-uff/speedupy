@@ -5,32 +5,25 @@ from execute_exp.services.storages.Storage import Storage
 from execute_exp.entitites.CacheData import CacheData
 from entities.BancoMySQL import BancoMySQL
 
+
 class MySQLStorage(Storage):
-    def __init__(self, serializer: Serializer, db_connection=None):
+    def __init__(self, serializer: Serializer):
         super().__init__(serializer)
-        if db_connection:
-            # Usado pelos testes, que "injetam" a conexão
-            self.db_connection = db_connection
-        else:
-            # Usado pela execução manual, cria a própria conexão
-            self.db_connection = BancoMySQL()
-        
-        # A criação das tabelas deve ser chamada aqui para ambos os casos
-        self.db_connection.create_database()
+        self.db_connection = BancoMySQL()
 
     def get_all_cached_data(self, use_isolated_connection=False) -> Dict[str, CacheData]:
-        sql = "SELECT func_call_hash, func_output, func_name FROM CACHE"
+        sql = "SELECT func_call_hash, func_output FROM CACHE"
         results = self.db_connection.select(sql)
-        
+
         cache_data = {}
         for row in results:
-            function_call_hash, output_blob, func_name = row
+            function_call_hash, output_blob = row
             try:
                 output = self._serializer.loads(output_blob)
-                cache_data[function_call_hash] = CacheData(function_call_hash, output, func_name)
+                cache_data[function_call_hash] = CacheData(function_call_hash, output)
             except Exception:
                 continue # Ignora dados inválidos
-            
+
         return cache_data
 
     def get_cached_data_of_a_function(self, func_name: str, use_isolated_connection=False) -> Dict[str, CacheData]:
