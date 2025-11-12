@@ -1,15 +1,12 @@
-import unittest, os, sys, io
-from unittest.mock import patch, Mock
+import unittest, os, sys, time, threading
+from unittest.mock import Mock
 
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
-from execute_exp.SpeeduPySettings import SpeeduPySettings
-from execute_exp.services.storages.Storage import Storage
 from execute_exp.services.retrieval_strategies.AbstractRetrievalStrategy import AbstractRetrievalStrategy
 from execute_exp.services.memory_architecures.AbstractOneDictMemArch import AbstractOneDictMemArch
 from execute_exp.entitites.CacheData import CacheData
-import time, threading, copy
 
 
 class TestIntPy(unittest.TestCase):
@@ -282,4 +279,7 @@ class TestIntPy(unittest.TestCase):
         self.assertDictEqual(self.mem_arch._DATA_DICTIONARY, loaded_data)
 
 
-#XXX : IMPLEMENTAR TESTE QUE CHAME FUNÇÃO PASSANDO FUNC_NAME DIFERENTE DE NULL, MAS O RETRIEVAL STRATEGY É LAZY OU EAGER
+# XXX : IMPLEMENTAR TESTE QUE CHAME FUNÇÃO PASSANDO FUNC_NAME DIFERENTE DE NULL, MAS O RETRIEVAL STRATEGY É LAZY OU EAGER
+
+if __name__ == '__main__':
+    unittest.main()

@@ -1,6 +1,5 @@
 import pymongo, unittest, os, sys
 from typing import Dict
-from pickle import dumps, loads
 
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
@@ -8,17 +7,18 @@ sys.path.append(project_folder)
 from entities.BancoMongo import BancoMongo
 from execute_exp.services.storages.MongoStorage import MongoStorage
 from execute_exp.services.storages.Storage import Storage
+from execute_exp.services.serializers.Serializer import Serializer
 from execute_exp.entitites.CacheData import CacheData
 from test_execute_exp.test_services.test_storages.AbstractStorageTest import AbstractStorageTest
 
 
 class TestMongoStorage(AbstractStorageTest, unittest.TestCase):
-    def create_instance(self) -> Storage:
+    def create_instance(self, serializer: Serializer) -> Storage:
         self.mongo = pymongo.MongoClient("mongodb://localhost:27017/")
         self.cache = self.mongo[BancoMongo.DB_NAME][BancoMongo.COLLECTION_NAME]
         self.mongo.drop_database(BancoMongo.DB_NAME)
 
-        return MongoStorage()
+        return MongoStorage(serializer)
 
     def assert_storage_is_empty(self):
         self.assertEqual(self.cache.count_documents({}), 0)
@@ -28,16 +28,16 @@ class TestMongoStorage(AbstractStorageTest, unittest.TestCase):
 
         doc = self.cache.find_one()
         if 'value' not in doc:
-            data_gotten = {func_call_hash: CacheData(func_call_hash, loads(func_output), func_name=doc['_id'])
+            data_gotten = {func_call_hash: CacheData(func_call_hash, self.serializer.loads(func_output), func_name=doc['_id'])
                            for doc in self.cache.find()
                            for func_call_hash, func_output in doc.items() if func_call_hash != '_id'}
         else:
-            data_gotten = {doc['_id']: CacheData(doc['_id'], loads(doc['value'])) for doc in self.cache.find()}
+            data_gotten = {doc['_id']: CacheData(doc['_id'], self.serializer.loads(doc['value'])) for doc in self.cache.find()}
         self.assert_data_gotten_is_correct(data_gotten, expected_data)
 
     def manually_cache_a_record(self, func_hash, func_return, func_name=None, **kwargs):
-        if func_name: self.cache.update_one({"_id": func_name}, {"$set": {func_hash: dumps(func_return)}}, upsert=True)
-        else: self.cache.insert_one({'_id': func_hash, 'value': dumps(func_return)})
+        if func_name: self.cache.update_one({"_id": func_name}, {"$set": {func_hash: self.serializer.dumps(func_return)}}, upsert=True)
+        else: self.cache.insert_one({'_id': func_hash, 'value': self.serializer.dumps(func_return)})
 
     def __del__(self):
         self.mongo.close()

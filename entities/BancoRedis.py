@@ -4,6 +4,8 @@ from SingletonMeta import SingletonMeta
 
 
 class BancoRedis(metaclass=SingletonMeta):
+	MAX_PIPELINE_SIZE_MB = 1024
+
 	def __init__(self):
 		self.client = redis.Redis(host='localhost', port=6379, db=0)
 		atexit.register(self.cleanup)
@@ -28,7 +30,14 @@ class BancoRedis(metaclass=SingletonMeta):
 
 	def set_group_of_key_value_pairs(self, data: Dict[str, bytes]):
 		pipe = self.client.pipeline()
-		for key, value in data.items(): pipe.set(key, value)
+		size_mb = 0
+		for key, value in data.items():
+			pipe.set(key, value)
+			size_mb += (len(key.encode('utf-8')) + len(value)) / (1024 * 1024)
+			if size_mb > self.MAX_PIPELINE_SIZE_MB - 1:
+				pipe.execute()
+				pipe = self.client.pipeline()
+				size_mb = 0
 		pipe.execute()
 
 	def set_group_of_hashes(self, data: Dict[str, Dict[str, bytes]]):

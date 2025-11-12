@@ -1,5 +1,5 @@
 from typing import Union, List, Dict
-import os, ast, json, pickle, sys
+import os, ast, json, sys
 from copy import deepcopy
 
 def check_python_version():
@@ -59,11 +59,3 @@ def save_json_file(data:Dict, filename:str) -> None:
 def get_content_json_file(filename:str) -> Dict:
     with open(filename) as file:
         return json.load(file)
-    
-def deserialize_from_file(filename:str):
-    with open(filename, 'rb') as file:
-        return pickle.load(file)
-
-def serialize_to_file(obj, filename:str):
-    with open(filename, 'wb') as file:
-        return pickle.dump(obj, file)

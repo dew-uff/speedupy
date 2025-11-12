@@ -5,17 +5,17 @@ sys.path.append(project_folder)
 
 from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
 from execute_exp.services.storages.Storage import Storage
+from execute_exp.services.serializers.Serializer import Serializer
 from constantes import Constantes
-from pickle import dump, load
 from typing import Dict
 from execute_exp.entitites.CacheData import CacheData
 from test_execute_exp.test_services.test_storages.AbstractStorageTest import AbstractStorageTest
 
 
 class TestFileSystemStorage(AbstractStorageTest, unittest.TestCase):
-    def create_instance(self) -> Storage:
+    def create_instance(self, serializer: Serializer) -> Storage:
         os.makedirs(Constantes().CACHE_FOLDER_NAME)
-        storage = FileSystemStorage()
+        storage = FileSystemStorage(serializer)
         storage.CACHE_FOLDER_NAME = Constantes().CACHE_FOLDER_NAME
         return storage
 
@@ -33,12 +33,12 @@ class TestFileSystemStorage(AbstractStorageTest, unittest.TestCase):
                 files = os.listdir(os.path.join(Constantes().CACHE_FOLDER_NAME, folder))
                 for filename in files:
                     file_path = os.path.join(Constantes().CACHE_FOLDER_NAME, folder, filename)
-                    with open(file_path, 'rb') as f: output = load(f)
+                    with open(file_path, 'rb') as f: output = self.serializer.load(f)
                     data_gotten[filename] = CacheData(filename, output, folder)
         else:
             for filename in content:
                 file_path = os.path.join(Constantes().CACHE_FOLDER_NAME, filename)
-                with open(file_path, 'rb') as f: output = load(f)
+                with open(file_path, 'rb') as f: output = self.serializer.load(f)
                 data_gotten[filename] = CacheData(filename, output)
 
         self.assert_data_gotten_is_correct(data_gotten, expected_data)
@@ -49,4 +49,4 @@ class TestFileSystemStorage(AbstractStorageTest, unittest.TestCase):
             folder_path = os.path.join(folder_path, func_name)
             os.makedirs(folder_path, exist_ok=True)
         file_path = os.path.join(folder_path, func_hash)
-        with open(file_path, 'wb') as f: dump(func_return, f)
+        with open(file_path, 'wb') as f: self.serializer.dump(func_return, f)
