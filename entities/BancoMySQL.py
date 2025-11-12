@@ -40,32 +40,24 @@ class BancoMySQL:
             self.conexao.rollback()
 
     def select(self, sql, arguments=()):
-        if not self.cursor: return []
         try:
+            if not self.cursor: return []
             self.cursor.execute(sql, arguments)
             return self.cursor.fetchall()
         except mysql.connector.Error:
             return []
 
-    def exec_without_output(self, sql, arguments=()):
-        if not self.cursor: return
+    def executemany_without_output(self, sql, arguments_list=()):
         try:
-            self.cursor.execute(sql, arguments)
+            if not self.cursor: return
+            self.cursor.executemany(sql, arguments_list)
         except mysql.connector.Error:
             self.conexao.rollback()
+
+    def commit(self):
+        self.conexao.commit()
 
     def close_connection(self):
         if self.conexao and self.conexao.is_connected():
             self.cursor.close()
             self.conexao.close()
-
-    def executemany_without_output(self, sql, arguments_list=()):
-        if not self.cursor: return
-        try:
-            self.cursor.executemany(sql, arguments_list)
-        except mysql.connector.Error as err:
-            print(f"ERRO NO EXECUTEMANY MYSQL: {err}")
-            self.conexao.rollback()
-
-    def commit(self):
-        self.conexao.commit()
