@@ -29,7 +29,7 @@ class MySQLStorage(Storage):
     def get_cached_data_of_a_function(self, func_name: str, use_isolated_connection=False) -> Dict[str, CacheData]:
         sql = "SELECT func_call_hash, func_output FROM CACHE WHERE func_name = %s"
         results = self.db_connection.select(sql, (func_name,))
-        
+
         cache_data = {}
         for row in results:
             function_call_hash, output_blob = row
@@ -38,7 +38,7 @@ class MySQLStorage(Storage):
                 cache_data[function_call_hash] = CacheData(function_call_hash, output, func_name)
             except Exception:
                 continue # Ignora dados inválidos
-            
+
         return cache_data
 
     def get_cached_data_of_a_function_call(self, func_call_hash: str, func_name=None, use_isolated_connection=False) -> Optional[CacheData]:
@@ -61,7 +61,7 @@ class MySQLStorage(Storage):
             VALUES (%s, %s, %s)
             ON DUPLICATE KEY UPDATE func_output = VALUES(func_output);
         """
-        
+
         sql_params = [
             (
                 cache_entry.function_call_hash,
@@ -69,9 +69,9 @@ class MySQLStorage(Storage):
                 cache_entry.func_name
             ) for cache_entry in data.values()
         ]
-        
+
         if not sql_params:
             return
-            
+
         self.db_connection.executemany_without_output(sql, sql_params)
         self.db_connection.commit()
