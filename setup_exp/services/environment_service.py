@@ -59,6 +59,7 @@ def _create_databases():
 
     _flush_redis_database()
     _flush_mongo_database()
+    _create_mysql_database()
     _create_sqlite_database()
 
 
@@ -70,10 +71,12 @@ def _flush_mongo_database():
 def _flush_redis_database():
     redis = BancoRedis()
     redis.flush_database()
-    
-def _flush_mysql_database():
+
+
+def _create_mysql_database():
     conexao_banco = BancoMySQL()
-    conexao_banco.flush_database()
+    conexao_banco.create_database()
+
 
 def _create_sqlite_database():
     conexao_banco = BancoSQLite()

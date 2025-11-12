@@ -1,4 +1,4 @@
-import unittest, redis, pymongo, os, sys, random, pickle
+import unittest, mysql.connector, redis, pymongo, os, sys, random, pickle
 from pathlib import Path
 
 project_folder = os.path.realpath(__file__).split('test/')[0]
@@ -19,6 +19,10 @@ class TestEnvironmentService(unittest.TestCase):
         cls.mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
         cls.mongo = cls.mongo_client['speedupy']['CACHE']
 
+    def setUp(self):
+        self.mysql_client = mysql.connector.connect(host="127.0.0.1", user="root")
+        self.mysql = self.mysql_client.cursor()
+
     @classmethod
     def tearDownClass(cls):
         cls.redis.close()
@@ -28,12 +32,30 @@ class TestEnvironmentService(unittest.TestCase):
         os.system("rm -rf {}".format(self.FOLDER_NAME))
         self.redis.flushdb()
         self.mongo_client.drop_database('speedupy')
+        self.mysql.execute('DROP DATABASE IF EXISTS speedupy')
+        self.mysql_client.close()
 
     def populate_redis_database(self):
         for i in range(5): self.redis.set(str(i), pickle.dumps(random.random()))
 
     def populate_mongo_database(self):
         for i in range(5): self.mongo.insert_one({"_id": str(i), "value": pickle.dumps(random.random())})
+
+    def populate_mysql_database(self):
+        self.mysql.execute('CREATE DATABASE IF NOT EXISTS speedupy')
+        self.mysql.execute('USE speedupy')
+        create_cache_table_sql = """
+            CREATE TABLE IF NOT EXISTS CACHE (
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                func_call_hash TEXT,
+                func_output BLOB,
+                func_name TEXT,
+                UNIQUE (func_call_hash(255))
+            ) ENGINE=InnoDB;
+        """
+        self.mysql.execute(create_cache_table_sql)
+        for i in range(5): self.mysql.execute('INSERT INTO CACHE(func_call_hash, func_output) VALUES (%s, %s)', (str(i), pickle.dumps(random.random())))
+        self.mysql_client.commit()
 
     def assert_sqlite_db_exists(self):
         self.assertTrue(os.path.exists(self.SQLITE_DB_FILENAME))
@@ -75,33 +97,44 @@ class TestEnvironmentService(unittest.TestCase):
         self.assertFalse(_env_exists())
 
     def test_env_exists_when_env_does_not_exist(self):
-        self.assertFalse(_folder_exists())
+        self.assertFalse(_env_exists())
 
     def test_create_database_when_sqlite_database_does_not_exist(self):
         os.mkdir(self.FOLDER_NAME)
         self.populate_redis_database()
         self.populate_mongo_database()
+        self.populate_mysql_database()
 
         self.assertFalse(os.path.exists(self.SQLITE_DB_FILENAME))
         self.assertEqual(self.redis.dbsize(), 5)
         self.assertEqual(self.mongo.count_documents({}), 5)
+        self.mysql.execute("SELECT COUNT(*) FROM CACHE")
+        self.assertTupleEqual(self.mysql.fetchone(), (5,))
+        self.mysql_client.close()
 
         _create_databases()
 
         self.assert_sqlite_db_exists()
         self.assertEqual(self.redis.dbsize(), 0)
         self.assertEqual(self.mongo.count_documents({}), 0)
+        self.mysql_client = mysql.connector.connect(host="127.0.0.1", user="root", database="speedupy")
+        self.mysql = self.mysql_client.cursor()
+        self.mysql.execute("SELECT COUNT(*) FROM CACHE")
+        self.assertTupleEqual(self.mysql.fetchone(), (0,))
 
     def test_create_database_when_sqlite_database_exists(self):
         os.mkdir(self.FOLDER_NAME)
         Path(self.SQLITE_DB_FILENAME).touch()
         self.populate_redis_database()
         self.populate_mongo_database()
+        self.populate_mysql_database()
 
         _create_databases()
 
         self.assertEqual(self.redis.dbsize(), 5)
         self.assertEqual(self.mongo.count_documents({}), 5)
+        self.mysql.execute("SELECT COUNT(*) FROM CACHE")
+        self.assertTupleEqual(self.mysql.fetchone(), (5,))
 
     def test_create_cache_folder(self):
         self.assertFalse(os.path.exists(self.CACHE_FOLDER_NAME))
