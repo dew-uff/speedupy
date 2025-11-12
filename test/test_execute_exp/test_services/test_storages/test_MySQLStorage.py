@@ -71,4 +71,4 @@ class TestMySQLStorage(AbstractStorageTest, unittest.TestCase):
             sql_stmt = 'INSERT INTO CACHE(func_call_hash, func_output) VALUES (%s, %s)'
             sql_params = (func_hash, self.serializer.dumps(func_return))
         
-        self.banco.exec_without_output(sql_stmt, sql_params)
+        self.banco.cursor.execute(sql_stmt, sql_params)
