@@ -76,6 +76,7 @@ def _flush_redis_database():
 def _create_mysql_database():
     conexao_banco = BancoMySQL()
     conexao_banco.create_database()
+    conexao_banco.close_connection()
 
 
 def _create_sqlite_database():
