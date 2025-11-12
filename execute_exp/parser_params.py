@@ -174,7 +174,7 @@ def get_params():
                                      choices=hashes,
                                      metavar='',
                                      nargs=1,
-                                     default=['md5'],
+                                     default=['xxhash'],
                                      help='SpeeduPy\'s mechanism of hashes: choose one of the following options: ' + ', '.join(hashes))
 
     speedupy_arg_parser.add_argument('-s',
@@ -194,7 +194,7 @@ def get_params():
 
     speedupy_arg_parser.add_argument('-mt',
                                      '--min-exec-time-to-memoize',
-                                     default=[0.1],
+                                     default=[0.01],
                                      metavar='',
                                      type=float,
                                      nargs=1,

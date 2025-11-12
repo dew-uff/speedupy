@@ -8,7 +8,7 @@ from execute_exp.services.storages.RedisStorage import RedisStorage
 from execute_exp.services.storages.Storage import Storage
 from execute_exp.services.serializers.Serializer import Serializer
 from execute_exp.entitites.CacheData import CacheData
-from test.test_execute_exp.test_services.test_storages.AbstractStorageTest import AbstractStorageTest
+from test_execute_exp.test_services.test_storages.AbstractStorageTest import AbstractStorageTest
 
 
 class TestRedisStorage(AbstractStorageTest, unittest.TestCase):
