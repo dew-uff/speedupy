@@ -46,12 +46,14 @@ def _init_storage() -> Storage:
     from execute_exp.services.storages.RedisStorage import RedisStorage
     from execute_exp.services.storages.MongoStorage import MongoStorage
     from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
+    from execute_exp.services.storages.MySQLStorage import MySQLStorage
 
     serializer = get_serializer()
     if SpeeduPySettings().storage == ['sqlite']: return SQLiteStorage(serializer)
     elif SpeeduPySettings().storage == ['redis']: return RedisStorage(serializer)
     elif SpeeduPySettings().storage == ['mongo']: return MongoStorage(serializer)
     elif SpeeduPySettings().storage == ['file']: return FileSystemStorage(serializer)
+    elif SpeeduPySettings().storage == ['mysql']: return MySQLStorage(serializer)
 
 
 def get_serializer() -> Serializer:

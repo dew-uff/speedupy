@@ -28,6 +28,23 @@ start_mongo() {
   conda deactivate
 }
 
+start_mysql() {
+  if [ -f "$DBS_DIR/mysql.pid" ] && kill -0 $(cat "$DBS_DIR/mysql.pid") 2>/dev/null; then
+    echo "MySQL is already running (PID $(cat "$DBS_DIR/mysql.pid"))."
+    return 0
+  fi
+
+  echo "Starting MySQL with datadir: $DBS_DIR/mysql"
+  conda activate dev_env
+  if [ ! -d "$DBS_DIR/mysql" ] || [ -z "$(ls -A "$DBS_DIR/mysql")" ]; then
+    echo "Initializing MySQL data directory..."
+    mysqld --initialize-insecure --user=root --datadir="$DBS_DIR/mysql"
+  fi
+  mysqld --user=root --datadir="$DBS_DIR/mysql" &> "$DBS_DIR/mysql.log" &
+  echo $! > "$DBS_DIR/mysql.pid"
+  conda deactivate
+}
+
 stop_redis(){
   if [ -f "$DBS_DIR/redis.pid" ]; then
     echo "Stopping Redis..."
@@ -46,31 +63,42 @@ stop_mongo() {
   fi
 }
 
+stop_mysql() {
+  if [ -f "$DBS_DIR/mysql.pid" ]; then
+    echo "Stopping MySQL..."
+    kill $(cat "$DBS_DIR/mysql.pid") && rm "$DBS_DIR/mysql.pid"
+  else
+    echo "MySQL PID file not found."
+  fi
+}
+
 print_help() {
   cat <<EOF
-Usage: $0 {start|stop|help} {redis|mongo|all}
+Usage: $0 {start|stop|help} {redis|mongo|mysql|all}
 
 Commands:
   start redis     Start Redis server
   start mongo     Start MongoDB server
-  start all       Start both Redis and MongoDB servers
+  start mysql     Start MySQL server
+  start all       Start all servers
 
   stop redis      Stop Redis server
   stop mongo      Stop MongoDB server
-  stop all        Stop both Redis and MongoDB servers
+  stop mysql      Stop MySQL server
+  stop all        Stop all servers
 
   help            Show this help message
 
 Notes:
   - Redis logs:   $DBS_DIR/redis.log
   - MongoDB logs: $DBS_DIR/mongo.log
+  - MySQL logs:   $DBS_DIR/mysql.log
 EOF
 }
 
 
 if command -v conda >/dev/null 2>&1; then
     CONDA_BASE=$(conda info --base)
-    # If conda is installed and initialized, use the base environment
     source "$CONDA_BASE/etc/profile.d/conda.sh"
 else
     echo "Error: Conda not found or not initialized."
@@ -83,9 +111,11 @@ case "$1" in
     case "$2" in
       redis) start_redis ;;
       mongo) start_mongo ;;
+      mysql) start_mysql ;;
       all)
         start_redis
         start_mongo
+        start_mysql
         ;;
       *) print_help ;;
     esac
@@ -94,18 +124,16 @@ case "$1" in
     case "$2" in
       redis) stop_redis ;;
       mongo) stop_mongo ;;
+      mysql) stop_mysql ;;
       all)
         stop_redis
         stop_mongo
+        stop_mysql
         ;;
       *) print_help ;;
     esac
-    ;;
-  help|-h|--help)
-    print_help
     ;;
   *)
     print_help
     ;;
 esac
-

@@ -4,6 +4,7 @@ from constantes import Constantes
 from entities.BancoSQLite import BancoSQLite
 from entities.BancoRedis import BancoRedis
 from entities.BancoMongo import BancoMongo
+from entities.BancoMySQL import BancoMySQL # Veio do merge
 
 
 def init_env(storage_type: str = 'file'):
@@ -15,7 +16,11 @@ def init_env(storage_type: str = 'file'):
     debug("creating speedupy environment")
     _create_folder()
     _create_cache_folder()
+    
+    # SQLite de metadados é sempre criado
     _create_sqlite_database()
+    
+    # Cria apenas o storage específico solicitado
     _create_databases(storage_type)
 
 
@@ -59,6 +64,10 @@ def _create_databases(storage_type: str):
     elif storage_type == 'mongo':
         _flush_mongo_database()
 
+
+    elif storage_type == 'mysql':
+        _create_mysql_database()
+
     #elif storage_type == 'sqlite':
     #    if BancoSQLite.database_exists():
     #        debug("SQLite database already exists")
@@ -67,6 +76,8 @@ def _create_databases(storage_type: str):
         
     elif storage_type == 'file':
         debug("Filesystem storage requires no special database initialization.")
+    
+    
 
 
 def _flush_mongo_database():
@@ -77,6 +88,12 @@ def _flush_mongo_database():
 def _flush_redis_database():
     redis = BancoRedis()
     redis.flush_database()
+
+
+def _create_mysql_database():
+    conexao_banco = BancoMySQL()
+    conexao_banco.create_database()
+    conexao_banco.close_connection()
 
 
 def _create_sqlite_database():
