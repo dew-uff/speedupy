@@ -4,7 +4,7 @@ from constantes import Constantes
 from entities.BancoSQLite import BancoSQLite
 from entities.BancoRedis import BancoRedis
 from entities.BancoMongo import BancoMongo
-from entities.BancoMySQL import BancoMySQL # Veio do merge
+from entities.BancoMySQL import BancoMySQL
 
 
 def init_env(storage_type: str = 'file'):
