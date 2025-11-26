@@ -14,16 +14,19 @@ class TestEnvironmentService(unittest.TestCase):
         cls.CACHE_FOLDER_NAME = os.path.join(cls.FOLDER_NAME, "cache")
         cls.SQLITE_DB_FILENAME = os.path.join(cls.FOLDER_NAME, "speedupy.db")
 
-        try:
-            cls.redis = redis.Redis(host='localhost', port=6379, db=0)
-            cls.redis.ping()
-        except: cls.redis = None
+        cls.redis = redis.Redis(host='localhost', port=6379, db=0)
+        cls.redis.ping()
 
+        cls.mongo_client = None
+        cls.mongo = None
         try:
-            cls.mongo_client = pymongo.MongoClient("mongodb://localhost:27017/", serverSelectionTimeoutMS=1000)
-            cls.mongo_client.server_info()
+            temp_client = pymongo.MongoClient("mongodb://localhost:27017/", serverSelectionTimeoutMS=1000)
+            temp_client.server_info()
+            cls.mongo_client = temp_client
             cls.mongo = cls.mongo_client['speedupy']['CACHE']
-        except: 
+        except:
+            if 'temp_client' in locals():
+                temp_client.close()
             cls.mongo_client = None
             cls.mongo = None
 

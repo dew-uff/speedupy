@@ -20,9 +20,7 @@ def init_env(storage_type: str = 'file'):
 
 
 def _env_exists():
-    return _folder_exists() and \
-           _cache_folder_exists() and \
-           BancoSQLite.database_exists()
+    return _folder_exists() and _cache_folder_exists()
 
 
 def _folder_exists():
@@ -64,6 +62,8 @@ def _create_databases(storage_type: str):
         _create_mysql_database()
 
     elif storage_type == 'sqlite':
+        if BancoSQLite.database_exists():
+             return
         _create_sqlite_database()
         
     elif storage_type == 'file':
