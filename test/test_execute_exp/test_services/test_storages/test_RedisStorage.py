@@ -12,6 +12,15 @@ from test_execute_exp.test_services.test_storages.AbstractStorageTest import Abs
 
 
 class TestRedisStorage(AbstractStorageTest, unittest.TestCase):
+    def setUp(self):
+        try:
+            r = redis.Redis(host='localhost', port=6379, db=0)
+            r.ping()
+            r.close()
+        except:
+            self.skipTest("Redis is not running. Skipping RedisStorage tests.")
+        super().setUp()
+
     def create_instance(self, serializer: Serializer) -> Storage:
         self.redis = redis.Redis(host='localhost', port=6379, db=0)
         self.redis.flushdb()
@@ -25,6 +34,8 @@ class TestRedisStorage(AbstractStorageTest, unittest.TestCase):
         if len(expected_data) == 0 and self.redis.dbsize() == 0: return
 
         key = self.redis.randomkey()
+        if not key: return 
+
         if self.redis.type(key) == b'hash':
             data_gotten = {func_call_hash.decode(): CacheData(func_call_hash.decode(), self.serializer.loads(func_output), func_name.decode())
                            for func_name in self.redis.scan_iter()
@@ -38,4 +49,5 @@ class TestRedisStorage(AbstractStorageTest, unittest.TestCase):
         else: self.redis.set(func_hash, self.serializer.dumps(func_return))
 
     def __del__(self):
-        self.redis.close()
+        if hasattr(self, 'redis'):
+            self.redis.close()

@@ -1,6 +1,7 @@
 import unittest
 import os
 import sys
+import mysql.connector
 from typing import Dict
 
 project_folder = os.path.realpath(__file__).split('test/')[0]
@@ -17,12 +18,22 @@ from test_execute_exp.test_services.test_storages.AbstractStorageTest import Abs
 class TestMySQLStorage(AbstractStorageTest, unittest.TestCase):
 
     def setUp(self):
+        try:
+            cnx = mysql.connector.connect(host="127.0.0.1", user="root")
+            cnx.close()
+        except:
+            self.skipTest("MySQL is not running. Skipping MySQLStorage tests.")
+
         self.banco = BancoMySQL()
+        if not self.banco.conexao:
+             self.skipTest("MySQL connection failed inside BancoMySQL.")
+
         self.banco.create_database()
         super().setUp()
 
     def tearDown(self):
-        self.banco.close_connection()
+        if hasattr(self, 'banco') and self.banco:
+            self.banco.close_connection()
         super().tearDown()
 
     def create_instance(self, serializer: Serializer) -> Storage:
@@ -53,3 +64,4 @@ class TestMySQLStorage(AbstractStorageTest, unittest.TestCase):
             sql_params = (func_hash, self.serializer.dumps(func_return))
 
         self.banco.cursor.execute(sql_stmt, sql_params)
+        self.banco.commit()

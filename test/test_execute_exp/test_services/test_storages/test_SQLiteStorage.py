@@ -17,18 +17,23 @@ class TestSQLiteStorage(AbstractStorageTest, unittest.TestCase):
     def create_instance(self, serializer: Serializer) -> Storage:
         self.create_database()
         storage = SQLiteStorage(serializer)
-        storage._SQLiteStorage__local.db_connection.commit = Mock() # Preventing DB connection to commit changes when SQLiteStorage instance is destroyed
+        storage._SQLiteStorage__local.db_connection.commit = Mock() 
         self.storage_conn = storage._SQLiteStorage__local.db_connection.conexao
         return storage
 
     def create_database(self):
+        db_path = Constantes().BD_PATH
+        db_dir = os.path.dirname(db_path)
+        if not os.path.exists(db_dir):
+            os.makedirs(db_dir)
+
         stmt = "CREATE TABLE IF NOT EXISTS CACHE (\
         id INTEGER PRIMARY KEY AUTOINCREMENT,\
         func_call_hash TEXT UNIQUE,\
         func_output BLOB,\
         func_name TEXT\
         );"
-        self.conn = sqlite3.connect(Constantes().BD_PATH)
+        self.conn = sqlite3.connect(db_path)
         self.conn.execute(stmt)
         self.conn.commit()
         self.conn.close()
