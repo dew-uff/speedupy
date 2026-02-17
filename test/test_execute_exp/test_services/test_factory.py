@@ -32,11 +32,11 @@ import sys, random
 
 class TestFactory(unittest.TestCase):
     def set_random_values(self, SpeeduPySettings):
-        self.mem_arch = random.choice([['0', ZeroDictMemArch],
-                                       ['1', OneDictMemArch],
-                                       ['2', OneDictOldDataOneDictNewDataMemArch],
-                                       ['2-fast', OneDictAllDataOneDictNewDataMemArch]])
-        SpeeduPySettings().num_dict = [self.mem_arch[0]]
+        self.mem_arch = random.choice([['0-dict', ZeroDictMemArch],
+                                       ['1-dict', OneDictMemArch],
+                                       ['2-dict', OneDictOldDataOneDictNewDataMemArch],
+                                       ['2-dict-fast', OneDictAllDataOneDictNewDataMemArch]])
+        SpeeduPySettings().mem_arch = [self.mem_arch[0]]
 
         SpeeduPySettings().retrieval_exec_mode = [random.choice(['sequential', 'thread'])]
 

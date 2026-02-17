@@ -19,17 +19,17 @@ def init_mem_arch() -> AbstractMemArch:
 
     retrieval_strategy = _init_retrieval_strategy()
     use_threads = SpeeduPySettings().retrieval_exec_mode == ['thread']
-    if SpeeduPySettings().num_dict == ['0']:
+    if SpeeduPySettings().mem_arch == ['0-dict']:
         return ZeroDictMemArch(retrieval_strategy, use_threads)
-    elif SpeeduPySettings().num_dict == ['1']:
+    elif SpeeduPySettings().mem_arch == ['1-dict']:
         return OneDictMemArch(retrieval_strategy, use_threads)
-    elif SpeeduPySettings().num_dict == ['2']:
+    elif SpeeduPySettings().mem_arch == ['2-dict']:
         return OneDictOldDataOneDictNewDataMemArch(retrieval_strategy, use_threads)
-    elif SpeeduPySettings().num_dict == ['2-fast']:
+    elif SpeeduPySettings().mem_arch == ['2-dict-fast']:
         return OneDictAllDataOneDictNewDataMemArch(retrieval_strategy, use_threads)
-    elif SpeeduPySettings().num_dict == ['memcached-wt']:
+    elif SpeeduPySettings().mem_arch == ['memcached-wt']:
         return MemcachedWriteThroughMemArch(retrieval_strategy, use_threads)
-    elif SpeeduPySettings().num_dict == ['memcached-wb']:
+    elif SpeeduPySettings().mem_arch == ['memcached-wb']:
         return MemcachedWriteThroughMemArch(retrieval_strategy, use_threads)
 
 
