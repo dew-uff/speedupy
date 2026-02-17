@@ -63,7 +63,7 @@ def num_dicts_msg():
 
 
 def retrieval_strategies_msg():
-    return "\nRetrieval strategy optiosns:\n\
+    return "\nRetrieval strategy options:\n\
     =>lazy     : SpeeduPy will always request only the data required for the experiment execution.\n\
     =>function : SpeeduPy will request all the data of a function when the experiment needs a specific data of a function\n\
     =>eager    : SpeeduPy will request all data saved on the storage before the experiment starts to execute\n"
