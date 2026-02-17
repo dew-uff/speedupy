@@ -4,6 +4,7 @@ from constantes import Constantes
 from entities.BancoSQLite import BancoSQLite
 from entities.BancoRedis import BancoRedis
 from entities.BancoMongo import BancoMongo
+from entities.BancoMySQL import BancoMySQL
 
 
 def init_env():
@@ -58,6 +59,7 @@ def _create_databases():
 
     _flush_redis_database()
     _flush_mongo_database()
+    _create_mysql_database()
     _create_sqlite_database()
 
 
@@ -69,6 +71,12 @@ def _flush_mongo_database():
 def _flush_redis_database():
     redis = BancoRedis()
     redis.flush_database()
+
+
+def _create_mysql_database():
+    conexao_banco = BancoMySQL()
+    conexao_banco.create_database()
+    conexao_banco.close_connection()
 
 
 def _create_sqlite_database():
