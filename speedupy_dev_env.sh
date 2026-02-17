@@ -38,9 +38,9 @@ start_mysql() {
   conda activate dev_env
   if [ ! -d "$DBS_DIR/mysql" ] || [ -z "$(ls -A "$DBS_DIR/mysql")" ]; then
     echo "Initializing MySQL data directory..."
-    mysqld --initialize-insecure --user=root --datadir="$DBS_DIR/mysql"
+    mysqld --no-defaults --initialize-insecure --user=root --datadir="$DBS_DIR/mysql"
   fi
-  mysqld --user=root --datadir="$DBS_DIR/mysql" &> "$DBS_DIR/mysql.log" &
+  mysqld --no-defaults --user=root --datadir="$DBS_DIR/mysql" &> "$DBS_DIR/mysql.log" &
   echo $! > "$DBS_DIR/mysql.pid"
   conda deactivate
 }
