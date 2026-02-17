@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     libsm6 \
     libxrender1 \
     git \
+    memcached \
     && apt-get clean
 
 # Install Miniconda
