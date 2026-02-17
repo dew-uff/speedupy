@@ -30,7 +30,7 @@ def init_mem_arch() -> AbstractMemArch:
     elif SpeeduPySettings().mem_arch == ['memcached-wt']:
         return MemcachedWriteThroughMemArch(retrieval_strategy, use_threads)
     elif SpeeduPySettings().mem_arch == ['memcached-wb']:
-        return MemcachedWriteThroughMemArch(retrieval_strategy, use_threads)
+        return MemcachedWriteBackMemArch(retrieval_strategy, use_threads)
 
 
 def _init_retrieval_strategy() -> AbstractRetrievalStrategy:
