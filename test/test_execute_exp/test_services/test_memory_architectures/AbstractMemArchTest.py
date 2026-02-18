@@ -116,6 +116,9 @@ class AbstractMemArchTest(object):
                 end = time.perf_counter()
                 i += 1
 
+        self.retrieval_strategy.get_function_cache_entries = Mock(return_value={})
+        self.retrieval_strategy.get_cache_entry = Mock(return_value=None)
+
         t = threading.Thread(target=fill_dict)
         t.start()
         aux1, aux2 = 0, 0
@@ -125,7 +128,12 @@ class AbstractMemArchTest(object):
                 self.assertIsNone(c)
                 aux1 += 1
             except AssertionError:
-                self.assertEqual(c, self.mem_arch._DATA_DICTIONARY['fc_hash100'])
+                self.assertEqual(c, 100)
                 aux2 += 1
         self.assertTrue(aux1 > 0)
         self.assertTrue(aux2 > 0)
+
+    #XXX: ADICIONAR TESTES COMUNS PARA OS MÉTODOS
+    # def create_cache_entry(self, func_call_hash: str, func_return, func_name=None) -> None: pass
+    # def save_new_cache_entries(self) -> None: return
+    # def get_new_cache_entries_size(self) -> int: return 0
