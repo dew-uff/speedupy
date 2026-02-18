@@ -24,16 +24,6 @@ class TestOneDictMemArch(AbstractOneDictMemArchTest, unittest.TestCase):
         cache_data = non_persisted_data | persisted_data
         self.mem_arch._DATA_DICTIONARY.update(cache_data)
 
-    def test_save_new_cache_entries(self):
-        fc_hash = random_str()
-        func_return = random.choices([10, True, {2, 3}, (5,), {'k': 10}])
-        func_name = random.choice([random_str(), None])
-        self.mem_arch._DATA_DICTIONARY = random.choice([{}, {fc_hash: CacheData(fc_hash, func_return, func_name)}])
-
-        self.mem_arch.save_new_cache_entries()
-
-        self.retrieval_strategy.save_cache_data.assert_called_once_with(self.mem_arch._DATA_DICTIONARY)
-
     def test_get_new_cache_entries_size(self):
         self.mem_arch._DATA_DICTIONARY, expected_size = random.choice([[{}, 5],
                                                                        [{'fc_hash': CacheData('fc_hash', 10, 'func')}, 188],

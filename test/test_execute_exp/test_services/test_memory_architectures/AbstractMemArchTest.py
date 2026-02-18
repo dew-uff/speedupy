@@ -5,6 +5,7 @@ from unittest.mock import patch, Mock
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
+from test_helpers import random_str
 from execute_exp.services.retrieval_strategies.AbstractRetrievalStrategy import AbstractRetrievalStrategy
 from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
 from execute_exp.entitites.CacheData import CacheData
@@ -133,7 +134,28 @@ class AbstractMemArchTest(object):
         self.assertTrue(aux1 > 0)
         self.assertTrue(aux2 > 0)
 
-    #XXX: ADICIONAR TESTES COMUNS PARA OS MÉTODOS
-    # def create_cache_entry(self, func_call_hash: str, func_return, func_name=None) -> None: pass
-    # def save_new_cache_entries(self) -> None: return
-    # def get_new_cache_entries_size(self) -> int: return 0
+    def test_create_cache_entry(self):
+        persisted_data = {'fc_hash2': CacheData('fc_hash2', {1, 2, 3}),
+                         'fc_hash3': CacheData('fc_hash3', False)}
+        self.insert_data_on_cache_RAM({}, persisted_data)
+
+        fc_hash = random_str()
+        func_return = random.choices([10, True, {2, 3}, (5,), {'k': 10}])
+        func_name = random.choice([random_str(), None])
+        self.mem_arch.create_cache_entry(fc_hash, func_return, func_name=func_name)
+
+        non_persisted_data = {fc_hash: CacheData(fc_hash, func_return, func_name)}
+        self.assert_cache_on_RAM_equal(non_persisted_data, persisted_data)
+
+    def test_save_new_cache_entries(self):
+        fc_hash = random_str()
+        func_return = random.choices([10, True, {2, 3}, (5,), {'k': 10}])
+        func_name = random.choice([random_str(), None])
+        non_persisted_data = {fc_hash: CacheData(fc_hash, func_return, func_name)}
+        self.insert_data_on_cache_RAM(non_persisted_data, {})
+
+        self.mem_arch.save_new_cache_entries()
+
+        self.retrieval_strategy.save_cache_data.assert_called_once_with(non_persisted_data)
+
+    # INFO: The unit tests for "get_new_cache_entries_size(self)" must be implemented by each subclass!
