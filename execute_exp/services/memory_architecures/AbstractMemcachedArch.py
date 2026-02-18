@@ -2,13 +2,14 @@ import threading
 from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
 from entities.BancoMemcached import BancoMemcached
 
+
+# XXX:IMPLEMENTAR MÉTODOS QUE FALTAM PARA AbstractMemArch
 class AbstractMemcachedArch(AbstractMemArch):
     def __init__(self, retrieval_strategy, use_threads: bool):
         super().__init__(retrieval_strategy, use_threads)
         self._memcached = BancoMemcached()
         self._thread = None  # Needed for unit testing!
 
-    # XXX:TESTAR!!!
     def get_initial_cache_entries(self) -> None:
         def populate_memcached():
             data = self._retrieval_strategy.get_initial_cache_entries(use_thread=self._use_threads)
@@ -20,7 +21,6 @@ class AbstractMemcachedArch(AbstractMemArch):
         else:
             populate_memcached()
 
-    # XXX:TESTAR!!!
     def get_cache_entry(self, func_call_hash: str, func_name=None):
         cached_value = self._memcached.get(func_call_hash)
         if cached_value: return cached_value.output
@@ -36,12 +36,11 @@ class AbstractMemcachedArch(AbstractMemArch):
 
         return None
 
-    # XXX:TESTAR!!!
     def _get_function_entries_from_storage(self, func_name: str) -> None:
         def update_memcached():
             data = self._retrieval_strategy.get_function_cache_entries(func_name,
                                                                        use_thread=self._use_threads)
-            self._memcached.set_group_of_key_value_pairs.update(data)
+            self._memcached.set_group_of_key_value_pairs(data)
 
         if self._use_threads:
             self._thread = threading.Thread(target=update_memcached)

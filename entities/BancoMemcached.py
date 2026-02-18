@@ -17,7 +17,7 @@ class BancoMemcached(metaclass=SingletonMeta):
         self.client.set(key, value)
 
     def set_group_of_key_value_pairs(self, data: Dict[str, bytes]):
-        self.cliet.set_many(data)
+        self.client.set_many(data)
 
     def memory_used(self):
         return self.client.stats()[b'bytes']
