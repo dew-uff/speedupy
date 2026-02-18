@@ -3,7 +3,6 @@ from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMem
 from entities.BancoMemcached import BancoMemcached
 
 
-# XXX:IMPLEMENTAR MÉTODOS QUE FALTAM PARA AbstractMemArch
 class AbstractMemcachedArch(AbstractMemArch):
     def __init__(self, retrieval_strategy, use_threads: bool):
         super().__init__(retrieval_strategy, use_threads)
@@ -48,6 +47,9 @@ class AbstractMemcachedArch(AbstractMemArch):
         else:
             update_memcached()
 
-    # XXX:IMPLEMENTAR!!!
+    def create_cache_entry(self, func_call_hash: str, func_return, func_name=None) -> None: pass  # Implemented by each subclass!
+
+    def save_new_cache_entries(self) -> None: return  # Implemented by each subclass!
+
     def get_new_cache_entries_size(self) -> int:
         return self._memcached.memory_used()
