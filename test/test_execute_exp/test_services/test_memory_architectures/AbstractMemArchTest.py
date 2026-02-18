@@ -1,5 +1,5 @@
 from typing import Dict
-import unittest, os, sys, random, time, threading
+import os, sys, random, time, threading
 from unittest.mock import patch, Mock
 
 project_folder = os.path.realpath(__file__).split('test/')[0]
