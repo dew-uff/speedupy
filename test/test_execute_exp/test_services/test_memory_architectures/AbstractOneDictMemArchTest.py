@@ -1,29 +1,15 @@
-from typing import Dict
 import unittest, os, sys, time
 from unittest.mock import Mock
 
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
 
-from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
-from execute_exp.services.memory_architecures.AbstractOneDictMemArch import AbstractOneDictMemArch
 from execute_exp.entitites.CacheData import CacheData
 
 from test_execute_exp.test_services.test_memory_architectures.AbstractMemArchTest import AbstractMemArchTest
 
 
-class TestAbstractOneDictMemArch(AbstractMemArchTest, unittest.TestCase):
-    def create_instance(self) -> AbstractMemArch:
-        return AbstractOneDictMemArch(self.retrieval_strategy, False)
-
-    def assert_cache_on_RAM_equal(self, non_persisted_data:Dict[str, CacheData], persisted_data:Dict[str, CacheData]) -> None:
-        cache_data = non_persisted_data | persisted_data
-        self.assertDictEqual(self.mem_arch._DATA_DICTIONARY, cache_data)
-
-    def insert_data_on_cache_RAM(self, non_persisted_data:Dict[str, CacheData], persisted_data:Dict[str, CacheData]) -> None:
-        cache_data = non_persisted_data | persisted_data
-        self.mem_arch._DATA_DICTIONARY.update(cache_data)
-
+class AbstractOneDictMemArchTest(AbstractMemArchTest):
     def test_get_initial_cache_entries_using_a_thread_simulating_race_condition(self):
         records = {'func_call_hash1': CacheData('func_call_hash1', True),
                    'func_call_hash2': CacheData('func_call_hash2', 10.123),
