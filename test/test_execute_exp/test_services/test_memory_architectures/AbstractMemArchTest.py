@@ -133,4 +133,7 @@ class AbstractMemArchTest(object):
         self.assertTrue(aux1 > 0)
         self.assertTrue(aux2 > 0)
 
-    # INFO: The unit tests for "get_new_cache_entries_size(self)" must be implemented by each subclass!
+    # INFO: The unit tests for the following methods must be implemented by each subclass!
+    # INFO:    def create_cache_entry(self, func_call_hash: str, func_return, func_name=None) -> None: pass
+    # INFO:    def save_new_cache_entries(self) -> None: return
+    # INFO:    def get_new_cache_entries_size(self) -> int: return 0
