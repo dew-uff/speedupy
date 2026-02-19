@@ -1,5 +1,6 @@
-import unittest, os, sys, time
+import unittest, os, sys, time, random
 from unittest.mock import Mock
+from test_helpers import random_str
 
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
@@ -61,6 +62,29 @@ class AbstractOneDictMemArchTest(AbstractMemArchTest):
         loaded_data.update(original_data)
         self.assertDictEqual(self.mem_arch._DATA_DICTIONARY, loaded_data)
 
+    def test_create_cache_entry(self):
+        persisted_data = {'fc_hash2': CacheData('fc_hash2', {1, 2, 3}),
+                         'fc_hash3': CacheData('fc_hash3', False)}
+        self.insert_data_on_cache_RAM({}, persisted_data)
+
+        fc_hash = random_str()
+        func_return = random.choices([10, True, {2, 3}, (5,), {'k': 10}])
+        func_name = random.choice([random_str(), None])
+        self.mem_arch.create_cache_entry(fc_hash, func_return, func_name=func_name)
+
+        non_persisted_data = {fc_hash: CacheData(fc_hash, func_return, func_name)}
+        self.assert_cache_on_RAM_equal(non_persisted_data, persisted_data)
+
+    def test_save_new_cache_entries(self):
+        fc_hash = random_str()
+        func_return = random.choices([10, True, {2, 3}, (5,), {'k': 10}])
+        func_name = random.choice([random_str(), None])
+        non_persisted_data = {fc_hash: CacheData(fc_hash, func_return, func_name)}
+        self.insert_data_on_cache_RAM(non_persisted_data, {})
+
+        self.mem_arch.save_new_cache_entries()
+
+        self.retrieval_strategy.save_cache_data.assert_called_once_with(non_persisted_data)
 
 # XXX : IMPLEMENTAR TESTE QUE CHAME FUNÇÃO PASSANDO FUNC_NAME DIFERENTE DE NULL, MAS O RETRIEVAL STRATEGY É LAZY OU EAGER
 
