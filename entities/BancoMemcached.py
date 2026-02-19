@@ -10,7 +10,7 @@ class BancoMemcached(metaclass=SingletonMeta):
                              serializer=pickle_serde.serialize,
                              deserializer=pickle_serde.deserialize,
                              max_pool_size=2)
-        atexit.register(self.client.close)
+        atexit.register(self.close_connection)
 
     def get(self, key):
         return self.client.get(key)
