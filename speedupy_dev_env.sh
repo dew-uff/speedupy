@@ -45,6 +45,19 @@ start_mysql() {
   conda deactivate
 }
 
+start_memcached() {
+  if [ -f "$DBS_DIR/memcached.pid" ] && kill -0 $(cat "$DBS_DIR/memcached.pid") 2>/dev/null; then
+    echo "Memcached is already running (PID $(cat "$DBS_DIR/memcached.pid"))."
+    return 0
+  fi
+
+  echo "Starting Memcached..."
+  conda activate dev_env
+  memcached &> "$DBS_DIR/memcached.log" &
+  echo $! > "$DBS_DIR/memcached.pid"
+  conda deactivate
+}
+
 stop_redis(){
   if [ -f "$DBS_DIR/redis.pid" ]; then
     echo "Stopping Redis..."
@@ -72,19 +85,30 @@ stop_mysql() {
   fi
 }
 
+stop_memcached(){
+  if [ -f "$DBS_DIR/memcached.pid" ]; then
+    echo "Stopping Memcached..."
+    kill $(cat "$DBS_DIR/memcached.pid") && rm "$DBS_DIR/memcached.pid"
+  else
+    echo "Memcached PID file not found."
+  fi
+}
+
 print_help() {
   cat <<EOF
-Usage: $0 {start|stop|help} {redis|mongo|mysql|all}
+Usage: $0 {start|stop|help} {redis|mongo|mysql|memcached|all}
 
 Commands:
   start redis     Start Redis server
   start mongo     Start MongoDB server
   start mysql     Start MySQL server
+  start memcached Start Memcached server
   start all       Start all servers
 
   stop redis      Stop Redis server
   stop mongo      Stop MongoDB server
   stop mysql      Stop MySQL server
+  stop memcached  Stop Memcached server
   stop all        Stop all servers
 
   help            Show this help message
@@ -93,6 +117,7 @@ Notes:
   - Redis logs:   $DBS_DIR/redis.log
   - MongoDB logs: $DBS_DIR/mongo.log
   - MySQL logs:   $DBS_DIR/mysql.log
+  - Memcached logs: $DBS_DIR/memcached.log
 EOF
 }
 
@@ -112,10 +137,12 @@ case "$1" in
       redis) start_redis ;;
       mongo) start_mongo ;;
       mysql) start_mysql ;;
+      memcached) start_memcached ;;
       all)
         start_redis
         start_mongo
         start_mysql
+        start_memcached
         ;;
       *) print_help ;;
     esac
@@ -125,10 +152,12 @@ case "$1" in
       redis) stop_redis ;;
       mongo) stop_mongo ;;
       mysql) stop_mysql ;;
+      memcached) stop_memcached ;;
       all)
         stop_redis
         stop_mongo
         stop_mysql
+        stop_memcached
         ;;
       *) print_help ;;
     esac
