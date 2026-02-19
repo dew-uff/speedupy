@@ -21,7 +21,6 @@ class TestMemcachedWriteBackMemArch(AbstractMemArchTest, unittest.TestCase):
         self.memcached.close()
 
     def create_instance(self) -> AbstractMemArch:
-        self.cache_keys = []
         self.memcached = PooledClient(('127.0.0.1', 11211),
                              serializer=pickle_serde.serialize,
                              deserializer=pickle_serde.deserialize,
@@ -34,13 +33,11 @@ class TestMemcachedWriteBackMemArch(AbstractMemArchTest, unittest.TestCase):
         cache_data = non_persisted_data | persisted_data
         for k, v in cache_data.items():
             self.assertEqual(self.memcached.get(k), v)
-        # self.assertListEqual(self.cache_keys, list(cache_data.keys()))
 
     def insert_data_on_cache_RAM(self, non_persisted_data:Dict[str, CacheData], persisted_data:Dict[str, CacheData]) -> None:
         self.memcached.set_many(non_persisted_data)
         self.memcached.set_many(persisted_data)
         self.mem_arch._new_cache_keys += list(non_persisted_data.keys())
-        # self.cache_keys += list(non_persisted_data.keys()) + list(persisted_data.keys())
 
     def test_create_cache_entry(self):
         persisted_data = {'fc_hash2': CacheData('fc_hash2', {1, 2, 3}),

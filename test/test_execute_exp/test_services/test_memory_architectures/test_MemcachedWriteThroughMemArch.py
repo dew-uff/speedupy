@@ -1,5 +1,4 @@
-import unittest, os, sys, random
-from unittest.mock import patch, Mock
+import unittest, os, sys, time
 
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
@@ -7,47 +6,55 @@ sys.path.append(project_folder)
 from execute_exp.services.memory_architecures.MemcachedWriteThroughMemArch import MemcachedWriteThroughMemArch
 from execute_exp.entitites.CacheData import CacheData
 
-class TestMemcachedWriteThrough(unittest.TestCase):
+from typing import Dict
+from pymemcache.client.base import PooledClient
+from pymemcache.serde import pickle_serde
+from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
 
-    @patch('execute_exp.services.memory_architecures.MemcachedWriteThroughMemArch.BancoMemcached')
-    def setUp(self, mock_banco_memcached):
-        
-        self.mock_retrieval_strategy = Mock()
-        self.mem_arch = MemcachedWriteThroughMemArch(
-            retrieval_strategy=self.mock_retrieval_strategy,
-            use_threads=False
-        )
-        self.mock_memcached_client = self.mem_arch.memcached
+from test_execute_exp.test_services.test_memory_architectures.AbstractMemArchTest import AbstractMemArchTest
 
-    def test_get_cache_entry_when_hit(self):
-        
-        self.mock_memcached_client.get.return_value = CacheData("hash123", "resultado_do_cache")
-        result = self.mem_arch.get_cache_entry("hash123")
 
-        self.assertEqual(result, "resultado_do_cache")
-        self.mock_memcached_client.get.assert_called_once_with("hash123")
-        self.mock_retrieval_strategy.get_cache_entry.assert_not_called()
+class TestMemcachedWriteThroughMemArch(AbstractMemArchTest, unittest.TestCase):
+    def tearDown(self):
+        super().tearDown()
+        self.memcached.close()
 
-    def test_get_cache_entry_when_miss(self):
-        
-        self.mock_memcached_client.get.return_value = None
-        persistent_data = CacheData("hash123", "resultado_do_storage")
-        self.mock_retrieval_strategy.get_cache_entry.return_value = persistent_data
-        
-        result = self.mem_arch.get_cache_entry("hash123")
+    def create_instance(self) -> AbstractMemArch:
+        self.memcached = PooledClient(('127.0.0.1', 11211),
+                                      serializer=pickle_serde.serialize,
+                                      deserializer=pickle_serde.deserialize,
+                                      max_pool_size=2)
+        self.memcached.flush_all()
+        return MemcachedWriteThroughMemArch(self.retrieval_strategy, False)
 
-        self.assertEqual(result, "resultado_do_storage")
-        self.mock_memcached_client.get.assert_called_once_with("hash123")
-        self.mock_retrieval_strategy.get_cache_entry.assert_called_once_with("hash123", None)
-        self.mock_memcached_client.set.assert_called_once_with("hash123", persistent_data)
+    def assert_cache_on_RAM_equal(self, non_persisted_data:Dict[str, CacheData], persisted_data:Dict[str, CacheData]) -> None:
+        if len(non_persisted_data) > 0:
+            raise Exception('Memcached write-through strategy does not allow non persisted data on RAM!')
+
+        self.wait_for_memcached_persistency()
+        for k, v in persisted_data.items():
+            self.assertEqual(self.memcached.get(k), v)
+
+    def insert_data_on_cache_RAM(self, non_persisted_data:Dict[str, CacheData], persisted_data:Dict[str, CacheData]) -> None:
+        if len(non_persisted_data) > 0:
+            raise Exception('Memcached write-through strategy does not allow non persisted data on RAM!')
+
+        self.memcached.set_many(persisted_data)
+
+    def wait_for_memcached_persistency(self):
+        time.sleep(0.1)  # Memcached need some time to insert elements to the database
 
     def test_create_cache_entry_writes_through(self):
-
         self.mem_arch.create_cache_entry("hash123", "resultado")
-        self.mock_memcached_client.set.assert_called_once()
-        self.mock_retrieval_strategy.save_cache_data.assert_called_once()
-        
-    def test_save_new_cache_entries_does_nothing(self):
+        self.wait_for_memcached_persistency()
 
+        self.assertEqual(self.memcached.get("hash123"), CacheData("hash123", "resultado"))
+        self.retrieval_strategy.save_cache_data.assert_called_once()
+
+    def test_save_new_cache_entries_does_nothing(self):
         self.mem_arch.save_new_cache_entries()
-        self.mock_retrieval_strategy.save_cache_data.assert_not_called()
+        self.retrieval_strategy.save_cache_data.assert_not_called()
+
+    def test_get_new_cache_entries_size(self):
+        size = self.mem_arch.get_new_cache_entries_size()
+        self.assertEqual(size, 0)

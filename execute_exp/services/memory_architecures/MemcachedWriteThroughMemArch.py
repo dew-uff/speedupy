@@ -12,3 +12,7 @@ class MemcachedWriteThroughMemArch(AbstractMemcachedArch):
     def save_new_cache_entries(self) -> None:
         # There is nothing to save, since in write-through strategy the records are saved immediately after creation
         pass
+
+    def get_new_cache_entries_size(self) -> int:
+        # There is nothing to save, since in write-through strategy the records are saved immediately after creation
+        return 0
