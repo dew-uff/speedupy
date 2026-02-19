@@ -1,3 +1,4 @@
+import atexit
 from typing import Dict
 from pymemcache.client.base import PooledClient
 from pymemcache.serde import pickle_serde
@@ -9,6 +10,7 @@ class BancoMemcached(metaclass=SingletonMeta):
                              serializer=pickle_serde.serialize,
                              deserializer=pickle_serde.deserialize,
                              max_pool_size=2)
+        atexit.register(self.client.close)
 
     def get(self, key):
         return self.client.get(key)
