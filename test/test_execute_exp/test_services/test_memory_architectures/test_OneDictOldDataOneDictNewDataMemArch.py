@@ -1,5 +1,5 @@
 from typing import Dict
-import unittest, os, sys, random
+import unittest, os, sys
 
 project_folder = os.path.realpath(__file__).split('test/')[0]
 sys.path.append(project_folder)
