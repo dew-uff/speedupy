@@ -107,7 +107,11 @@ You can control the entire caching mechanism — from the hashing algorithm to t
 | `-h` | `--help` | Displays all available options. | N/A |
 | `-H` | `--hash` | Defines the hashing algorithm. Uses [MeowHash fork](https://github.com/JoaoLopez/meow_hash) for MeowHash support.| `meowhash`, `md5`, `murmurhash`, `xxhash` |
 | `-s` | `--storage` | Defines the persistence backend. | `sqlite`, `mongo`, `mysql`, `redis`, `filesystem` |
-| `-E` | `--exec-mode` | Defines the execution mode. | `accurate`, `probabilistic-counting`, `probabilistic-error`, `manual`, `no-cache` |
+|  | `--exec-mode` | Defines the execution mode. | `accurate`, `probabilistic-counting`, `probabilistic-error`, `manual`, `no-cache` |
+|  | `--retrieval-strategy` | Defines how data is loaded to main memory. | `lazy`, `function`, `eager` |
+|  | `--mem-arch` | Defines cache structure in main memory. | `0-dict`, `1-dict`, `2-dict`, `2-dict-fast`, `memcached-wt`, `memcached-wb` |
+|  | `--serializer` | Defines which serializer will be used to persist data. | `pickle`, `cloudpickle` |
+|  | `--measure-time` | Automatically measures time spent to execute the script. |  |
 
 ### Usage Examples
 
