@@ -1,5 +1,7 @@
 # SpeeduPy
 
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+
 SpeeduPy is a performance optimization tool developed in Python. It utilizes an advanced **memoization** and **persistent caching** approach applied to pure functions, drastically accelerating the execution time of scientific and computation-intensive scripts.
 
 ---
@@ -106,7 +108,6 @@ You can control the entire caching mechanism — from the hashing algorithm to t
 | `-H` | `--hash` | Defines the hashing algorithm. Uses [MeowHash fork](https://github.com/JoaoLopez/meow_hash) for MeowHash support.| `meowhash`, `md5`, `murmurhash`, `xxhash` |
 | `-s` | `--storage` | Defines the persistence backend. | `sqlite`, `mongo`, `mysql`, `redis`, `filesystem` |
 | `-E` | `--exec-mode` | Defines the execution mode. | `accurate`, `probabilistic-counting`, `probabilistic-error`, `manual`, `no-cache` |
-| `-0` | `--no-cache` | **Cache Override:** Forces the program to execute without using cache (useful for baseline measurement). | N/A |
 
 ### Usage Examples
 
