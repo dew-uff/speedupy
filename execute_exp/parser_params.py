@@ -81,7 +81,6 @@ def get_params():
     revalidations = ['none', 'fixed', 'adaptative']
     retrieval_strategies = ['lazy', 'function', 'eager']
     retrieval_exec_modes = ['sequential', 'thread']
-
     memory_architectures = ['0-dict', '1-dict', '2-dict', '2-dict-fast', 'memcached-wt', 'memcached-wb']
     hashes = ['md5', 'murmur', 'xxhash', 'meowhash']
     storage_options = ['sqlite', 'redis', 'mongo', 'file', 'mysql']
