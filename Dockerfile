@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     libsm6 \
     libxrender1 \
     git \
+    memcached \
     && apt-get clean
 
 # Install Miniconda
@@ -23,7 +24,7 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86
     conda update -n base -c defaults conda
 
 # Create the dev environment but do not activate by default
-RUN conda create -n dev_env -c conda-forge python=3.10 redis-server=7.4.0 mongodb=6.0.16 && \
+RUN conda create -n dev_env -c conda-forge python=3.10 redis-server=7.4.0 mongodb=6.0.16 mysql-server=9.0.1 && \
     conda clean --all --yes
 
 RUN conda init

@@ -30,74 +30,77 @@ class TestSpeeduPy(unittest.TestCase):
         self.patcher_Speedupy.stop()
 
     def test_deterministic_when_cache_hit(self):
-        self.dataAccess.get_cache_entry = Mock(return_value=10)
-        func = Mock()
-        func.__qualname__ = 'func'
+        from test_helpers import func
+
+        self.dataAccess.get_cache_entry = Mock(return_value=2)
 
         self.assertEqual(Profiler().num_deterministic_calls, 0)
         self.assertEqual(Profiler().num_cache_hit, 0)
         self.assertEqual(Profiler().num_func_call_too_fast_to_memoize, 0)
-        self.assertEqual(deterministic(func)(8, 4), 10)
+        self.assertEqual(func(8, v=4, func_globals=globals()), 2)
         self.assertEqual(Profiler().num_deterministic_calls, 1)
         self.assertEqual(Profiler().num_cache_hit, 1)
         self.assertEqual(Profiler().num_func_call_too_fast_to_memoize, 0)
 
-        self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (8, 4), {})
+        self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (8,), {'v': 4})
         self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
-        func.assert_not_called()
         self.dataAccess.create_cache_entry.assert_not_called()
 
     def test_deterministic_when_cache_miss(self):
-        func = Mock(return_value=2)
-        func.__qualname__ = 'func'
+        from test_helpers import func
 
         self.assertEqual(Profiler().num_deterministic_calls, 0)
         self.assertEqual(Profiler().num_cache_hit, 0)
         self.assertEqual(Profiler().num_func_call_too_fast_to_memoize, 0)
-        self.assertEqual(deterministic(func)(8, v=1), 2)
+        self.assertEqual(func(8, v=1, func_globals=globals()), 2)
         self.assertEqual(Profiler().num_deterministic_calls, 1)
         self.assertEqual(Profiler().num_cache_hit, 0)
         self.assertEqual(Profiler().num_func_call_too_fast_to_memoize, 0)
-        
+
         self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (8,), {'v': 1})
         self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
-        func.assert_called_once_with(8, v=1)
         self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, 2, func.__qualname__)
 
     def test_deterministic_when_function_has_no_args(self):
-        func = Mock(return_value=False)
-        func.__qualname__ = 'func'
+        @deterministic
+        def func(x=10, y=20, z=30, func_globals={}):
+            return False
 
-        self.assertFalse(deterministic(func)(x=1, y=2, z=3))
+        self.assertFalse(func(x=1, y=2, z=3, func_globals=globals()))
 
         self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (), {'x': 1, 'y': 2, 'z': 3})
         self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
-        func.assert_called_once_with(x=1, y=2, z=3)
         self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, False, func.__qualname__)
 
     def test_deterministic_when_function_has_no_kwargs(self):
-        func = Mock(return_value={'my', 'set', '!'})
-        func.__qualname__ = 'func'
+        @deterministic
+        def func(i, j, k, func_globals={}):
+            return {'my', 'set', '!'}
 
-        self.assertSetEqual(deterministic(func)(1, 2, 3), {'my', 'set', '!'})
+        self.assertSetEqual(func(1, 2, 3, func_globals=globals()), {'my', 'set', '!'})
 
         self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (1, 2, 3), {})
         self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
-        func.assert_called_once_with(1, 2, 3)
         self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, {'my', 'set', '!'}, func.__qualname__)
 
     def test_deterministic_when_function_has_no_input(self):
-        func = Mock(return_value=['my', -2.3, False])
-        func.__qualname__ = 'func'
+        @deterministic
+        def func(func_globals={}):
+            return ['my', -2.3, False]
 
-        self.assertListEqual(deterministic(func)(), ['my', -2.3, False])
+        self.assertListEqual(func(func_globals=globals()), ['my', -2.3, False])
 
         self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (), {})
         self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
-        func.assert_called_once_with()
         self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, ['my', -2.3, False], func.__qualname__)
 
     def test_deterministic_when_cache_miss_occurs_but_function_args_and_kwargs_are_changed_during_the_execution_of_the_pure_function(self):
+        @deterministic
+        def func(lista: list, s: set = {}, func_globals={}):
+            lista.pop()
+            s.remove('a')
+            return lista, s
+
         def get_id_side_effect(*args):
             if args == (func.__qualname__, ([1, 2, 3],), {'s': {'a', 'b', 'c'}}): return 'fc_hash'
 
@@ -115,7 +118,7 @@ class TestSpeeduPy(unittest.TestCase):
         lista = [1, 2, 3]
         conjunto = {'a', 'b', 'c'}
 
-        deterministic(func)(lista, s=conjunto)
+        func(lista, s=conjunto, func_globals=globals())
 
         self.assertListEqual(lista, [1, 2])
         self.assertSetEqual(conjunto, {'b', 'c'})
@@ -124,39 +127,47 @@ class TestSpeeduPy(unittest.TestCase):
         self.dataAccess.create_cache_entry.assert_called_once()
 
     def test_deterministic_when_function_call_executes_below_min_exec_time_to_memoize(self):
+        from test_helpers import func
+        globals()['func'] = func
+
         self.speedupy.min_exec_time_to_memoize = 1
-        func = Mock(return_value=2)
-        func.__qualname__ = 'func'
+        wrapped = func.__wrapped__
 
         self.assertEqual(Profiler().num_deterministic_calls, 0)
         self.assertEqual(Profiler().num_cache_hit, 0)
         self.assertEqual(Profiler().num_func_call_too_fast_to_memoize, 0)
-        self.assertEqual(deterministic(func)(8, v=1), 2)
+        self.assertEqual(globals()[func.__name__], func)
+        self.assertEqual(func(8, v=1, func_globals=globals()), 2)
         self.assertEqual(Profiler().num_deterministic_calls, 1)
         self.assertEqual(Profiler().num_cache_hit, 0)
         self.assertEqual(Profiler().num_func_call_too_fast_to_memoize, 1)
+        self.assertEqual(globals()[func.__name__], wrapped)
 
         self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (8,), {'v': 1})
         self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
-        func.assert_called_once_with(8, v=1)
         self.dataAccess.create_cache_entry.assert_not_called()
 
+        globals().pop('func')
+
     def test_deterministic_when_function_call_executes_above_min_exec_time_to_memoize(self):
-        func = Mock(return_value=2)
-        func.__qualname__ = 'func'
+        from test_helpers import func
+        globals()['func'] = func
 
         self.assertEqual(Profiler().num_deterministic_calls, 0)
         self.assertEqual(Profiler().num_cache_hit, 0)
         self.assertEqual(Profiler().num_func_call_too_fast_to_memoize, 0)
-        self.assertEqual(deterministic(func)(8, v=1), 2)
+        self.assertEqual(globals()[func.__name__], func)
+        self.assertEqual(func(8, v=1, func_globals=globals()), 2)
         self.assertEqual(Profiler().num_deterministic_calls, 1)
         self.assertEqual(Profiler().num_cache_hit, 0)
         self.assertEqual(Profiler().num_func_call_too_fast_to_memoize, 0)
+        self.assertEqual(globals()[func.__name__], func)
 
         self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (8,), {'v': 1})
         self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
-        func.assert_called_once_with(8, v=1)
         self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, 2, func.__qualname__)
+
+        globals().pop('func')
 
     def test_execute_func_measuring_time_when_a_function_is_passed(self):
         def func2(a, b, c, x=1, y=True):
@@ -202,73 +213,6 @@ class TestSpeeduPy(unittest.TestCase):
 
         result, _ = _execute_func_measuring_time(func2, (), {})
         self.assertEqual(result, 1000)
-
-    # TODO: When testing @maybe_deterministic maybe some of these tests may be used!
-    # def test_maybe_deterministic_when_cache_hit(self):
-    #     Constantes().FUNCTIONS_2_HASHES = {func.__qualname__:"func_hash"}
-    #     Constantes().DONT_CACHE_FUNCTION_CALLS = ["hash1"]
-    #     with patch('intpy.get_cache_data', return_value=2) as get_cache_data, \
-    #          patch('intpy.get_function_call_return_freqs', return_value=None) as get_func_call_return_freqs, \
-    #          patch('random.random') as random, \
-    #          patch('intpy.get_id') as get_id, \
-    #          patch('intpy.add_to_metadata') as add_to_metadata:
-    #         self.assertEqual(speedupy.maybe_deterministic(func)(8, 4), 2)
-    #         get_cache_data.assert_called_once()
-    #         get_func_call_return_freqs.assert_called_once()
-    #         random.assert_not_called()
-    #         get_id.assert_not_called()
-    #         add_to_metadata.assert_not_called()
-
-    # def test_maybe_deterministic_when_function_call_is_simulated(self):
-    #     Constantes().FUNCTIONS_2_HASHES = {func.__qualname__:"func_hash"}
-    #     Constantes().DONT_CACHE_FUNCTION_CALLS = ["hash1"]
-    #     with patch('intpy.get_cache_data', return_value=None) as get_cache_data, \
-    #          patch('intpy.get_function_call_return_freqs', return_value={0:0.5, 1:0.5}) as get_func_call_return_freqs, \
-    #          patch('random.random', return_value=0.6) as random, \
-    #          patch('intpy.get_id') as get_id, \
-    #          patch('intpy.add_to_metadata') as add_to_metadata:
-    #         self.assertEqual(speedupy.maybe_deterministic(func)(8, 4), 1)
-    #         get_cache_data.assert_called_once()
-    #         get_func_call_return_freqs.assert_called_once()
-    #         random.assert_called_once()
-    #         get_id.assert_not_called()
-    #         add_to_metadata.assert_not_called()
-
-    # def test_maybe_deterministic_when_function_call_in_DONT_CACHE_FUNCTION_CALLS(self):
-    #     Constantes().FUNCTIONS_2_HASHES = {func.__qualname__:"func_hash"}
-    #     Constantes().DONT_CACHE_FUNCTION_CALLS = ["hash1", "func_call_hash"]
-    #     with patch('intpy.get_cache_data', return_value=None) as get_cache_data, \
-    #          patch('intpy.get_function_call_return_freqs', return_value=None) as get_func_call_return_freqs, \
-    #          patch('random.random') as random, \
-    #          patch('intpy.get_id', return_value='func_call_hash') as get_id, \
-    #          patch('intpy.add_to_metadata') as add_to_metadata:
-    #         self.assertEqual(speedupy.maybe_deterministic(func)(8, 4), 2)
-    #         get_cache_data.assert_called_once()
-    #         get_func_call_return_freqs.assert_called_once()
-    #         random.assert_not_called()
-    #         get_id.assert_called_once()
-    #         add_to_metadata.assert_not_called()
-
-    # def test_maybe_deterministic_when_function_need_to_execute_and_can_collect_metadata(self):
-    #     Constantes().FUNCTIONS_2_HASHES = {func.__qualname__:"func_hash"}
-    #     Constantes().DONT_CACHE_FUNCTION_CALLS = ["hash1"]
-    #     with patch('intpy.get_cache_data', return_value=None) as get_cache_data, \
-    #          patch('intpy.get_function_call_return_freqs', return_value=None) as get_func_call_return_freqs, \
-    #          patch('random.random') as random, \
-    #          patch('intpy.get_id', return_value='func_call_hash') as get_id, \
-    #          patch('intpy.add_to_metadata', return_value=None) as add_to_metadata:
-    #         self.assertEqual(speedupy.maybe_deterministic(func)(8, 4), 2)
-    #         get_cache_data.assert_called_once()
-    #         get_func_call_return_freqs.assert_called_once()
-    #         random.assert_not_called()
-    #         get_id.assert_called_once()
-    #         add_to_metadata.assert_called_once()
-
-
-def func(lista: list, s: set = {}):
-    lista.pop()
-    s.remove('a')
-    return lista, s
 
 
 if __name__ == '__main__':

@@ -4,7 +4,7 @@ from execute_exp.parser_params import get_params
 
 class SpeeduPySettings(metaclass=SingletonMeta):
     def __init__(self):
-        self.num_dict, \
+        self.mem_arch, \
             self.retrieval_strategy, \
             self.retrieval_exec_mode, \
             self.hash, \

@@ -60,6 +60,8 @@ def deterministic(f):
     def wrapper(*method_args, **method_kwargs):
         debug("calling {0}".format(f.__qualname__))
         Profiler().num_deterministic_calls += 1
+
+        func_globals = method_kwargs.pop('func_globals')
         func_call_hash = DataAccess().get_id(f.__qualname__, method_args, method_kwargs)
         c = DataAccess().get_cache_entry(func_call_hash, f.__qualname__)
         if _cache_doesnt_exist(c):
@@ -69,6 +71,7 @@ def deterministic(f):
                 DataAccess().create_cache_entry(func_call_hash, return_value, f.__qualname__)
             else:
                 Profiler().num_func_call_too_fast_to_memoize += 1
+                func_globals[f.__name__] = f
             return return_value
         else:
             debug("cache hit for {0}({1})".format(f.__qualname__, method_args))

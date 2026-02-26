@@ -21,6 +21,8 @@ from execute_exp.services.memory_architecures.ZeroDictMemArch import ZeroDictMem
 from execute_exp.services.memory_architecures.OneDictMemArch import OneDictMemArch
 from execute_exp.services.memory_architecures.OneDictOldDataOneDictNewDataMemArch import OneDictOldDataOneDictNewDataMemArch
 from execute_exp.services.memory_architecures.OneDictAllDataOneDictNewDataMemArch import OneDictAllDataOneDictNewDataMemArch
+from execute_exp.services.memory_architecures.MemcachedWriteThroughMemArch import MemcachedWriteThroughMemArch
+from execute_exp.services.memory_architecures.MemcachedWriteBackMemArch import MemcachedWriteBackMemArch
 from execute_exp.services.execution_modes.AccurateMode import AccurateMode
 from execute_exp.services.execution_modes.ProbabilisticCountingMode import ProbabilisticCountingMode
 from execute_exp.services.execution_modes.ProbabilisticErrorMode import ProbabilisticErrorMode
@@ -32,11 +34,13 @@ import sys, random
 
 class TestFactory(unittest.TestCase):
     def set_random_values(self, SpeeduPySettings):
-        self.mem_arch = random.choice([['0', ZeroDictMemArch],
-                                       ['1', OneDictMemArch],
-                                       ['2', OneDictOldDataOneDictNewDataMemArch],
-                                       ['2-fast', OneDictAllDataOneDictNewDataMemArch]])
-        SpeeduPySettings().num_dict = [self.mem_arch[0]]
+        self.mem_arch = random.choice([['0-dict', ZeroDictMemArch],
+                                       ['1-dict', OneDictMemArch],
+                                       ['2-dict', OneDictOldDataOneDictNewDataMemArch],
+                                       ['2-dict-fast', OneDictAllDataOneDictNewDataMemArch],
+                                       ['memcached-wt', MemcachedWriteThroughMemArch],
+                                       ['memcached-wb', MemcachedWriteBackMemArch]])
+        SpeeduPySettings().mem_arch = [self.mem_arch[0]]
 
         SpeeduPySettings().retrieval_exec_mode = [random.choice(['sequential', 'thread'])]
 
