@@ -34,7 +34,8 @@ def hashes_msg():
     return "\nHashes: \n\
     =>md5   : is a cryptographic hash fuction with a better collision resistence and lower performance compared to the others.\n\
     =>murmur: is a modern non-cryptographic hash function with a low collision rate and high performance.\n\
-    =>xxhash: is a modern non-cryptographic hash function with a lower collision resistence and better performance compered to murmur.\n"
+    =>xxhash: is a modern non-cryptographic hash function with a lower collision resistence and better performance compered to murmur.\n\
+    =>meowhash: is a high-performance non-cryptographic hash function, inspired by the SMHasher3 benchmark algorithms.\n"
 
 
 def storage_msg():
@@ -81,7 +82,7 @@ def get_params():
     retrieval_strategies = ['lazy', 'function', 'eager']
     retrieval_exec_modes = ['sequential', 'thread']
     memory_architectures = ['0-dict', '1-dict', '2-dict', '2-dict-fast', 'memcached-wt', 'memcached-wb']
-    hashes = ['md5', 'murmur', 'xxhash']
+    hashes = ['md5', 'murmur', 'xxhash', 'meowhash']
     storage_options = ['sqlite', 'redis', 'mongo', 'file', 'mysql']
     serializer_options = ['pickle', 'cloudpickle']
 

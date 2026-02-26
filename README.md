@@ -1,74 +1,150 @@
-# Speedupy
-This tool was developed to speed up the execution time of programs written in Python, using a memoization-based approach applied to pure functions.
+# SpeeduPy
 
-## How to use?
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 
-### Prepare the directories
+SpeeduPy is a performance optimization tool developed in Python. It utilizes an advanced **memoization** and **persistent caching** approach applied to pure functions, drastically accelerating the execution time of scientific and computation-intensive scripts.
 
-Go to the folder where the programs you want to accelerate are located.
+---
+
+## Key Features
+
+* **Flexible Cache:** Support for various storage backends (SQLite, MySQL, MongoDB, and Redis) for result persistence.
+* **Extreme Performance:** Implementation of ultra-fast hashing algorithms, ensuring instantaneous cache lookups and maximizing retrieval speed.
+* **Execution Modes:** Support for different optimization and sampling strategies.
+* **Setup/Cleanup Scripts:** Environment controlled via simple shell scripts (`./speedupy_dev_env.sh`).
+
+---
+
+## How to Install
+
+SpeeduPy can be installed in two primary ways: via Docker commands, or directly on your host machine.
+
+### 0. Clone or Download the Repository
+
+Start by getting the SpeeduPy source code onto your local machine:
+
 ```bash
-$ cd </program_folders_path>
+# Option 1: Clone using Git
+$ git clone https://github.com/dew-uff/speedupy.git
+$ cd speedupy
 
-</program_folders_path>$ git clone https://github.com/dew-uff/speedupy.git
-```
-To exemplify, we use [the speedup experiments repository](https://github.com/dew-uff/speedupy_experiments), which can be obtained to test the tool by clicking on the link. After that, just unzip it and enjoy :-)
-```bash
-$ cd Downloads/speedupy_experiments-main/01pilots/01pilots_exp01_fibonacci
-
-~/Downloads/speedupy_experiments-main/01pilots/01pilots_exp01_fibonacci $ git clone https://github.com/dew-uff/speedupy.git
-```
-
-### Prepare the files
-For the tool to be able to interpret the experiment code, denote it with the following decorators:
-
-* @deterministic - for each pure function that will be accelerated
-* @initialize_intpy(\_\_file\_\_) - to the main function
-
-In addition, it is necessary to have the following structure to call the main function:
-* if __name__ =="\_\_main\_\_":
-     </br>n = int(sys.argv[1])
-     </br>start = time.perf_counter()
-     </br>main(n)
-     </br>print(time.perf_counter()-start)
-
-* Adaptation may be necessary due to arguments passed as parameters in the main.
-
-Example:
-
-![screen1_speedupy](https://github.com/dew-uff/speedupy/assets/18330758/35d7db61-1e9a-405f-ae78-bea5e6903d75)
-
-Figure 1: Code adapted from the nth Fibonacci term calculation.
-
-
-![screen2_speedupy](https://github.com/dew-uff/speedupy/assets/18330758/ec32db82-8ed2-4bab-b6bb-f53d2ab46b6d)
-
-Figure 2: Code adapted from the calculation of power, from a number n, to m.
-
-### Running the programs
-Once the program is already adapted, just run it.
-```bash
-$ python <filename>.py program_params [-h, --help] [-g, --glossary] [-m memory|help, --memory memory|help] [-0, --no-cache] [- H type|help, --hash type|help] [-M method|help, --marshalling method|help] [-s form|help, --storage form|help]
-```
-To get an overview, just use the "-h" or "--help" argument and you will have all the valid arguments and their entries.
-```bash
-python fibonacci.py -h
+# Option 2: Download the ZIP and unpack it
 ```
 
-![screen3_speedupy](https://github.com/dew-uff/speedupy/assets/18330758/8b154302-8d80-460b-a16d-3a6b837aa58e)
+### Option 1: Using Dockerfile (Recommended for Isolation)
 
-Figure 3: Use of the general help with -h.
+You can build and run the development image directly using the `Dockerfile` provided in the project root.
+
+```bash
+# 1. Build the Docker image
+$ docker build -t speedupy-dev .
+
+# 2. Run the image in the background (mapping the current project folder for code access)
+#    (The exact run command might need adjustments based on port mapping and volumes)
+$ docker run -d --name speedupy-container -v $(pwd):/app speedupy-dev
+
+# 3. Start the container if it was stopped
+$ docker start speedupy-container
+
+# 4. Access the environment shell
+$ docker exec -it speedupy-container /bin/bash
+```
+
+### Option 2: Host Machine (Manual Setup)
+
+For direct host installation, you must first install the required Python packages and configure the database servers manually.
+
+```bash
+# 1. Install Python Dependencies
+$ pip install -r requirements.txt
+
+# 2. Install Database Servers
+#    You must manually install and configure the desired servers (MySQL, MongoDB, Redis, etc.)
+#    that your project is set up to use. Consult your system's package manager for installation details.
+#    (e.g., MySQL 8.0, Redis 7.2, MongoDB 7.0)
+```
 
 
-Once the arguments and their respective parameters have been discovered, we can use them as shown in the image below:
+---
 
-![screen4_speedupy](https://github.com/dew-uff/speedupy/assets/18330758/017d0839-084e-4e01-a69c-65e60c2c772f)
+## How to Set Up and Use
 
-Figure 4: Example of defining some arguments.
+This section guides you through setting up the required server environment and preparing your Python scripts for acceleration.
 
-Finally, if you want to know more about a specific argument, use the "help" after this argument:
+### 1. Starting Database Servers
 
-![screen5_speedupy](https://github.com/dew-uff/speedupy/assets/18330758/be602515-fb86-4191-8f9c-bdca80405348)
+To initiate the necessary cache servers (MySQL, MongoDB, Redis, etc.), use the provided shell script:
 
-Figure 5: Use of the arguments's help.
+```bash
+# Starts all configured database servers
+$ ./speedupy_dev_env.sh start all
+```
 
-Para rodar a suite de testes, entre na pasta `/test` e execute o comando `python -m unittest`
+### 2. Experiment Setup
+
+This step analyzes your code to create the necessary metadata (like function call graphs). This must be run after any modification to your experiment's source code, or when setting up for the first time.
+
+```bash
+# Replace file_name.py with the name of your main experiment file
+$ python3.10 speedupy/setup_exp/setup.py file_name.py
+```
+
+### 3. Adapting Your Scripts
+
+To allow SpeeduPy to **track, measure, and cache function calls**, apply the relevant decorators to your script.  
+Use **`@initialize_speedupy`** on the program’s `main` function and **`@deterministic`** on the pure functions you want to accelerate.
+
+---
+
+## Running and Optimizing Experiments
+
+You can control the entire caching mechanism — from the hashing algorithm to the storage backend — using command-line arguments.
+
+### Execution Options
+
+| Short Arg | Long Arg | Description | Example Values |
+| :---: | :--- | :--- | :--- |
+| `-h` | `--help` | Displays all available options. | N/A |
+| `-H` | `--hash` | Defines the hashing algorithm. Uses [MeowHash fork](https://github.com/JoaoLopez/meow_hash) for MeowHash support.| `meowhash`, `md5`, `murmurhash`, `xxhash` |
+| `-s` | `--storage` | Defines the persistence backend. | `sqlite`, `mongo`, `mysql`, `redis`, `filesystem` |
+|  | `--exec-mode` | Defines the execution mode. | `accurate`, `probabilistic-counting`, `probabilistic-error`, `manual`, `no-cache` |
+|  | `--retrieval-strategy` | Defines how data is loaded to main memory. | `lazy`, `function`, `eager` |
+|  | `--mem-arch` | Defines cache structure in main memory. | `0-dict`, `1-dict`, `2-dict`, `2-dict-fast`, `memcached-wt`, `memcached-wb` |
+|  | `--serializer` | Defines which serializer will be used to persist data. | `pickle`, `cloudpickle` |
+|  | `--measure-time` | Automatically measures time spent to execute the script. |  |
+
+### Usage Examples
+
+**1. Running Without Cache (Baseline Measurement):**
+
+```bash
+# Measures the time baseline, ignoring all cache settings
+$ python3.10 file_name.py --exec-mode no-cache
+```
+
+**2. Running With Cache (Max Performance):**
+
+```bash
+# Example: Use fast MD5 hashing and SQLite storage
+$ python3.10 file_name.py -H md5 -s sqlite
+```
+
+**3. Stopping Servers:**
+
+```bash
+$ ./speedupy_dev_env.sh stop all
+```
+
+---
+
+## Running Tests
+
+To execute the complete suite of unit tests:
+
+```bash
+# Navigate to the test directory first:
+$ cd test/
+$ python3.10 -m unittest
+```
+
+---
