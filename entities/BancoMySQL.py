@@ -36,7 +36,7 @@ class BancoMySQL:
                 CREATE TABLE IF NOT EXISTS CACHE (
                     id INT PRIMARY KEY AUTO_INCREMENT,
                     func_call_hash TEXT,
-                    func_output BLOB,
+                    func_output LONGBLOB,
                     func_name TEXT,
                     UNIQUE (func_call_hash(255))
                 ) ENGINE=InnoDB;
