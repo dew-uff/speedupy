@@ -48,12 +48,12 @@ start_mysql() {
 start_memcached() {
   if [ -f "$DBS_DIR/memcached.pid" ] && kill -0 $(cat "$DBS_DIR/memcached.pid") 2>/dev/null; then
     echo "Memcached is already running (PID $(cat "$DBS_DIR/memcached.pid"))."
-    return 
+    return 0
   fi
 
   echo "Starting Memcached..."
   conda activate dev_env
-  memcached -u root -m 4096 -M -I 32m &> "$DBS_DIR/memcached.log" &
+  memcached -u root -m 4096 -I 32m &> "$DBS_DIR/memcached.log" &
   echo $! > "$DBS_DIR/memcached.pid"
   conda deactivate
 }
