@@ -1,4 +1,4 @@
-import time, sys, os
+import time, sys, os, copy
 from functools import wraps
 from typing import Dict, List, Tuple, Any
 sys.path.append(os.path.dirname(__file__))
@@ -62,13 +62,13 @@ def deterministic(f):
         Profiler().num_deterministic_calls += 1
 
         func_globals = method_kwargs.pop('func_globals')
-        func_call_hash = DataAccess().get_id(f.__qualname__, method_args, method_kwargs)
+        func_call_hash = DataAccess().get_id(f.__qualname__, copy.deepcopy(method_args), copy.deepcopy(method_kwargs))
         c = DataAccess().get_cache_entry(func_call_hash, f.__qualname__)
         if _cache_doesnt_exist(c):
             debug("cache miss for {0}({1})".format(f.__qualname__, method_args))
             return_value, elapsed_time = _execute_func_measuring_time(f, method_args, method_kwargs)
             if elapsed_time > SpeeduPy().min_exec_time_to_memoize:
-                DataAccess().create_cache_entry(func_call_hash, return_value, f.__qualname__)
+                DataAccess().create_cache_entry(func_call_hash, copy.deepcopy(return_value), f.__qualname__)
             else:
                 Profiler().num_func_call_too_fast_to_memoize += 1
                 func_globals[f.__name__] = f
