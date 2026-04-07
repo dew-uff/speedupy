@@ -8,7 +8,7 @@ from execute_exp.services.memory_architecures.MemcachedWriteBackMemArch import M
 from execute_exp.entitites.CacheData import CacheData
 
 from typing import Dict
-from pymemcache.client.base import PooledClient
+from pymemcache.client.base import Client
 from pymemcache.serde import pickle_serde
 from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
 
@@ -21,10 +21,9 @@ class TestMemcachedWriteBackMemArch(AbstractMemArchTest, unittest.TestCase):
         self.memcached.close()
 
     def create_instance(self) -> AbstractMemArch:
-        self.memcached = PooledClient(('127.0.0.1', 11211),
+        self.memcached = Client(('localhost', 11211),
                              serializer=pickle_serde.serialize,
-                             deserializer=pickle_serde.deserialize,
-                             max_pool_size=2)
+                             deserializer=pickle_serde.deserialize)
         self.memcached.flush_all()
         return MemcachedWriteBackMemArch(self.retrieval_strategy, False)
 
