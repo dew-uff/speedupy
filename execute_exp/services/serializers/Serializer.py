@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Union, BinaryIO, Optional, Set
+from typing import Any, Union, BinaryIO
 
 
 class Serializer(ABC):
@@ -22,4 +22,4 @@ class Serializer(ABC):
     def deserialize_from_file(self, filename: str) -> Any: pass
 
     @abstractmethod
-    def clean_data(self, obj: Any, visited: Optional[Set] = None) -> Any: pass
+    def to_canonical(self, obj: Any) -> Any: pass

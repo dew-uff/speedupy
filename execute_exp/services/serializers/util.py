@@ -3,55 +3,76 @@ from typing import Any, Optional, Set
 import numpy as np
 
 
-def clean_data(obj: Any, visited: Optional[Set] = None) -> Any:
-    """
-    Recursively walk a Python object and clean its attributes so the serializer will always produce the same bytecode for the given object.
-    """
-    if visited is None: visited = set()
+def to_canonical(obj: Any, visited: Optional[Set] = None) -> Any:
+    if visited is None:
+        visited = set()
 
     obj_id = id(obj)
-    if obj_id in visited: return obj
+    if obj_id in visited:
+        return "<CYCLE>"
 
     visited.add(obj_id)
 
+    # --- Primitive ---
+    if obj is None or isinstance(obj, (bool, int, float, str)):
+        return obj
+
+    # --- Functions (your logic, but canonical) ---
     if isinstance(obj, FunctionType):
-        g = obj.__globals__
-        if "__file__" in g:
-            # Clone the globals dict so we don’t mutate shared modules
-            new_globals = dict(g)
-            new_globals["__file__"] = None
-            obj = FunctionType(obj.__code__,
-                               new_globals,
-                               name=obj.__name__,
-                               argdefs=obj.__defaults__,
-                               closure=obj.__closure__)
-        return obj
+        return {
+            "__function__": obj.__name__,
+            "code": obj.__code__.co_code.hex(),
+            "defaults": to_canonical(obj.__defaults__, visited),
+        }
 
-    if isinstance(obj, np.ndarray): return obj.tolist()
+    # --- NumPy ---
+    if isinstance(obj, np.ndarray):
+        return {
+            "__ndarray__": obj.tolist(),
+            "dtype": str(obj.dtype),
+            "shape": obj.shape,
+        }
 
-    if isinstance(obj, np.generic): return obj.item()
+    if isinstance(obj, np.generic):
+        return obj.item()
 
+    # --- Dict (SORTED!) ---
     if isinstance(obj, dict):
-        for k, v in list(obj.items()):
-            obj[k] = clean_data(v, visited)
-        return obj
+        return {
+            str(k): to_canonical(v, visited)
+            for k, v in sorted(obj.items(), key=lambda x: str(x[0]))
+        }
 
-    if isinstance(obj, (list, tuple, set)):
-        container_type = type(obj)
-        return container_type(clean_data(v, visited) for v in obj)
+    # --- List / Tuple ---
+    if isinstance(obj, (list, tuple)):
+        return [to_canonical(v, visited) for v in obj]
 
-    # User-defined object
+    # --- Set (CRITICAL FIX) ---
+    if isinstance(obj, set):
+        return sorted(to_canonical(v, visited) for v in obj)
+
+    # --- Objects ---
     if hasattr(obj, "__dict__"):
-        for k, v in vars(obj).items():
-            setattr(obj, k, clean_data(v, visited))
-        return obj
+        return {
+            "__class__": obj.__class__.__name__,
+            "__module__": obj.__class__.__module__,
+            "attributes": {
+                k: to_canonical(v, visited)
+                for k, v in sorted(vars(obj).items())
+                if not callable(v) and not k.startswith("_")
+            }
+        }
 
-    # Slots
+    # --- Slots ---
     if hasattr(obj, "__slots__"):
-        for slot in obj.__slots__:
-            if hasattr(obj, slot):
-                val = getattr(obj, slot)
-                setattr(obj, slot, clean_data(val, visited))
-        return obj
+        return {
+            "__class__": obj.__class__.__name__,
+            "__slots__": {
+                slot: to_canonical(getattr(obj, slot), visited)
+                for slot in sorted(obj.__slots__)
+                if hasattr(obj, slot)
+            }
+        }
 
-    return obj
+    # --- Fallback ---
+    return str(obj)

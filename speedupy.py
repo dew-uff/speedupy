@@ -62,7 +62,7 @@ def deterministic(f):
         Profiler().num_deterministic_calls += 1
 
         func_globals = method_kwargs.pop('func_globals')
-        func_call_hash = DataAccess().get_id(f.__qualname__, copy.deepcopy(method_args), copy.deepcopy(method_kwargs))
+        func_call_hash = DataAccess().get_id(f.__qualname__, method_args, method_kwargs)
         c = DataAccess().get_cache_entry(func_call_hash, f.__qualname__)
         if _cache_doesnt_exist(c):
             debug("cache miss for {0}({1})".format(f.__qualname__, method_args))

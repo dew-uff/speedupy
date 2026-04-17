@@ -10,14 +10,9 @@ from execute_exp.services.hashes.MeowHash import MeowHash
 class TestMeowHash(unittest.TestCase):
     def setUp(self):
         # Mocks para simular a serialização de args e kwargs
-        self.first_output = os.urandom(16)
-        self.second_output = os.urandom(16)
-        self.third_output = os.urandom(16)
         self.serializer = Mock()
-        
-        self.serializer.dumps = Mock() 
-        self.serializer.clean_data = Mock(side_effect=lambda x: x)
-        
+        self.serializer.to_canonical = Mock(side_effect=lambda x: x)
+
         self.hash = MeowHash(self.serializer)
 
     def test_hash_consistency(self):
@@ -28,12 +23,7 @@ class TestMeowHash(unittest.TestCase):
         args = [1, 2, 3]
         kwargs = {'a': 'b'}
 
-        # Configura o mock para as chamadas a dumps (args, kwargs)
-        self.serializer.dumps.side_effect = [self.first_output, self.second_output]
         hash1 = self.hash.get_id(source, fun_args=args, fun_kwargs=kwargs)
-
-        # Reconfigura o mock para a segunda chamada, usando os mesmos bytes
-        self.serializer.dumps.side_effect = [self.first_output, self.second_output]
         hash2 = self.hash.get_id(source, fun_args=args, fun_kwargs=kwargs)
 
         self.assertEqual(hash1, hash2, "O mesmo input não gerou hashes idênticos (Falha na Estabilidade).")
@@ -48,16 +38,13 @@ class TestMeowHash(unittest.TestCase):
         source1 = 'def f(x): return x + 1'
         source2 = 'def f(x): return x + 2' 
 
-        # --- Call 1: hash1 (Args: [5], usa self.first_output) ---
-        self.serializer.dumps.side_effect = [self.first_output]
+        # --- Call 1: hash1 (Args: [5]) ---
         hash1 = self.hash.get_id(source1, fun_args=[5])
 
-        # --- Call 2: hash2 (Source changes, usa self.second_output) ---
-        self.serializer.dumps.side_effect = [self.second_output]
+        # --- Call 2: hash2 (Source changes) ---
         hash2 = self.hash.get_id(source2, fun_args=[5])
 
-        # --- Call 3: hash3 (Args change to [6], usa self.third_output) ---
-        self.serializer.dumps.side_effect = [self.third_output]
+        # --- Call 3: hash3 (Args change to [6]) ---
         hash3 = self.hash.get_id(source1, fun_args=[6])
         
         # Test 1: Source change (hash1 vs hash2). 
