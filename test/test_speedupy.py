@@ -185,50 +185,80 @@ class TestSpeeduPy(unittest.TestCase):
 
         globals().pop('func')
 
-    def test_execute_func_measuring_time_when_a_function_is_passed(self):
+    @patch('sys.stderr')
+    @patch('sys.stdout')
+    def test_execute_func_measuring_time_when_a_function_is_passed(self, mock_stdout, mock_stderr):
         def func2(a, b, c, x=1, y=True):
+            print("stdout msg")
+            print("stderr msg", file=sys.stderr)
             return 20
 
-        result, _ = _execute_func_measuring_time(func2, (1, 3, 2), {'x': 1.213, 'y': False})
+        result, stdout_msg, stderr_msg, _ = _execute_func_measuring_time(func2, (1, 3, 2), {'x': 1.213, 'y': False})
         self.assertEqual(result, 20)
+        self.assertEqual(stdout_msg, "stdout msg\n")
+        self.assertEqual(stderr_msg, "stderr msg\n")
+        mock_stdout.write.assert_called_with("stdout msg\n")
+        mock_stderr.write.assert_called_with("stderr msg\n")
 
-    def test_execute_func_measuring_time_when_an_instance_method_is_passed(self):
+    @patch('sys.stderr')
+    @patch('sys.stdout')
+    def test_execute_func_measuring_time_when_an_instance_method_is_passed(self, mock_stdout, mock_stderr):
         class MyClass():
             def my_method(self, a, b, c, x=1, y=True):
+                print("stdout msg")
+                print("stderr msg", file=sys.stderr)
                 return True
 
-        result, _ = _execute_func_measuring_time(MyClass().my_method, (1, 3, 2), {'x': 1.213, 'y': False})
+        result, stdout_msg, stderr_msg, _ = _execute_func_measuring_time(MyClass().my_method, (1, 3, 2), {'x': 1.213, 'y': False})
         self.assertTrue(result)
+        self.assertEqual(stdout_msg, "stdout msg\n")
+        self.assertEqual(stderr_msg, "stderr msg\n")
+        mock_stdout.write.assert_called_with("stdout msg\n")
+        mock_stderr.write.assert_called_with("stderr msg\n")
 
-    def test_execute_func_measuring_time_when_a_class_method_is_passed(self):
+    @patch('sys.stderr')
+    @patch('sys.stdout')
+    def test_execute_func_measuring_time_when_a_class_method_is_passed(self, mock_stdout, mock_stderr):
         class MyClass():
             @classmethod
             def my_classmethod(cls, a, b, c, x=1, y=True):
+                print("stdout msg")
+                print("stderr msg", file=sys.stderr)
                 return {-b, c * c, x + a, y}
 
-        result, _ = _execute_func_measuring_time(MyClass.my_classmethod, (1, 3, 2), {'x': 1.213, 'y': False})
+        result, stdout_msg, stderr_msg, _ = _execute_func_measuring_time(MyClass.my_classmethod, (1, 3, 2), {'x': 1.213, 'y': False})
         self.assertSetEqual(result, {-3, 4, 2.213, False})
+        self.assertEqual(stdout_msg, "stdout msg\n")
+        self.assertEqual(stderr_msg, "stderr msg\n")
+        mock_stdout.write.assert_called_with("stdout msg\n")
+        mock_stderr.write.assert_called_with("stderr msg\n")
 
     def test_execute_func_measuring_time_when_a_function_without_args_is_passed(self):
         def func2(x=1.12312, y=[1, 5, 2]):
             return 3.14
 
-        result, _ = _execute_func_measuring_time(func2, (), {'x': 1.213, 'y': [3]})
+        result, stdout_msg, stderr_msg, _ = _execute_func_measuring_time(func2, (), {'x': 1.213, 'y': [3]})
         self.assertEqual(result, 3.14)
+        self.assertEqual(stdout_msg, '')
+        self.assertEqual(stderr_msg, '')
 
     def test_execute_func_measuring_time_when_a_function_without_kwargs_is_passed(self):
         def func2(a, b, c):
             return False
 
-        result, _ = _execute_func_measuring_time(func2, (1, 3, 2), {})
+        result, stdout_msg, stderr_msg, _ = _execute_func_measuring_time(func2, (1, 3, 2), {})
         self.assertFalse(result)
+        self.assertEqual(stdout_msg, '')
+        self.assertEqual(stderr_msg, '')
 
     def test_execute_func_measuring_time_when_a_function_without_input_is_passed(self):
         def func2():
             return 1000
 
-        result, _ = _execute_func_measuring_time(func2, (), {})
+        result, stdout_msg, stderr_msg, _ = _execute_func_measuring_time(func2, (), {})
         self.assertEqual(result, 1000)
+        self.assertEqual(stdout_msg, '')
+        self.assertEqual(stderr_msg, '')
 
 
 if __name__ == '__main__':

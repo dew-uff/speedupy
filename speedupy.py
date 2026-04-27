@@ -67,19 +67,13 @@ def deterministic(f):
         if _cache_doesnt_exist(c):
             debug("cache miss for {0}({1})".format(f.__qualname__, method_args))
 
-            out_buf = io.StringIO()
-            err_buf = io.StringIO()
-            with contextlib.redirect_stdout(out_buf), contextlib.redirect_stderr(err_buf):
-                return_value, elapsed_time = _execute_func_measuring_time(f, method_args, method_kwargs)
-
-            out = out_buf.getvalue()
-            err = err_buf.getvalue()
-
-            sys.stdout.write(out)
-            sys.stderr.write(err)
+            return_value, \
+                stdout_msg, \
+                stderr_msg, \
+                elapsed_time = _execute_func_measuring_time(f, method_args, method_kwargs)
 
             if elapsed_time > SpeeduPy().min_exec_time_to_memoize:
-                DataAccess().create_cache_entry(func_call_hash, (copy.deepcopy(return_value), out, err), f.__qualname__)
+                DataAccess().create_cache_entry(func_call_hash, (copy.deepcopy(return_value), stdout_msg, stderr_msg), f.__qualname__)
             else:
                 Profiler().num_func_call_too_fast_to_memoize += 1
                 func_globals[f.__name__] = f
@@ -99,10 +93,21 @@ def _cache_doesnt_exist(cache) -> bool:
 
 
 def _execute_func_measuring_time(f, method_args, method_kwargs):
-    start = time.perf_counter()
-    return_value = f(*method_args, **method_kwargs)
-    end = time.perf_counter()
-    return return_value, end - start
+    out_buf = io.StringIO()
+    err_buf = io.StringIO()
+
+    with contextlib.redirect_stdout(out_buf), contextlib.redirect_stderr(err_buf):
+        start = time.perf_counter()
+        return_value = f(*method_args, **method_kwargs)
+        end = time.perf_counter()
+
+    stdout_msg = out_buf.getvalue()
+    stderr_msg = err_buf.getvalue()
+
+    sys.stdout.write(stdout_msg)
+    sys.stderr.write(stderr_msg)
+
+    return return_value, stdout_msg, stderr_msg, end - start
 
 
 # TODO: TEST
@@ -139,7 +144,10 @@ def _revalidate_func(f, method_args: List, method_kwargs: Dict, f_hash: str, fc_
 
 def _execute_func_collecting_metadata(f, method_args: List, method_kwargs: Dict,
                                       func_hash: str, func_call_hash: str) -> Tuple[Any, Metadata]:
-    return_value, elapsed_time = _execute_func_measuring_time(f, *method_args, **method_kwargs)
+    return_value, \
+        stdout_msg, \
+        stderr_msg, \
+        elapsed_time = _execute_func_measuring_time(f, *method_args, **method_kwargs)
     md = Metadata(func_hash, method_args, method_kwargs, return_value, elapsed_time)
     DataAccess().add_to_metadata(func_call_hash, md)
     return return_value, md
