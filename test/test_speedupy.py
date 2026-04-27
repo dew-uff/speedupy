@@ -29,10 +29,12 @@ class TestSpeeduPy(unittest.TestCase):
         self.patcher_DataAccess.stop()
         self.patcher_Speedupy.stop()
 
-    def test_deterministic_when_cache_hit(self):
+    @patch('sys.stderr')
+    @patch('sys.stdout')
+    def test_deterministic_when_cache_hit(self, mock_stdout, mock_stderr):
         from test_helpers import func
 
-        self.dataAccess.get_cache_entry = Mock(return_value=2)
+        self.dataAccess.get_cache_entry = Mock(return_value=(2, "stdout msg\n", "stderr msg\n"))
 
         self.assertEqual(Profiler().num_deterministic_calls, 0)
         self.assertEqual(Profiler().num_cache_hit, 0)
@@ -44,9 +46,13 @@ class TestSpeeduPy(unittest.TestCase):
 
         self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (8,), {'v': 4})
         self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
+        mock_stdout.write.assert_called_with("stdout msg\n")
+        mock_stderr.write.assert_called_with("stderr msg\n")
         self.dataAccess.create_cache_entry.assert_not_called()
 
-    def test_deterministic_when_cache_miss(self):
+    @patch('sys.stderr')
+    @patch('sys.stdout')
+    def test_deterministic_when_cache_miss(self, mock_stdout, mock_stderr):
         from test_helpers import func
 
         self.assertEqual(Profiler().num_deterministic_calls, 0)
@@ -59,7 +65,9 @@ class TestSpeeduPy(unittest.TestCase):
 
         self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (8,), {'v': 1})
         self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
-        self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, 2, func.__qualname__)
+        mock_stdout.write.assert_called_with("stdout msg\n")
+        mock_stderr.write.assert_called_with("stderr msg\n")
+        self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, (2, "stdout msg\n", "stderr msg\n"), func.__qualname__)
 
     def test_deterministic_when_function_has_no_args(self):
         @deterministic
@@ -70,7 +78,7 @@ class TestSpeeduPy(unittest.TestCase):
 
         self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (), {'x': 1, 'y': 2, 'z': 3})
         self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
-        self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, False, func.__qualname__)
+        self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, (False, '', ''), func.__qualname__)
 
     def test_deterministic_when_function_has_no_kwargs(self):
         @deterministic
@@ -81,7 +89,7 @@ class TestSpeeduPy(unittest.TestCase):
 
         self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (1, 2, 3), {})
         self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
-        self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, {'my', 'set', '!'}, func.__qualname__)
+        self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, ({'my', 'set', '!'}, '', ''), func.__qualname__)
 
     def test_deterministic_when_function_has_no_input(self):
         @deterministic
@@ -92,7 +100,7 @@ class TestSpeeduPy(unittest.TestCase):
 
         self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (), {})
         self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
-        self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, ['my', -2.3, False], func.__qualname__)
+        self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, (['my', -2.3, False], '', ''), func.__qualname__)
 
     def test_deterministic_when_cache_miss_occurs_but_function_args_and_kwargs_are_changed_during_the_execution_of_the_pure_function(self):
         @deterministic
@@ -109,7 +117,7 @@ class TestSpeeduPy(unittest.TestCase):
         self.dataAccess.get_id.side_effect=get_id_side_effect
 
         def create_cache_entry_side_effect(*args):
-            if args == ('fc_hash', ([1, 2], {'b', 'c'}), func.__qualname__): return
+            if args == ('fc_hash', (([1, 2], {'b', 'c'}), '', ''), func.__qualname__): return
 
             raise Exception()
 
@@ -126,7 +134,9 @@ class TestSpeeduPy(unittest.TestCase):
         self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
         self.dataAccess.create_cache_entry.assert_called_once()
 
-    def test_deterministic_when_function_call_executes_below_min_exec_time_to_memoize(self):
+    @patch('sys.stderr')
+    @patch('sys.stdout')
+    def test_deterministic_when_function_call_executes_below_min_exec_time_to_memoize(self, mock_stdout, mock_stderr):
         from test_helpers import func
         globals()['func'] = func
 
@@ -145,11 +155,15 @@ class TestSpeeduPy(unittest.TestCase):
 
         self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (8,), {'v': 1})
         self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
+        mock_stdout.write.assert_called_with("stdout msg\n")
+        mock_stderr.write.assert_called_with("stderr msg\n")
         self.dataAccess.create_cache_entry.assert_not_called()
 
         globals().pop('func')
 
-    def test_deterministic_when_function_call_executes_above_min_exec_time_to_memoize(self):
+    @patch('sys.stderr')
+    @patch('sys.stdout')
+    def test_deterministic_when_function_call_executes_above_min_exec_time_to_memoize(self, mock_stdout, mock_stderr):
         from test_helpers import func
         globals()['func'] = func
 
@@ -165,7 +179,9 @@ class TestSpeeduPy(unittest.TestCase):
 
         self.dataAccess.get_id.assert_called_once_with(func.__qualname__, (8,), {'v': 1})
         self.dataAccess.get_cache_entry.assert_called_once_with(self.fc_hash, func.__qualname__)
-        self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, 2, func.__qualname__)
+        mock_stdout.write.assert_called_with("stdout msg\n")
+        mock_stderr.write.assert_called_with("stderr msg\n")
+        self.dataAccess.create_cache_entry.assert_called_once_with(self.fc_hash, (2, "stdout msg\n", "stderr msg\n"), func.__qualname__)
 
         globals().pop('func')
 

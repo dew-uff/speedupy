@@ -1,4 +1,4 @@
-import time, sys, os, copy
+import time, sys, os, copy, io, contextlib
 from functools import wraps
 from typing import Dict, List, Tuple, Any
 sys.path.append(os.path.dirname(__file__))
@@ -66,9 +66,20 @@ def deterministic(f):
         c = DataAccess().get_cache_entry(func_call_hash, f.__qualname__)
         if _cache_doesnt_exist(c):
             debug("cache miss for {0}({1})".format(f.__qualname__, method_args))
-            return_value, elapsed_time = _execute_func_measuring_time(f, method_args, method_kwargs)
+
+            out_buf = io.StringIO()
+            err_buf = io.StringIO()
+            with contextlib.redirect_stdout(out_buf), contextlib.redirect_stderr(err_buf):
+                return_value, elapsed_time = _execute_func_measuring_time(f, method_args, method_kwargs)
+
+            out = out_buf.getvalue()
+            err = err_buf.getvalue()
+
+            sys.stdout.write(out)
+            sys.stderr.write(err)
+
             if elapsed_time > SpeeduPy().min_exec_time_to_memoize:
-                DataAccess().create_cache_entry(func_call_hash, copy.deepcopy(return_value), f.__qualname__)
+                DataAccess().create_cache_entry(func_call_hash, (copy.deepcopy(return_value), out, err), f.__qualname__)
             else:
                 Profiler().num_func_call_too_fast_to_memoize += 1
                 func_globals[f.__name__] = f
@@ -76,7 +87,10 @@ def deterministic(f):
         else:
             debug("cache hit for {0}({1})".format(f.__qualname__, method_args))
             Profiler().num_cache_hit += 1
-            return c
+            return_value, stdout_msg, stderr_msg = c
+            sys.stdout.write(stdout_msg)
+            sys.stderr.write(stderr_msg)
+            return return_value
     return wrapper
 
 
