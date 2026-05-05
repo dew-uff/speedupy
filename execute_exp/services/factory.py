@@ -51,6 +51,7 @@ def _init_storage() -> Storage:
     from execute_exp.services.storages.SQLiteStorage import SQLiteStorage
     from execute_exp.services.storages.RedisStorage import RedisStorage
     from execute_exp.services.storages.MongoStorage import MongoStorage
+    from execute_exp.services.storages.MongoWithFileSystemStorage import MongoWithFileSystemStorage
     from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
     from execute_exp.services.storages.MySQLStorage import MySQLStorage
 
@@ -58,6 +59,7 @@ def _init_storage() -> Storage:
     if SpeeduPySettings().storage == ['sqlite']: return SQLiteStorage(serializer)
     elif SpeeduPySettings().storage == ['redis']: return RedisStorage(serializer)
     elif SpeeduPySettings().storage == ['mongo']: return MongoStorage(serializer)
+    elif SpeeduPySettings().storage == ['mongo-file']: return MongoWithFileSystemStorage(MongoStorage(serializer), FileSystemStorage(serializer))
     elif SpeeduPySettings().storage == ['file']: return FileSystemStorage(serializer)
     elif SpeeduPySettings().storage == ['mysql']: return MySQLStorage(serializer)
 

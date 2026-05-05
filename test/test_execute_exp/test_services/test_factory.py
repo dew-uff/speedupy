@@ -13,6 +13,7 @@ from execute_exp.services.hashes.XXHashHash import XXHashHash
 from execute_exp.services.storages.SQLiteStorage import SQLiteStorage
 from execute_exp.services.storages.RedisStorage import RedisStorage
 from execute_exp.services.storages.MongoStorage import MongoStorage
+from execute_exp.services.storages.MongoWithFileSystemStorage import MongoWithFileSystemStorage
 from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
 from execute_exp.services.retrieval_strategies.LazyRetrieval import LazyRetrieval
 from execute_exp.services.retrieval_strategies.FunctionRetrieval import FunctionRetrieval
@@ -52,6 +53,7 @@ class TestFactory(unittest.TestCase):
         self.storage = random.choice([['sqlite', SQLiteStorage],
                                       ['redis', RedisStorage],
                                       ['mongo', MongoStorage],
+                                      ['mongo-file', MongoWithFileSystemStorage],
                                       ['file', FileSystemStorage]])
         SpeeduPySettings().storage = [self.storage[0]]
 
