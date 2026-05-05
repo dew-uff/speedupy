@@ -28,7 +28,7 @@ class BancoMySQL:
             limit_bytes = int(result[1])
             self._max_packet_size = int(limit_bytes * 0.8)
         else:
-            self._max_packet_size = 16 * 1024 * 1024  # Default value (16MB)
+            self._max_packet_size = 512 * 1024 * 1024  # Default value (512MB)
 
     def create_database(self):
         try:
