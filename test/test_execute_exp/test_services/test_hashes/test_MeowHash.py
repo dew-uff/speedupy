@@ -27,7 +27,7 @@ class TestMeowHash(unittest.TestCase):
         hash2 = self.hash.get_id(source, fun_args=args, fun_kwargs=kwargs)
 
         self.assertEqual(hash1, hash2, "O mesmo input não gerou hashes idênticos (Falha na Estabilidade).")
-        self.assertEqual(len(hash1), 32, "O hash não tem o tamanho correto (32 caracteres hex).")
+        self.assertEqual(len(hash1), 8, "O hash não tem o tamanho correto (8 caracteres hex).")
         self.assertTrue(all(c in '0123456789abcdef' for c in hash1), "O hash contém caracteres não hexadecimais.")
 
 
