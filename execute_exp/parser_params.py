@@ -16,11 +16,11 @@ def tool_options_msg():
 
 def exec_mode_msg():
     return "\nExecution Mode - Defines how SpeeduPy will execute:\n\
-    =>no-cache      : SpeeduPy will cache no functions\n\
-    =>manual        : SpeeduPy only caches the functions annotated by the user with @deterministic\n\
-    =>accurate      : SpeeduPy looks for statistically pure functions and only caches function calls that always returned the same output\n\
+    =>no-cache               : SpeeduPy will cache no functions\n\
+    =>manual                 : SpeeduPy only caches the functions annotated by the user with @deterministic\n\
+    =>accurate               : SpeeduPy looks for statistically pure functions and only caches function calls that always returned the same output\n\
     =>probabilistic-counting : SpeeduPy looks for statistically pure functions and caches function calls whose most produced output occurred at least a minimum percentage of times defined by the user. The output that appeared most times will always be returned.\n\
-    =>probabilistic-error : SpeeduPy looks for statistically pure functions and caches function calls that introduce errors up to a user-specified limit\n"
+    =>probabilistic-error    : SpeeduPy looks for statistically pure functions and caches function calls that introduce errors up to a user-specified limit\n"
 
 
 def revalidation_msg():
@@ -32,20 +32,22 @@ def revalidation_msg():
 
 def hashes_msg():
     return "\nHashes: \n\
-    =>md5   : is a cryptographic hash fuction with a better collision resistence and lower performance compared to the others.\n\
-    =>murmur: is a modern non-cryptographic hash function with a low collision rate and high performance.\n\
-    =>xxhash: is a modern non-cryptographic hash function with a lower collision resistence and better performance compered to murmur.\n\
-    =>meowhash: is a high-performance non-cryptographic hash function, inspired by the SMHasher3 benchmark algorithms.\n"
+    => md5      : Cryptographic hash function with strong collision resistance.\n\
+    => murmur   : Fast, non-cryptographic hash function with low collision rates and high performance.\n\
+    => xxhash   : Extremely fast non-cryptographic hash with very high performance and good collision resistance.\n\
+    => meowhash : High-performance non-cryptographic hash optimized for modern CPUs (uses AES instructions).\n\
+    => museair  : High-performance non-cryptographic hash designed for excellent speed and distribution.\n\
+    => a5hash   : High-performance non-cryptographic hash designed for speed and efficiency.\n"
 
 
 def storage_msg():
     return "\nStorage:\n\
-    =>sqlite : use a SQLite database to store data\n\
-    =>redis  : use a Redis database to store data\n\
-    =>mongo  : use a Mongo database to store data\n\
-    =>mongo-file  : use a Mongo database to store data. If data does not fit in a mongo document it is stored in the filesystem.\n\
-    =>mysql  : use a MySQL database to store data\n\
-    =>file   : use the filesystem to store data.\n"
+    =>sqlite     : use a SQLite database to store data\n\
+    =>redis      : use a Redis database to store data\n\
+    =>mongo      : use a Mongo database to store data\n\
+    =>mongo-file : use a Mongo database to store data. If data does not fit in a mongo document it is stored in the filesystem.\n\
+    =>mysql      : use a MySQL database to store data\n\
+    =>file       : use the filesystem to store data.\n"
 
 
 def serializer_msg():
