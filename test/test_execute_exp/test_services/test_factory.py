@@ -10,6 +10,9 @@ from execute_exp.services.serializers.CloudpickleSerializer import CloudpickleSe
 from execute_exp.services.hashes.MD5Hash import MD5Hash
 from execute_exp.services.hashes.MurmurHash import MurmurHash
 from execute_exp.services.hashes.XXHashHash import XXHashHash
+from execute_exp.services.hashes.MeowHash import MeowHash
+from execute_exp.services.hashes.MuseairBFastHash import MuseairBFastHash
+from execute_exp.services.hashes.A5Hash import A5Hash
 from execute_exp.services.storages.SQLiteStorage import SQLiteStorage
 from execute_exp.services.storages.RedisStorage import RedisStorage
 from execute_exp.services.storages.MongoStorage import MongoStorage
@@ -63,7 +66,10 @@ class TestFactory(unittest.TestCase):
 
         self.hash = random.choice([['md5', MD5Hash],
                                    ['murmur', MurmurHash],
-                                   ['xxhash', XXHashHash]])
+                                   ['xxhash', XXHashHash],
+                                   ['meowhash', MeowHash],
+                                   ['museair', MuseairBFastHash],
+                                   ['a5hash', A5Hash]])
         SpeeduPySettings().hash = [self.hash[0]]
 
         self.exec_mode = random.choice([['no-cache', None],

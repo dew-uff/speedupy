@@ -112,9 +112,13 @@ def get_hash() -> Hash:
     from execute_exp.services.hashes.MurmurHash import MurmurHash
     from execute_exp.services.hashes.XXHashHash import XXHashHash
     from execute_exp.services.hashes.MeowHash import MeowHash
+    from execute_exp.services.hashes.MuseairBFastHash import MuseairBFastHash
+    from execute_exp.services.hashes.A5Hash import A5Hash
 
     serializer = get_serializer()
     if SpeeduPySettings().hash == ['md5']: return MD5Hash(serializer)
     elif SpeeduPySettings().hash == ['murmur']: return MurmurHash(serializer)
     elif SpeeduPySettings().hash == ['xxhash']: return XXHashHash(serializer)
     elif SpeeduPySettings().hash == ['meowhash']: return MeowHash(serializer)
+    elif SpeeduPySettings().hash == ['museair']: return MuseairBFastHash(serializer)
+    elif SpeeduPySettings().hash == ['a5hash']: return A5Hash(serializer)
