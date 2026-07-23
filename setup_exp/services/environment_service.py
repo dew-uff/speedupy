@@ -1,6 +1,7 @@
 import os
 from logger.log import debug
 from constantes import Constantes
+from entities.BancoMemcached import BancoMemcached
 from entities.BancoSQLite import BancoSQLite
 from entities.BancoRedis import BancoRedis
 from entities.BancoMongo import BancoMongo
@@ -59,6 +60,7 @@ def _create_databases():
 
     _flush_redis_database()
     _flush_mongo_database()
+    _flush_memcached_cache()
     _create_mysql_database()
     _create_sqlite_database()
 
@@ -71,6 +73,11 @@ def _flush_mongo_database():
 def _flush_redis_database():
     redis = BancoRedis()
     redis.flush_database()
+
+
+def _flush_memcached_cache():
+    memcached = BancoMemcached()
+    memcached.flush_cache()
 
 
 def _create_mysql_database():

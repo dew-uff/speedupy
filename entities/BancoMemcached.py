@@ -20,5 +20,8 @@ class BancoMemcached(metaclass=SingletonMeta):
     def set_group_of_key_value_pairs(self, data: Dict[str, bytes]):
         self.client.set_many(data)
 
+    def flush_cache(self):
+        self.client.flush_all()
+
     def close_connection(self):
         self.client.close()
