@@ -10,7 +10,7 @@ start_redis() {
 
   echo "Starting Redis with dir: $DBS_DIR/redis"
   conda activate dev_env
-  redis-server --dir "$DBS_DIR/redis" &> "$DBS_DIR/redis.log" &
+  redis-server --proto-max-bulk-len 1gb --dir "$DBS_DIR/redis" &> "$DBS_DIR/redis.log" &
   echo $! > "$DBS_DIR/redis.pid"
   conda deactivate
 }
@@ -40,7 +40,7 @@ start_mysql() {
     echo "Initializing MySQL data directory..."
     mysqld --no-defaults --initialize-insecure --user=root --datadir="$DBS_DIR/mysql"
   fi
-  mysqld --no-defaults --user=root --datadir="$DBS_DIR/mysql" --max_allowed_packet=512M &> "$DBS_DIR/mysql.log" &
+  mysqld --no-defaults --user=root --datadir="$DBS_DIR/mysql" --max_allowed_packet=1024M &> "$DBS_DIR/mysql.log" &
   echo $! > "$DBS_DIR/mysql.pid"
   conda deactivate
 }
@@ -53,7 +53,7 @@ start_memcached() {
 
   echo "Starting Memcached..."
   conda activate dev_env
-  memcached -u root -m 4096 -I 512m &> "$DBS_DIR/memcached.log" &
+  memcached -u root -m 4096 -I 1024m &> "$DBS_DIR/memcached.log" &
   echo $! > "$DBS_DIR/memcached.pid"
   conda deactivate
 }
