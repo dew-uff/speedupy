@@ -5,6 +5,7 @@ from entities.BancoMemcached import BancoMemcached
 from entities.BancoSQLite import BancoSQLite
 from entities.BancoRedis import BancoRedis
 from entities.BancoMongo import BancoMongo
+from entities.BancoGridFS import BancoGridFS
 from entities.BancoMySQL import BancoMySQL
 
 
@@ -60,6 +61,7 @@ def _create_databases():
 
     _flush_redis_database()
     _flush_mongo_database()
+    _flush_gridfs_database()
     _flush_memcached_cache()
     _create_mysql_database()
     _create_sqlite_database()
@@ -67,6 +69,11 @@ def _create_databases():
 
 def _flush_mongo_database():
     conexao_banco = BancoMongo()
+    conexao_banco.flush_database()
+
+
+def _flush_gridfs_database():
+    conexao_banco = BancoGridFS()
     conexao_banco.flush_database()
 
 

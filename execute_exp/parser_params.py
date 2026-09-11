@@ -42,12 +42,14 @@ def hashes_msg():
 
 def storage_msg():
     return "\nStorage:\n\
-    =>sqlite     : use a SQLite database to store data\n\
-    =>redis      : use a Redis database to store data\n\
-    =>mongo      : use a Mongo database to store data\n\
-    =>mongo-file : use a Mongo database to store data. If data does not fit in a mongo document it is stored in the filesystem.\n\
-    =>mysql      : use a MySQL database to store data\n\
-    =>file       : use the filesystem to store data.\n"
+    =>sqlite       : use a SQLite database to store data\n\
+    =>redis        : use a Redis database to store data\n\
+    =>mongo        : use a Mongo database to store data\n\
+    =>gridfs       : use a Mongo GridFS database to store data\n\
+    =>mongo-file   : use a Mongo database to store data. If data does not fit in a mongo document it is stored in the filesystem.\n\
+    =>mongo-gridfs : use a Mongo database to store data. If data does not fit in a mongo document it is stored in with Mongo GridFS.\n\
+    =>mysql        : use a MySQL database to store data\n\
+    =>file         : use the filesystem to store data.\n"
 
 
 def serializer_msg():
@@ -86,7 +88,7 @@ def get_params():
     retrieval_exec_modes = ['sequential', 'thread']
     memory_architectures = ['0-dict', '1-dict', '2-dict', '2-dict-fast', 'memcached-wt', 'memcached-wb']
     hashes = ['md5', 'murmur', 'xxhash', 'meowhash', 'museair', 'a5hash']
-    storage_options = ['sqlite', 'redis', 'mongo', 'mongo-file', 'file', 'mysql']
+    storage_options = ['sqlite', 'redis', 'mongo', 'gridfs', 'mongo-file', 'mongo-gridfs', 'file', 'mysql']
     serializer_options = ['pickle', 'cloudpickle']
 
     speedupy_arg_parser = argparse.ArgumentParser(usage=help_msg())

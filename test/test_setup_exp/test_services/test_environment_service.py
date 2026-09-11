@@ -1,4 +1,4 @@
-import unittest, mysql.connector, redis, pymongo, os, sys, random, pickle
+import unittest, mysql.connector, redis, pymongo, gridfs, os, sys, random, pickle
 from pymemcache.client.base import Client
 from pymemcache.serde import pickle_serde
 from pathlib import Path
@@ -20,6 +20,8 @@ class TestEnvironmentService(unittest.TestCase):
         cls.redis = redis.Redis(host='localhost', port=6379, db=0)
         cls.mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
         cls.mongo = cls.mongo_client['speedupy']['CACHE']
+        cls.gridfs = cls.mongo_client['speedupy']['CACHE_GRIDFS']
+        cls.gridfs_bucket = gridfs.GridFSBucket(cls.mongo_client['speedupy'], bucket_name='CACHE_GRIDFS')
         cls.memcached = Client(('localhost', 11211), serializer=pickle_serde.serialize, deserializer=pickle_serde.deserialize)
 
     def setUp(self):
@@ -46,6 +48,9 @@ class TestEnvironmentService(unittest.TestCase):
 
     def populate_mongo_database(self):
         for i in range(5): self.mongo.insert_one({"_id": str(i), "value": pickle.dumps(random.random())})
+
+    def populate_gridfs_database(self):
+        for i in range(5): self.gridfs_bucket.upload_from_stream(str(i), pickle.dumps(random.random()))
 
     def populate_memcached_cache(self):
         for i in range(5): self.memcached.set(str(i), random.random())
@@ -112,12 +117,14 @@ class TestEnvironmentService(unittest.TestCase):
         os.mkdir(self.FOLDER_NAME)
         self.populate_redis_database()
         self.populate_mongo_database()
+        self.populate_gridfs_database()
         self.populate_memcached_cache()
         self.populate_mysql_database()
 
         self.assertFalse(os.path.exists(self.SQLITE_DB_FILENAME))
         self.assertEqual(self.redis.dbsize(), 5)
         self.assertEqual(self.mongo.count_documents({}), 5)
+        self.assertEqual(self.gridfs.files.count_documents({}), 5)
         self.assertEqual(self.memcached.stats()[b"curr_items"], 5)
         self.mysql.execute("SELECT COUNT(*) FROM CACHE")
         self.assertTupleEqual(self.mysql.fetchone(), (5,))
@@ -129,6 +136,7 @@ class TestEnvironmentService(unittest.TestCase):
         self.assert_sqlite_db_exists()
         self.assertEqual(self.redis.dbsize(), 0)
         self.assertEqual(self.mongo.count_documents({}), 0)
+        self.assertEqual(self.gridfs.files.count_documents({}), 0)
         self.assertEqual(self.memcached.stats()[b"curr_items"], 0)
         self.mysql_client = mysql.connector.connect(host="127.0.0.1", user="root", database="speedupy")
         self.mysql = self.mysql_client.cursor()
@@ -140,6 +148,7 @@ class TestEnvironmentService(unittest.TestCase):
         Path(self.SQLITE_DB_FILENAME).touch()
         self.populate_redis_database()
         self.populate_mongo_database()
+        self.populate_gridfs_database()
         self.populate_memcached_cache()
         self.populate_mysql_database()
 
@@ -147,6 +156,7 @@ class TestEnvironmentService(unittest.TestCase):
 
         self.assertEqual(self.redis.dbsize(), 5)
         self.assertEqual(self.mongo.count_documents({}), 5)
+        self.assertEqual(self.gridfs.files.count_documents({}), 5)
         self.assertEqual(self.memcached.stats()[b"curr_items"], 5)
         self.mysql.execute("SELECT COUNT(*) FROM CACHE")
         self.assertTupleEqual(self.mysql.fetchone(), (5,))
