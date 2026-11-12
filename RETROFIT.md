@@ -28,12 +28,14 @@ For an agent (Claude Code) working with a dev on this repository.
    was skipped.
 4. Answer in the dev's language, in this order: the task (number, title, one
    sentence on what it delivers), who does it, the model, the effort, whether
-   to clear the context first, and what needs a human before starting. Give the
-   commands to type, for example:
+   to clear the context first, and what the task needs before it starts: a
+   decision, or a tool that is missing on this machine (see "Tools on the
+   dev's machine"). Give the commands to type, for example:
 
    > Next: Task 5 — pytest harness, safe by default. Model: Sonnet
    > (`/model sonnet`). Effort: high (`/effort high`). Clear first: yes
-   > (`/clear`, then ask for retrofit task 5). Needs a human: uv installed.
+   > (`/clear`, then ask for retrofit task 5). Tools: uv is not on this
+   > machine; I can install it when you say so.
 
    The agent cannot change the model or the effort; the dev does. If the
    session already runs the right model, say so.
@@ -52,10 +54,8 @@ For an agent (Claude Code) working with a dev on this repository.
 - **Do not commit on your own.** Leave the change in the working tree, show the
   diff and the result of each "Done when" check. Commit, push and the pull
   request are the dev's, or yours when the dev says so.
-- **Installing software on the machine needs the dev's go-ahead:** uv, a Python
-  interpreter (also one that uv would download), Docker, a system package.
-  Filling `.venv` from `uv.lock` (`uv sync --locked`) is not an install on the
-  machine.
+- **A missing tool is installed, never worked around.** The procedure is in
+  "Tools on the dev's machine" below.
 - **A change to production code** (anything outside `test/`, the documents and
   the tooling) comes with a test that fails before it and passes after it, and
   does not change the command line. When a task needs a product decision, the
@@ -69,6 +69,42 @@ For an agent (Claude Code) working with a dev on this repository.
   suite is as green as it was found. Write in the issue what is done and what
   is left, and tell the dev. The next session clears the context and starts
   from that comment.
+
+### Tools on the dev's machine
+
+Do not assume the machine has what a task needs: it probably does not.
+
+| Tool | Needed from | For |
+| :--- | :--- | :--- |
+| Git and `gh` (GitHub CLI) | every task | the branch, the issue, the pull request |
+| uv, and the Python it manages | Task 3 | the environment and the suite |
+| Docker with Compose | Task 13 | the disposable servers |
+| What D3 names for the build | Task 25 | the native hash libraries |
+
+1. **Check first.** Before the first change of a task, look for each tool it
+   needs and its version: `gh --version`, `uv --version`, `uv python list
+   --only-installed`, `docker compose version`.
+2. **Propose the install and wait.** For each missing tool, tell the dev the
+   command, what it costs (disk, memory, a background virtual machine for
+   Docker on macOS and Windows) and what it unlocks. Nothing is installed
+   before the dev's go-ahead. That covers uv, a Python interpreter (also one
+   that uv would download, as `uv sync --python`, `uv run --python` and `uv
+   python install` do), Docker, `gh` and any system package. Filling `.venv`
+   from `uv.lock` (`uv sync --locked`) stays inside the checkout and is not an
+   install on the machine.
+3. **Install it yourself when you can.** With the go-ahead, run the install and
+   confirm it with the version command.
+4. **When you cannot, give the dev the steps.** An install that asks for an
+   administrator password, opens a graphical installer, or needs a license
+   accepted or a restart is the dev's to run. Give the exact steps for the
+   dev's operating system, in order, one command per line, and say how to
+   confirm that each one worked. Wait, then check the version yourself before
+   going on.
+5. **Never trade the tool for a weaker one to avoid the install:** pip in place
+   of uv, `python -m unittest` in place of pytest, a round trip through CI in
+   place of local containers, a check left unrun. If the dev declines the
+   install, stop, say what the task cannot deliver without it, and write that
+   in the issue.
 
 ### Finishing a task
 
@@ -247,8 +283,9 @@ in `AGENTS.md`, so each session starts from them and does not rediscover them.
 1. Write `AGENTS.md` with these sections:
    - what SpeeduPy is and how the directories divide the work, in a few lines,
      pointing to `README.md` for usage;
-   - "Working conventions": the rules of "Working on a task" above, minus what
-     is specific to the retrofit, plus two rules from noWorkflow's `AGENTS.md`:
+   - "Working conventions": the rules of "Working on a task" and of "Tools on
+     the dev's machine" above, minus what is specific to the retrofit, plus
+     two rules from noWorkflow's `AGENTS.md`:
      what belongs in local memory and what belongs versioned, and retrying
      outside the sandbox when it blocks a command;
    - "Safety" and "Reproduction traps": "Safety" and "Known traps" of this
@@ -281,7 +318,7 @@ its tasks today.
 
 ### Task 3 — uv project and lock
 
-Sonnet · low · clear first: yes · depends on: none · needs a human: uv installed
+Sonnet · low · clear first: yes · depends on: none · tools: uv
 
 **Goal.** One command builds the same environment on every machine and in CI.
 
@@ -555,7 +592,7 @@ reason; the floor is raised.
 
 ### Task 13 — Disposable servers and the first full run
 
-Opus · medium · clear first: yes · depends on: 8, 12 · needs a human: Docker
+Opus · medium · clear first: yes · depends on: 8, 12 · tools: Docker with Compose
 
 **Goal.** One command starts throwaway servers, and every server test has a
 verdict.
