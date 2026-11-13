@@ -19,26 +19,45 @@ For an agent (Claude Code) working with a dev on this repository.
    behind: `git fetch origin`, then `git show origin/main:RETROFIT.md`. Without
    network, use the local file and say it may be out of date.
 2. The next task is the first row whose state is `pending`, whose task
-   dependencies are all `done`, and whose decisions (`D1`…`D6`) are recorded in
-   "Maintainer decisions". Name the blocked rows you skipped and what blocks
-   each.
+   dependencies are all `done`, and whose decisions (`D1`…`D6`) are answered in
+   "Maintainer decisions". An empty cell or "deferred" is not an answer. Name
+   the blocked rows you passed over and what blocks each. A row is never passed
+   over because of its "Who": see "Who does a task".
 3. Check that nobody has started it: `gh issue list --state open --search
    "Retrofit T<NN> in:title"` and the same with `gh pr list`. If someone has,
    say who and move to the next row that qualifies. Without `gh`, say the check
    was skipped.
 4. Answer in the dev's language, in this order: the task (number, title, one
-   sentence on what it delivers), who does it, the model, the effort, whether
-   to clear the context first, and what the task needs before it starts: a
-   decision, or a tool that is missing on this machine (see "Tools on the
-   dev's machine"). Give the commands to type, for example:
+   sentence on what it delivers), who does it and whether this dev holds that
+   role, the model, the effort, whether to clear the context first, and what
+   the task needs before it starts: a decision, or a tool that is missing on
+   this machine (see "Tools on the dev's machine"). Give the commands to type,
+   for example:
 
-   > Next: Task 5 — pytest harness, safe by default. Model: Sonnet
-   > (`/model sonnet`). Effort: high (`/effort high`). Clear first: yes
-   > (`/clear`, then ask for retrofit task 5). Tools: uv is not on this
-   > machine; I can install it when you say so.
+   > Next: Task 5 — pytest harness, safe by default. Who: dev, a role you
+   > hold. Model: Sonnet (`/model sonnet`). Effort: high (`/effort high`).
+   > Clear first: yes (`/clear`, then ask for retrofit task 5). Tools: uv is
+   > not on this machine; I can install it when you say so.
 
    The agent cannot change the model or the effort; the dev does. If the
    session already runs the right model, say so.
+
+### Who does a task
+
+The "Who" column of the status table names the role a task needs on the GitHub
+repository: `dev` (Write), `maintainer` (Maintain or Admin) or `admin`. The dev
+at the keyboard may hold it. Read it with `gh api repos/dew-uff/speedupy --jq
+.permissions`.
+
+- **Every task is worked on in its turn, with the agent, whatever its role.**
+  A `maintainer` or `admin` task is not handed to somebody else by default and
+  is not skipped.
+- **When the dev holds the role,** the task is theirs like any other.
+- **When the dev does not,** do the part that needs no role: open the issue,
+  write there what is asked, assign it to somebody who holds the role, and
+  tell the dev. The admin tasks of the retrofit are assigned to `leomurta`.
+  Do this when the task's turn comes, not before. The task then waits in its
+  open issue, and the tasks that do not depend on it go on.
 
 ### Working on a task
 
@@ -235,12 +254,12 @@ Task 2 fills the "Decision" column. A task that names a decision waits for it.
 | # | Task | Who | Model | Effort | Clear first | Depends on | State |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | 1 | Instructions for agents | dev | Sonnet | medium | yes | none | pending |
-| 2 | Maintainer decisions | maintainer | none | none | no | none | pending |
+| 2 | Maintainer decisions | maintainer | Sonnet | medium | yes | none | pending |
 | 3 | uv project and lock | dev | Sonnet | low | yes | none | pending |
 | 4 | Fix the two flaky tests | dev | Sonnet | low | yes | 3 | pending |
 | 5 | pytest harness, safe by default | dev | Sonnet | high | yes | 3, 4 | pending |
 | 6 | CI without servers | dev | Sonnet | medium | yes | 5 | pending |
-| 7 | Require CI on `main` | maintainer | none | none | no | 6 | pending |
+| 7 | Require CI on `main` | admin | Sonnet | low | yes | 6 | pending |
 | 8 | Test isolation and random order | dev | Sonnet | high | yes | 6 | pending |
 | 9 | Format once | dev | Sonnet | low | yes | 8, D1 | pending |
 | 10 | Lint: automatic fixes and the gate | dev | Sonnet | medium | yes | 9 | pending |
@@ -305,14 +324,35 @@ in `AGENTS.md`, so each session starts from them and does not rediscover them.
 
 ### Task 2 — Maintainer decisions
 
-No agent needed · depends on: none
+Sonnet · medium · clear first: yes · depends on: none · who: a maintainer
 
 **Goal.** Each row of "Maintainer decisions" has an answer, or "deferred" with
-what stays blocked.
+who was asked and what stays blocked.
 
-**Steps.** Record each decision in the table and in a comment of the issue
-`Retrofit T02`. The rows are independent: a decision recorded today unblocks
-its tasks today.
+**Why.** Seven tasks wait for these answers, and the agent must not guess
+them. The agent prepares each question and the maintainer answers it.
+
+**Steps.**
+1. For each row, gather what the repository already says and show it to the
+   maintainer with the options:
+   - D1: the state of PR #16 and of the branch `btree-impl` against `main`;
+   - D2: issue #15 and what PR #16 changes in setup;
+   - D3: every mention of the three libraries in the code, the `Dockerfile`
+     and the documents;
+   - D4: who holds which role on the repository;
+   - D5: the organization's plan and its Actions usage, as far as the dev's
+     account can see them;
+   - D6: the Python range the pins install on and the one
+     `check_python_version()` enforces.
+2. The maintainer decides. You may say what you would choose and why; the
+   table records only what the maintainer answered.
+3. A decision that belongs to somebody else, the organization's owner for D5
+   for instance, is asked in the issue and recorded as "deferred" with who was
+   asked. A deferred row keeps its tasks blocked, and answering it later is a
+   pull request of its own that edits the table.
+4. Record each decision in the table and in a comment of the issue
+   `Retrofit T02`. The rows are independent: a decision recorded today unblocks
+   its tasks today.
 
 **Done when.** No row of the table is empty.
 
@@ -448,15 +488,27 @@ have caught `test/test_entities/` going uncollected.
 
 ### Task 7 — Require CI on `main`
 
-No agent needed · depends on: 6
+Sonnet · low · clear first: yes · depends on: 6 · who: an admin
 
 **Goal.** A pull request with a red `ci-ok` cannot be merged.
 
-**Steps.** In the branch protection of `main`, add `ci-ok` as a required status
-check. Protect the tags, so only the maintainer creates or moves one.
+**Steps.**
+1. Read the dev's permission: `gh api repos/dew-uff/speedupy --jq
+   .permissions.admin`. The Maintain role cannot change branch protection.
+2. With admin: show the dev the current protection of `main` and the change,
+   and apply it on their go-ahead. Add `ci-ok` as a required status check and
+   leave every other setting as it is. Protect the tags, so only a maintainer
+   creates or moves one.
+3. Without admin: write the change in the issue `Retrofit T07`, as a command
+   and as the path in the repository settings, assign the issue as "Who does a
+   task" says, and tell the dev. The task waits in its open issue, and Task 8
+   and the others that do not depend on it go on.
+4. A pull request of its own sets the row to `done`.
 
-**Done when.** `gh api repos/dew-uff/speedupy/branches/main/protection --jq
-'.required_status_checks.contexts'` lists `ci-ok`.
+**Done when.** `gh api repos/dew-uff/speedupy/branches/main --jq
+'.protection.required_status_checks.contexts'` lists `ci-ok`. The
+`branches/main/protection` endpoint is not used here: it needs admin
+permission.
 
 ### Task 8 — Test isolation and random order
 
@@ -842,8 +894,8 @@ Sonnet · medium · clear first: yes · depends on: 6, D5
 4. `AGENTS.md` gains "Dependencies": one dependency per step; a major or minor
    bump is never a side effect; a Dependabot pull request is never merged as it
    stands.
-5. If D5 says they are available, the maintainer turns on code scanning and
-   secret scanning.
+5. If D5 says they are available, an admin turns on code scanning and secret
+   scanning: open an issue for it and assign it as "Who does a task" says.
 
 **Done when.** `checks` is green with each exception documented; the bandit
 baseline is committed.
