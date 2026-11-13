@@ -20,9 +20,9 @@ For an agent (Claude Code) working with a dev on this repository.
    network, use the local file and say it may be out of date.
 2. The next task is the first row whose state is `pending`, whose task
    dependencies are all `done`, and whose decisions (`D1`…`D6`) are answered in
-   "Maintainer decisions". An empty cell or "deferred" is not an answer. Name
-   the blocked rows you passed over and what blocks each. A row is never passed
-   over because of its "Who": see "Who does a task".
+   "Maintainer decisions". Name the blocked rows you passed over and what
+   blocks each. A row is never passed over because of its "Who": see "Who does
+   a task".
 3. Check that nobody has started it: `gh issue list --state open --search
    "Retrofit T<NN> in:title"` and the same with `gh pr list`. If someone has,
    say who and move to the next row that qualifies. Without `gh`, say the check
@@ -54,10 +54,15 @@ at the keyboard may hold it. Read it with `gh api repos/dew-uff/speedupy --jq
   is not skipped.
 - **When the dev holds the role,** the task is theirs like any other.
 - **When the dev does not,** do the part that needs no role: open the issue,
-  write there what is asked, assign it to somebody who holds the role, and
-  tell the dev. The admin tasks of the retrofit are assigned to `leomurta`.
-  Do this when the task's turn comes, not before. The task then waits in its
-  open issue, and the tasks that do not depend on it go on.
+  write there what is asked, and assign it to somebody who holds the role. The
+  admin tasks of the retrofit are assigned to `leomurta`. Do this when the
+  task's turn comes, not before. Then have the dev give notice on the thread:
+  the admin acts as soon as the notice arrives. Until then the task waits in
+  its open issue, and the tasks that do not depend on it go on.
+- **The thread** is the team's e-mail thread about the retrofit, which the dev
+  has. Whoever is not at the keyboard is reached there: the admin, and the
+  people a maintainer decision depends on. The agent sends no mail. It writes
+  the message, and the dev sends it.
 
 ### Working on a task
 
@@ -326,8 +331,7 @@ in `AGENTS.md`, so each session starts from them and does not rediscover them.
 
 Sonnet · medium · clear first: yes · depends on: none · who: a maintainer
 
-**Goal.** Each row of "Maintainer decisions" has an answer, or "deferred" with
-who was asked and what stays blocked.
+**Goal.** Each row of "Maintainer decisions" has an answer.
 
 **Why.** Seven tasks wait for these answers, and the agent must not guess
 them. The agent prepares each question and the maintainer answers it.
@@ -346,13 +350,13 @@ them. The agent prepares each question and the maintainer answers it.
      `check_python_version()` enforces.
 2. The maintainer decides. You may say what you would choose and why; the
    table records only what the maintainer answered.
-3. A decision that belongs to somebody else, the organization's owner for D5
-   for instance, is asked in the issue and recorded as "deferred" with who was
-   asked. A deferred row keeps its tasks blocked, and answering it later is a
-   pull request of its own that edits the table.
-4. Record each decision in the table and in a comment of the issue
-   `Retrofit T02`. The rows are independent: a decision recorded today unblocks
-   its tasks today.
+3. A decision that depends on somebody else is not deferred. The people it
+   depends on are most likely on the thread (see "Who does a task"): write the
+   question for the dev to send there, and record the answer when it comes.
+4. Record each answer in the table and in a comment of the issue
+   `Retrofit T02`. The rows are independent: an answer recorded today unblocks
+   its tasks today. While one answer is awaited, record the others in a pull
+   request now and that one in another.
 
 **Done when.** No row of the table is empty.
 
@@ -500,9 +504,10 @@ Sonnet · low · clear first: yes · depends on: 6 · who: an admin
    leave every other setting as it is. Protect the tags, so only a maintainer
    creates or moves one.
 3. Without admin: write the change in the issue `Retrofit T07`, as a command
-   and as the path in the repository settings, assign the issue as "Who does a
-   task" says, and tell the dev. The task waits in its open issue, and Task 8
-   and the others that do not depend on it go on.
+   and as the path in the repository settings, assign the issue and have the
+   dev give notice on the thread, as "Who does a task" says. The admin applies
+   the change as soon as the notice arrives. Until then the task waits in its
+   open issue, and Task 8 and the others that do not depend on it go on.
 4. A pull request of its own sets the row to `done`.
 
 **Done when.** `gh api repos/dew-uff/speedupy/branches/main --jq
