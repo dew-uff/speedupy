@@ -1,77 +1,127 @@
 import unittest, os, sys, ast
 from unittest.mock import Mock
 
-project_folder = os.path.realpath(__file__).split('test/')[0]
+project_folder = os.path.realpath(__file__).split("test/")[0]
 sys.path.append(project_folder)
 
-from setup_exp.services.DeterministicFunctionUpdaterService import DeterministicFunctionUpdaterService
-from setup_exp.services.ScriptFunctionCallHierarchyAnalyzer import ScriptFunctionCallHierarchyAnalyzer
+from setup_exp.services.DeterministicFunctionUpdaterService import (
+    DeterministicFunctionUpdaterService,
+)
+from setup_exp.services.ScriptFunctionCallHierarchyAnalyzer import (
+    ScriptFunctionCallHierarchyAnalyzer,
+)
 
 
 class TestDeterministicFunctionUpdaterService(unittest.TestCase):
     def setUp(self):
         self.analyzer = Mock(ScriptFunctionCallHierarchyAnalyzer)
-        self.det_function_updater_service = DeterministicFunctionUpdaterService(self.analyzer)
+        self.det_function_updater_service = DeterministicFunctionUpdaterService(
+            self.analyzer
+        )
 
     def test_constructor_subscription(self):
-        self.analyzer.subscribe.assert_any_call('function_def', self.det_function_updater_service.update_determinsitic_function_def)
-        self.analyzer.subscribe.assert_any_call('function_call', self.det_function_updater_service.update_deterministic_function_call)
+        self.analyzer.subscribe.assert_any_call(
+            "function_def",
+            self.det_function_updater_service.update_determinsitic_function_def,
+        )
+        self.analyzer.subscribe.assert_any_call(
+            "function_call",
+            self.det_function_updater_service.update_deterministic_function_call,
+        )
         self.assertEqual(self.analyzer.subscribe.call_count, 2)
 
-    def test_update_determinsitic_function_def_when_function_is_not_marked_with_deterministic_decorator(self):
+    def test_update_determinsitic_function_def_when_function_is_not_marked_with_deterministic_decorator(
+        self,
+    ):
         code = "def f(a, b, c=1, d=2):\n\treturn 15"
         node = ast.parse(code).body[0]
         self.det_function_updater_service.update_determinsitic_function_def(node)
-        self.assertListEqual(['a', 'b', 'c', 'd'], [a.arg for a in node.args.args])
+        self.assertListEqual(["a", "b", "c", "d"], [a.arg for a in node.args.args])
         self.assertListEqual([1, 2], [c.value for c in node.args.defaults])
 
-    def test_update_determinsitic_function_def_when_function_is_marked_with_deterministic_decorator_and_already_has_func_globals_kwarg(self):
+    def test_update_determinsitic_function_def_when_function_is_marked_with_deterministic_decorator_and_already_has_func_globals_kwarg(
+        self,
+    ):
         code = "@deterministic\ndef f(a, b, func_globals=None, c=1, d=2):\n\treturn 15"
         node = ast.parse(code).body[0]
         self.det_function_updater_service.update_determinsitic_function_def(node)
-        self.assertListEqual(['a', 'b', 'func_globals', 'c', 'd'], [a.arg for a in node.args.args])
+        self.assertListEqual(
+            ["a", "b", "func_globals", "c", "d"], [a.arg for a in node.args.args]
+        )
         self.assertListEqual([None, 1, 2], [c.value for c in node.args.defaults])
 
-    def test_update_determinsitic_function_def_when_function_is_marked_with_deterministic_decorator_and_does_not_have_func_globals_kwarg(self):
+    def test_update_determinsitic_function_def_when_function_is_marked_with_deterministic_decorator_and_does_not_have_func_globals_kwarg(
+        self,
+    ):
         code = "@deterministic\ndef f(a, b, c=1, d=2):\n\treturn 15"
         node = ast.parse(code).body[0]
         self.det_function_updater_service.update_determinsitic_function_def(node)
-        self.assertListEqual(['a', 'b', 'c', 'd', 'func_globals'], [a.arg for a in node.args.args])
+        self.assertListEqual(
+            ["a", "b", "c", "d", "func_globals"], [a.arg for a in node.args.args]
+        )
         self.assertListEqual([1, 2, None], [c.value for c in node.args.defaults])
 
-    def test_update_deterministic_function_call_when_function_is_not_marked_with_deterministic_decorator(self):
+    def test_update_deterministic_function_call_when_function_is_not_marked_with_deterministic_decorator(
+        self,
+    ):
         code = "def f(a, b, c=1, d=2):\n\treturn 15\nf(10, 20, c=30, d=40)"
         module_node = ast.parse(code)
         func_node = module_node.body[0]
         call_node = module_node.body[1].value
-        data = {'current_function': None, 'function_called': func_node, 'function_call': call_node}
+        data = {
+            "current_function": None,
+            "function_called": func_node,
+            "function_call": call_node,
+        }
 
         self.det_function_updater_service.update_deterministic_function_call(data)
 
-        self.assertListEqual(['c=30', 'd=40'], [ast.unparse(kw) for kw in call_node.keywords])
+        self.assertListEqual(
+            ["c=30", "d=40"], [ast.unparse(kw) for kw in call_node.keywords]
+        )
 
-    def test_update_deterministic_function_call_when_function_is_marked_with_deterministic_decorator_and_the_call_already_has_func_globals_kwarg(self):
+    def test_update_deterministic_function_call_when_function_is_marked_with_deterministic_decorator_and_the_call_already_has_func_globals_kwarg(
+        self,
+    ):
         code = "@deterministic\ndef f(a, b, c=1, d=2, func_globals=None):\n\treturn 15\nf(10, 20, c=30, func_globals=globals(), d=40)"
         module_node = ast.parse(code)
         func_node = module_node.body[0]
         call_node = module_node.body[1].value
-        data = {'current_function': None, 'function_called': func_node, 'function_call': call_node}
+        data = {
+            "current_function": None,
+            "function_called": func_node,
+            "function_call": call_node,
+        }
 
         self.det_function_updater_service.update_deterministic_function_call(data)
 
-        self.assertListEqual(['c=30', 'func_globals=globals()', 'd=40'], [ast.unparse(kw) for kw in call_node.keywords])
+        self.assertListEqual(
+            ["c=30", "func_globals=globals()", "d=40"],
+            [ast.unparse(kw) for kw in call_node.keywords],
+        )
 
-    def test_update_deterministic_function_call_when_function_is_marked_with_deterministic_decorator_and_the_call_does_not_have_func_globals_kwarg(self):
-        code = "@deterministic\ndef f(a, b, c=1, d=2):\n\treturn 15\nf(10, 20, c=30, d=40)"
+    def test_update_deterministic_function_call_when_function_is_marked_with_deterministic_decorator_and_the_call_does_not_have_func_globals_kwarg(
+        self,
+    ):
+        code = (
+            "@deterministic\ndef f(a, b, c=1, d=2):\n\treturn 15\nf(10, 20, c=30, d=40)"
+        )
         module_node = ast.parse(code)
         func_node = module_node.body[0]
         call_node = module_node.body[1].value
-        data = {'current_function': None, 'function_called': func_node, 'function_call': call_node}
+        data = {
+            "current_function": None,
+            "function_called": func_node,
+            "function_call": call_node,
+        }
 
         self.det_function_updater_service.update_deterministic_function_call(data)
 
-        self.assertListEqual(['c=30', 'd=40', 'func_globals=globals()'], [ast.unparse(kw) for kw in call_node.keywords])
+        self.assertListEqual(
+            ["c=30", "d=40", "func_globals=globals()"],
+            [ast.unparse(kw) for kw in call_node.keywords],
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

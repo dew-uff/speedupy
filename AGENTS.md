@@ -78,6 +78,7 @@ Do not assume the machine has what a task needs.
 A change is done when all of these hold:
 
 - `uv run pytest` is green (see "Running the tests").
+- `uv run ruff format --check .` is clean. `uv run ruff format .` fixes it.
 - The floor is raised in the pull request that adds tests: `MIN_TESTS` in the
   `test` job of `.github/workflows/ci.yml` is the least number of tests
   (passed, skipped, xfailed and xpassed) a run may report. It is lowered only
@@ -195,6 +196,15 @@ directory, and writes nothing in the checkout (`.pytest_cache/` and
 - **Native tests** are deselected until Task 12.
 - `uv run pytest --collect-only -q` touches no server, whatever the variable
   says. The count by what each test needs is in `RETROFIT.md`, "Baseline".
+
+## Formatting
+
+ruff owns the layout (`[tool.ruff]` in `pyproject.toml`), with LF line endings
+on every platform. The one commit that formatted the whole tree is listed in
+`.git-blame-ignore-revs`: GitHub skips it in blame, and locally `git config
+blame.ignoreRevsFile .git-blame-ignore-revs` does the same. The file names a
+SHA, so a pull request is integrated with a merge commit or a fast-forward,
+never a squash or a rebase.
 
 ## Retrofit
 

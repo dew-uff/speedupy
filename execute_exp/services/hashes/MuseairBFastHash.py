@@ -15,10 +15,10 @@ except OSError as e:
 
 # --- Define C function signature ---
 museair_lib.museair_bfast_64.argtypes = [
-    ctypes.c_void_p,                 # data pointer
-    ctypes.c_size_t,                 # length
-    ctypes.c_uint64,                 # seed
-    ctypes.POINTER(ctypes.c_uint64)  # output pointer
+    ctypes.c_void_p,  # data pointer
+    ctypes.c_size_t,  # length
+    ctypes.c_uint64,  # seed
+    ctypes.POINTER(ctypes.c_uint64),  # output pointer
 ]
 
 museair_lib.museair_bfast_64.restype = None
@@ -52,7 +52,7 @@ class MuseairBFastHash(Hash):
             ctypes.c_void_p(c_ptr),
             ctypes.c_size_t(data_len),
             ctypes.c_uint64(self.seed),
-            ctypes.byref(out)
+            ctypes.byref(out),
         )
 
         # Return as hex string (16 chars for 64-bit)

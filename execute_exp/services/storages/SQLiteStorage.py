@@ -18,55 +18,99 @@ class SQLiteStorage(Storage):
             if use_isolated_connection:
                 self.__local.previous_conn = self.__local.db_connection
                 self.__local.db_connection = BancoSQLite()
-                result = func(self, *args, **kwargs, use_isolated_connection=use_isolated_connection)
+                result = func(
+                    self,
+                    *args,
+                    **kwargs,
+                    use_isolated_connection=use_isolated_connection,
+                )
 
-                if func.__qualname__ == 'SQLiteStorage.save_cache_data':
+                if func.__qualname__ == "SQLiteStorage.save_cache_data":
                     self.__local.db_connection.commit()
                 self.__local.db_connection.close_connection()
                 self.__local.db_connection = self.__local.previous_conn
             else:
-                result = func(self, *args, **kwargs, use_isolated_connection=use_isolated_connection)
+                result = func(
+                    self,
+                    *args,
+                    **kwargs,
+                    use_isolated_connection=use_isolated_connection,
+                )
             return result
+
         return wrapper
 
     @_set_db_connection
-    def get_all_cached_data(self, use_isolated_connection=False) -> Dict[str, CacheData]:
-        results = self.__local.db_connection.select("SELECT func_call_hash, func_output FROM CACHE")
-        data = {func_call_hash: CacheData(func_call_hash, self._serializer.loads(func_output))
-                for func_call_hash, func_output in results}
+    def get_all_cached_data(
+        self, use_isolated_connection=False
+    ) -> Dict[str, CacheData]:
+        results = self.__local.db_connection.select(
+            "SELECT func_call_hash, func_output FROM CACHE"
+        )
+        data = {
+            func_call_hash: CacheData(
+                func_call_hash, self._serializer.loads(func_output)
+            )
+            for func_call_hash, func_output in results
+        }
         return data
 
     @_set_db_connection
-    def get_cached_data_of_a_function(self, func_name: str, use_isolated_connection=False) -> Dict[str, CacheData]:
-        results = self.__local.db_connection.select("SELECT func_call_hash, func_output FROM CACHE WHERE func_name = ?", (func_name,))
-        data = {func_call_hash: CacheData(func_call_hash, self._serializer.loads(func_output), func_name=func_name)
-                for func_call_hash, func_output in results}
+    def get_cached_data_of_a_function(
+        self, func_name: str, use_isolated_connection=False
+    ) -> Dict[str, CacheData]:
+        results = self.__local.db_connection.select(
+            "SELECT func_call_hash, func_output FROM CACHE WHERE func_name = ?",
+            (func_name,),
+        )
+        data = {
+            func_call_hash: CacheData(
+                func_call_hash, self._serializer.loads(func_output), func_name=func_name
+            )
+            for func_call_hash, func_output in results
+        }
         return data
 
     @_set_db_connection
-    def get_cached_data_of_a_function_call(self, func_call_hash: str, func_name=None, use_isolated_connection=False) -> Optional[CacheData]:
+    def get_cached_data_of_a_function_call(
+        self, func_call_hash: str, func_name=None, use_isolated_connection=False
+    ) -> Optional[CacheData]:
         try:
-            result = self.__local.db_connection.select("SELECT func_output FROM CACHE WHERE func_call_hash = ?", (func_call_hash,))
+            result = self.__local.db_connection.select(
+                "SELECT func_output FROM CACHE WHERE func_call_hash = ?",
+                (func_call_hash,),
+            )
             func_output = self._serializer.loads(result[0][0])
             return CacheData(func_call_hash, func_output, func_name=func_name)
-        except IndexError: pass
+        except IndexError:
+            pass
 
     @_set_db_connection
-    def save_cache_data(self, data: Dict[str, CacheData], use_isolated_connection=False) -> None:
-        if len(data) == 0: return
-        sql_stmt = ''
+    def save_cache_data(
+        self, data: Dict[str, CacheData], use_isolated_connection=False
+    ) -> None:
+        if len(data) == 0:
+            return
+        sql_stmt = ""
         sql_params = []
         for func_call_hash, cache_data in data.items():
             func_output = self._serializer.dumps(cache_data.output)
             sql_params.append(func_call_hash)
             sql_params.append(func_output)
-            if cache_data.func_name: sql_params.append(cache_data.func_name)
-        if list(data.values())[0].func_name: #Testing if data records have func_name set or not!
-            sql_stmt = "INSERT OR IGNORE INTO CACHE(func_call_hash, func_output, func_name) VALUES" +\
-                       len(data) * " (?, ?, ?),"
+            if cache_data.func_name:
+                sql_params.append(cache_data.func_name)
+        if list(data.values())[
+            0
+        ].func_name:  # Testing if data records have func_name set or not!
+            sql_stmt = (
+                "INSERT OR IGNORE INTO CACHE(func_call_hash, func_output, func_name) VALUES"
+                + len(data) * " (?, ?, ?),"
+            )
         else:
-            sql_stmt = "INSERT OR IGNORE INTO CACHE(func_call_hash, func_output) VALUES" +\
-                       len(data) * " (?, ?),"
+            sql_stmt = (
+                "INSERT OR IGNORE INTO CACHE(func_call_hash, func_output) VALUES"
+                + len(data) * " (?, ?),"
+            )
         sql_stmt = sql_stmt[:-1]
         self.__local.db_connection.exec_without_output(sql_stmt, sql_params)
 

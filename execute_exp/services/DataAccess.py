@@ -16,10 +16,13 @@ class DataAccess(metaclass=SingletonMeta):
 
     def init_data_access(self):
         from execute_exp.services.factory import init_mem_arch, get_hash, get_serializer
+
         self._mem_arch = init_mem_arch()
         self._hash = get_hash()
         self.__function_calls_prov_table = FunctionCallsProvTable(get_serializer())
-        self._FUNCTIONS_2_HASHES = get_content_json_file(Constantes().EXP_FUNCTIONS_FILENAME)
+        self._FUNCTIONS_2_HASHES = get_content_json_file(
+            Constantes().EXP_FUNCTIONS_FILENAME
+        )
 
         self._mem_arch.get_initial_cache_entries()
         self.__function_calls_prov_table.get_initial_function_calls_prov_entries()
@@ -48,21 +51,34 @@ class DataAccess(metaclass=SingletonMeta):
     def get_amount_of_collected_metadata(self, func_call_hash: str) -> int:
         try:
             return len(self.__METADATA[func_call_hash])
-        except KeyError: return 0
+        except KeyError:
+            return 0
 
     ############# FUNCTION_CALL_PROV
     def get_function_call_prov_entry(self, func_call_hash: str) -> FunctionCallProv:
-        return self.__function_calls_prov_table.get_function_call_prov_entry(func_call_hash)
+        return self.__function_calls_prov_table.get_function_call_prov_entry(
+            func_call_hash
+        )
 
-    def create_or_update_function_call_prov_entry(self, fc_prov: FunctionCallProv) -> None:
-        self.__function_calls_prov_table.create_or_update_function_call_prov_entry(fc_prov)
+    def create_or_update_function_call_prov_entry(
+        self, fc_prov: FunctionCallProv
+    ) -> None:
+        self.__function_calls_prov_table.create_or_update_function_call_prov_entry(
+            fc_prov
+        )
 
     def add_all_metadata_collected_to_function_calls_prov(self) -> None:
-        self.__function_calls_prov_table.add_all_metadata_collected_to_function_calls_prov(self.__METADATA)
+        self.__function_calls_prov_table.add_all_metadata_collected_to_function_calls_prov(
+            self.__METADATA
+        )
         self.__METADATA = {}
 
-    def add_metadata_collected_to_a_func_call_prov(self, fc_prov: FunctionCallProv) -> None:
-        self.__function_calls_prov_table.add_metadata_collected_to_a_func_call_prov(fc_prov, self.__METADATA[fc_prov.function_call_hash])
+    def add_metadata_collected_to_a_func_call_prov(
+        self, fc_prov: FunctionCallProv
+    ) -> None:
+        self.__function_calls_prov_table.add_metadata_collected_to_a_func_call_prov(
+            fc_prov, self.__METADATA[fc_prov.function_call_hash]
+        )
         self.__METADATA.pop(fc_prov.function_call_hash)
 
     def get_new_cache_entries_size(self) -> int:

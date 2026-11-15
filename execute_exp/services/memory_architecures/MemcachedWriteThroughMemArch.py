@@ -1,9 +1,13 @@
 from execute_exp.entitites.CacheData import CacheData
-from execute_exp.services.memory_architecures.AbstractMemcachedArch import AbstractMemcachedArch
+from execute_exp.services.memory_architecures.AbstractMemcachedArch import (
+    AbstractMemcachedArch,
+)
 
 
 class MemcachedWriteThroughMemArch(AbstractMemcachedArch):
-    def create_cache_entry(self, func_call_hash: str, func_return, func_name=None) -> None:
+    def create_cache_entry(
+        self, func_call_hash: str, func_return, func_name=None
+    ) -> None:
         cache_data = CacheData(func_call_hash, func_return, func_name)
 
         self._memcached.set(func_call_hash, cache_data)

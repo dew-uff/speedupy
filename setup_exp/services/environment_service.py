@@ -22,9 +22,7 @@ def init_env():
 
 
 def _env_exists():
-    return _folder_exists() and \
-           _cache_folder_exists() and \
-           BancoSQLite.database_exists()
+    return _folder_exists() and _cache_folder_exists() and BancoSQLite.database_exists()
 
 
 def _folder_exists():

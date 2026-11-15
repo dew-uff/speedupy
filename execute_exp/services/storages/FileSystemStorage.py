@@ -13,38 +13,62 @@ class FileSystemStorage(Storage):
     def __init__(self, serializer: Serializer):
         super().__init__(serializer)
 
-    def get_all_cached_data(self, use_isolated_connection=False) -> Dict[str, CacheData]:
+    def get_all_cached_data(
+        self, use_isolated_connection=False
+    ) -> Dict[str, CacheData]:
         data = {}
         for file in os.listdir(self.CACHE_FOLDER_NAME):
             file_path = os.path.join(self.CACHE_FOLDER_NAME, file)
-            data[file] = CacheData(file, self._serializer.deserialize_from_file(file_path))
+            data[file] = CacheData(
+                file, self._serializer.deserialize_from_file(file_path)
+            )
         return data
 
-    def get_cached_data_of_a_function(self, func_name: str, use_isolated_connection=False) -> Dict[str, CacheData]:
+    def get_cached_data_of_a_function(
+        self, func_name: str, use_isolated_connection=False
+    ) -> Dict[str, CacheData]:
         try:
             data = {}
             folder_path = os.path.join(self.CACHE_FOLDER_NAME, func_name)
             for file in os.listdir(folder_path):
                 file_path = os.path.join(folder_path, file)
-                data[file] = CacheData(file, self._serializer.deserialize_from_file(file_path), func_name=func_name)
-        except FileNotFoundError: pass
-        finally: return data
+                data[file] = CacheData(
+                    file,
+                    self._serializer.deserialize_from_file(file_path),
+                    func_name=func_name,
+                )
+        except FileNotFoundError:
+            pass
+        finally:
+            return data
 
-    def get_cached_data_of_a_function_call(self, func_call_hash: str, func_name=None, use_isolated_connection=False) -> Optional[CacheData]:
+    def get_cached_data_of_a_function_call(
+        self, func_call_hash: str, func_name=None, use_isolated_connection=False
+    ) -> Optional[CacheData]:
         try:
             folder_path = self.CACHE_FOLDER_NAME
             if func_name:
                 folder_path = os.path.join(folder_path, func_name)
             file_path = os.path.join(folder_path, func_call_hash)
-            return CacheData(func_call_hash, self._serializer.deserialize_from_file(file_path), func_name=func_name)
-        except FileNotFoundError: pass
+            return CacheData(
+                func_call_hash,
+                self._serializer.deserialize_from_file(file_path),
+                func_name=func_name,
+            )
+        except FileNotFoundError:
+            pass
 
-    def save_cache_data(self, data: Dict[str, CacheData], use_isolated_connection=False) -> None:
+    def save_cache_data(
+        self, data: Dict[str, CacheData], use_isolated_connection=False
+    ) -> None:
         for func_call_hash, cache_data in data.items():
-            self._save_cache_data_of_a_function_call(func_call_hash, cache_data.output,
-                                                     func_name=cache_data.func_name)
+            self._save_cache_data_of_a_function_call(
+                func_call_hash, cache_data.output, func_name=cache_data.func_name
+            )
 
-    def _save_cache_data_of_a_function_call(self, func_call_hash: str, func_output, func_name=None) -> None:
+    def _save_cache_data_of_a_function_call(
+        self, func_call_hash: str, func_output, func_name=None
+    ) -> None:
         folder_path = self.CACHE_FOLDER_NAME
         if func_name:
             folder_path = os.path.join(folder_path, func_name)

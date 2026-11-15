@@ -25,7 +25,16 @@ dev = [
     "pytest",
     "pytest-cov",
     "pytest-randomly",
+    "ruff>=0.17.5",
 ]
+
+[tool.ruff]
+# The oldest Python the project supports (D6).
+target-version = "py310"
+
+[tool.ruff.format]
+# LF on every platform; .gitattributes does the same for git.
+line-ending = "lf"
 
 [tool.pytest.ini_options]
 testpaths = ["test"]

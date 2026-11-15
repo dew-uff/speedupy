@@ -1,7 +1,7 @@
 import os, sys, unittest
 from unittest.mock import Mock, patch, call
 
-project_folder = os.path.realpath(__file__).split('test/')[0]
+project_folder = os.path.realpath(__file__).split("test/")[0]
 sys.path.append(project_folder)
 
 from entities.BancoRedis import BancoRedis
@@ -18,12 +18,12 @@ class TestSetGroupOfKeyValuePairs(unittest.TestCase):
         self.addCleanup(patcher.stop)
         SingletonMeta._instances.pop(BancoRedis, None)
 
-    @patch('entities.BancoRedis.redis.Redis')
-    def test_set_group_of_key_value_pairs_when_data_requires_multiple_pipelines_to_be_saved(self, mock_redis):
+    @patch("entities.BancoRedis.redis.Redis")
+    def test_set_group_of_key_value_pairs_when_data_requires_multiple_pipelines_to_be_saved(
+        self, mock_redis
+    ):
         value_512mb = b"x" * int(512 * 1024 * 1024)
-        data = {"k1": value_512mb,
-                "k2": value_512mb,
-                "k3": value_512mb}
+        data = {"k1": value_512mb, "k2": value_512mb, "k3": value_512mb}
 
         pipeline1 = Mock()
         pipeline2 = Mock()
@@ -31,9 +31,7 @@ class TestSetGroupOfKeyValuePairs(unittest.TestCase):
         banco = BancoRedis()
         banco.client.pipeline.side_effect = [pipeline1, pipeline2]
 
-
         banco.set_group_of_key_value_pairs(data)
-
 
         self.assertEqual(banco.client.pipeline.call_count, 2)
 

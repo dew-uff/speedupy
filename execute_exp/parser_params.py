@@ -3,15 +3,31 @@ import sys
 
 
 def help_msg() -> str:
-    return tool_options_msg() + exec_mode_msg() + revalidation_msg() + hashes_msg() + storage_msg() + serializer_msg() + memory_architecture_msg() + retrieval_strategies_msg() + retrieval_exec_modes_msg()
+    return (
+        tool_options_msg()
+        + exec_mode_msg()
+        + revalidation_msg()
+        + hashes_msg()
+        + storage_msg()
+        + serializer_msg()
+        + memory_architecture_msg()
+        + retrieval_strategies_msg()
+        + retrieval_exec_modes_msg()
+    )
 
 
 def tool_options_msg():
-    return "\nSpeeduPy's command line arguments help:\n\n\
+    return (
+        "\nSpeeduPy's command line arguments help:\n\n\
     To run your experiment with SpeeduPy use:\n\
-    $ python " + str(sys.argv[0]) + " program_arguments [-h, --help] [OPTIONS]\n\n\
+    $ python "
+        + str(sys.argv[0])
+        + " program_arguments [-h, --help] [OPTIONS]\n\n\
     To run in the SpeeduPy DEBUG mode use:\n\
-    $ DEBUG=True python " + str(sys.argv[0]) + " program_arguments [-h, --help] [OPTIONS]\n\n"
+    $ DEBUG=True python "
+        + str(sys.argv[0])
+        + " program_arguments [-h, --help] [OPTIONS]\n\n"
+    )
 
 
 def exec_mode_msg():
@@ -82,138 +98,199 @@ def retrieval_exec_modes_msg():
 
 
 def get_params():
-    exec_modes = ['no-cache', 'manual', 'accurate', 'probabilistic-counting', 'probabilistic-error']
-    revalidations = ['none', 'fixed', 'adaptative']
-    retrieval_strategies = ['lazy', 'function', 'eager']
-    retrieval_exec_modes = ['sequential', 'thread']
-    memory_architectures = ['0-dict', '1-dict', '2-dict', '2-dict-fast', 'memcached-wt', 'memcached-wb']
-    hashes = ['md5', 'murmur', 'xxhash', 'meowhash', 'museair', 'a5hash']
-    storage_options = ['sqlite', 'redis', 'mongo', 'gridfs', 'mongo-file', 'mongo-gridfs', 'file', 'mysql']
-    serializer_options = ['pickle', 'cloudpickle']
+    exec_modes = [
+        "no-cache",
+        "manual",
+        "accurate",
+        "probabilistic-counting",
+        "probabilistic-error",
+    ]
+    revalidations = ["none", "fixed", "adaptative"]
+    retrieval_strategies = ["lazy", "function", "eager"]
+    retrieval_exec_modes = ["sequential", "thread"]
+    memory_architectures = [
+        "0-dict",
+        "1-dict",
+        "2-dict",
+        "2-dict-fast",
+        "memcached-wt",
+        "memcached-wb",
+    ]
+    hashes = ["md5", "murmur", "xxhash", "meowhash", "museair", "a5hash"]
+    storage_options = [
+        "sqlite",
+        "redis",
+        "mongo",
+        "gridfs",
+        "mongo-file",
+        "mongo-gridfs",
+        "file",
+        "mysql",
+    ]
+    serializer_options = ["pickle", "cloudpickle"]
 
     speedupy_arg_parser = argparse.ArgumentParser(usage=help_msg())
 
-    speedupy_arg_parser.add_argument('args',
-                                     metavar='program arguments',
-                                     nargs='*',
-                                     type=str,
-                                     help='program arguments')
+    speedupy_arg_parser.add_argument(
+        "args",
+        metavar="program arguments",
+        nargs="*",
+        type=str,
+        help="program arguments",
+    )
 
-    speedupy_arg_parser.add_argument('--exec-mode',
-                                     choices=exec_modes,
-                                     metavar='',
-                                     nargs=1,
-                                     default=['manual'],
-                                     help='defines how SpeeduPy will execute')
+    speedupy_arg_parser.add_argument(
+        "--exec-mode",
+        choices=exec_modes,
+        metavar="",
+        nargs=1,
+        default=["manual"],
+        help="defines how SpeeduPy will execute",
+    )
 
-    speedupy_arg_parser.add_argument('--revalidation',
-                                     choices=revalidations,
-                                     metavar='',
-                                     default=['adaptative'],
-                                     nargs=1,
-                                     help='defines if Speedupy should reexecute a function sometimes to validate that the function continues to be safe to cache. There are three possible variations for this algorithm, depending on the execution mode selected.')
+    speedupy_arg_parser.add_argument(
+        "--revalidation",
+        choices=revalidations,
+        metavar="",
+        default=["adaptative"],
+        nargs=1,
+        help="defines if Speedupy should reexecute a function sometimes to validate that the function continues to be safe to cache. There are three possible variations for this algorithm, depending on the execution mode selected.",
+    )
 
-    speedupy_arg_parser.add_argument('--max-num-exec-til-revalidation',
-                                     default=10,
-                                     metavar='',
-                                     type=int,
-                                     nargs=1,
-                                     help='defines the maximum number of times a function can be cached before a revalidation occurs.')
+    speedupy_arg_parser.add_argument(
+        "--max-num-exec-til-revalidation",
+        default=10,
+        metavar="",
+        type=int,
+        nargs=1,
+        help="defines the maximum number of times a function can be cached before a revalidation occurs.",
+    )
 
-    speedupy_arg_parser.add_argument('--reduction-factor',
-                                     default=0.3,
-                                     metavar='',
-                                     type=float,
-                                     nargs=1,
-                                     help='defines the factor used to update the next number of cached functions before the next revalidation occurs.')
+    speedupy_arg_parser.add_argument(
+        "--reduction-factor",
+        default=0.3,
+        metavar="",
+        type=float,
+        nargs=1,
+        help="defines the factor used to update the next number of cached functions before the next revalidation occurs.",
+    )
 
-    speedupy_arg_parser.add_argument('--min-num-exec',
-                                     default=20,
-                                     metavar='',
-                                     type=int,
-                                     nargs=1,
-                                     help='defines them minimum number of times SpeeduPy\'s must execute a function call before trying to cache it')
+    speedupy_arg_parser.add_argument(
+        "--min-num-exec",
+        default=20,
+        metavar="",
+        type=int,
+        nargs=1,
+        help="defines them minimum number of times SpeeduPy's must execute a function call before trying to cache it",
+    )
 
-    speedupy_arg_parser.add_argument('--min-mode-occurrence',
-                                     default=0.8,
-                                     metavar='',
-                                     nargs=1,
-                                     help='used when "exec-mode=probabilistic-counting" is set. Defines the minimum frequency of appearances (in percentage) that the statistical mode must have for a function to be accelerated. The value informed must be between 0 and 1.')
+    speedupy_arg_parser.add_argument(
+        "--min-mode-occurrence",
+        default=0.8,
+        metavar="",
+        nargs=1,
+        help='used when "exec-mode=probabilistic-counting" is set. Defines the minimum frequency of appearances (in percentage) that the statistical mode must have for a function to be accelerated. The value informed must be between 0 and 1.',
+    )
 
-    speedupy_arg_parser.add_argument('--confidence-level',
-                                     default=0.95,
-                                     metavar='',
-                                     nargs=1,
-                                     help='used when "exec-mode=probabilistic-error" is set. Defines the confidence level used to estimate the margim of error and confidence interval of a function. The value informed must be between 0 and 1.')
+    speedupy_arg_parser.add_argument(
+        "--confidence-level",
+        default=0.95,
+        metavar="",
+        nargs=1,
+        help='used when "exec-mode=probabilistic-error" is set. Defines the confidence level used to estimate the margim of error and confidence interval of a function. The value informed must be between 0 and 1.',
+    )
 
-    speedupy_arg_parser.add_argument('--max-error-per-function',
-                                     default=None,
-                                     metavar='',
-                                     nargs=1,
-                                     help='used when "exec-mode=probabilistic-error" is set. Defines the maximum error the user considers acceptable for a function to introduce when it is cached. This error correspond to the margin of error of the confidence interval calculated. Notice, that an execution of a function can produce an output that is not inside the confidence interval, in which case the error produced by the function would be greater then the margin of error the confidence interval. The probability of this occurring is (1 - confidence_level).')
+    speedupy_arg_parser.add_argument(
+        "--max-error-per-function",
+        default=None,
+        metavar="",
+        nargs=1,
+        help='used when "exec-mode=probabilistic-error" is set. Defines the maximum error the user considers acceptable for a function to introduce when it is cached. This error correspond to the margin of error of the confidence interval calculated. Notice, that an execution of a function can produce an output that is not inside the confidence interval, in which case the error produced by the function would be greater then the margin of error the confidence interval. The probability of this occurring is (1 - confidence_level).',
+    )
 
-    speedupy_arg_parser.add_argument('--retrieval-strategy',
-                                     choices=retrieval_strategies,
-                                     metavar='',
-                                     nargs=1,
-                                     type=str,
-                                     default=['eager'],
-                                     help='Defines how SpeeduPy\'s should load cached data saved on the storage')
+    speedupy_arg_parser.add_argument(
+        "--retrieval-strategy",
+        choices=retrieval_strategies,
+        metavar="",
+        nargs=1,
+        type=str,
+        default=["eager"],
+        help="Defines how SpeeduPy's should load cached data saved on the storage",
+    )
 
-    speedupy_arg_parser.add_argument('--retrieval-exec-mode',
-                                     choices=retrieval_exec_modes,
-                                     metavar='',
-                                     nargs=1,
-                                     type=str,
-                                     default=['sequential'],
-                                     help='Defines how SpeeduPy\'s should load cached data saved on the storage')
+    speedupy_arg_parser.add_argument(
+        "--retrieval-exec-mode",
+        choices=retrieval_exec_modes,
+        metavar="",
+        nargs=1,
+        type=str,
+        default=["sequential"],
+        help="Defines how SpeeduPy's should load cached data saved on the storage",
+    )
 
-    speedupy_arg_parser.add_argument('--mem-arch',
-                                     choices=memory_architectures,
-                                     metavar='',
-                                     nargs=1,
-                                     type=str,
-                                     default=['2-dict-fast'],
-                                     help='Defines how SpeeduPy\'s should store the data on RAM during the experiment execution')
+    speedupy_arg_parser.add_argument(
+        "--mem-arch",
+        choices=memory_architectures,
+        metavar="",
+        nargs=1,
+        type=str,
+        default=["2-dict-fast"],
+        help="Defines how SpeeduPy's should store the data on RAM during the experiment execution",
+    )
 
-    speedupy_arg_parser.add_argument('-H',
-                                     '--hash',
-                                     choices=hashes,
-                                     metavar='',
-                                     nargs=1,
-                                     default=['xxhash'],
-                                     help='SpeeduPy\'s mechanism of hashes: choose one of the following options: ' + ', '.join(hashes))
+    speedupy_arg_parser.add_argument(
+        "-H",
+        "--hash",
+        choices=hashes,
+        metavar="",
+        nargs=1,
+        default=["xxhash"],
+        help="SpeeduPy's mechanism of hashes: choose one of the following options: "
+        + ", ".join(hashes),
+    )
 
-    speedupy_arg_parser.add_argument('-s',
-                                     '--storage',
-                                     choices=storage_options,
-                                     metavar='',
-                                     nargs=1,
-                                     default=['sqlite'],
-                                     help='SpeeduPy\'s mechanism of storage: choose one of the following options: ' + ', '.join(storage_options))
+    speedupy_arg_parser.add_argument(
+        "-s",
+        "--storage",
+        choices=storage_options,
+        metavar="",
+        nargs=1,
+        default=["sqlite"],
+        help="SpeeduPy's mechanism of storage: choose one of the following options: "
+        + ", ".join(storage_options),
+    )
 
-    speedupy_arg_parser.add_argument('--serializer',
-                                     choices=serializer_options,
-                                     metavar='',
-                                     nargs=1,
-                                     default=['cloudpickle'],
-                                     help='SpeeduPy\'s serialization mechanism: choose one of the following options: ' + ', '.join(serializer_options))
+    speedupy_arg_parser.add_argument(
+        "--serializer",
+        choices=serializer_options,
+        metavar="",
+        nargs=1,
+        default=["cloudpickle"],
+        help="SpeeduPy's serialization mechanism: choose one of the following options: "
+        + ", ".join(serializer_options),
+    )
 
-    speedupy_arg_parser.add_argument('-mt',
-                                     '--min-exec-time-to-memoize',
-                                     default=[0.01],
-                                     metavar='',
-                                     type=float,
-                                     nargs=1,
-                                     help='defines the minimum execution time a pure function call must have to be memoized by SpeeduPy.')
+    speedupy_arg_parser.add_argument(
+        "-mt",
+        "--min-exec-time-to-memoize",
+        default=[0.01],
+        metavar="",
+        type=float,
+        nargs=1,
+        help="defines the minimum execution time a pure function call must have to be memoized by SpeeduPy.",
+    )
 
-    speedupy_arg_parser.add_argument('--measure-time',
-                                     action='store_true',
-                                     help='enables time measure of the script execution.')
+    speedupy_arg_parser.add_argument(
+        "--measure-time",
+        action="store_true",
+        help="enables time measure of the script execution.",
+    )
 
-    speedupy_arg_parser.add_argument('--profile',
-                                     action='store_true',
-                                     help='enables profiling of the script execution.')
+    speedupy_arg_parser.add_argument(
+        "--profile",
+        action="store_true",
+        help="enables profiling of the script execution.",
+    )
 
     args = speedupy_arg_parser.parse_args()
 
@@ -236,4 +313,22 @@ def get_params():
     argsp_confidence_level = args.confidence_level
     argsp_max_error_per_function = args.max_error_per_function
 
-    return argsp_mem_arch, argsp_retrieval_strategy, argsp_retrieval_exec_mode, argsp_hash, argsp_s, argsp_serializer, argsp_mt, argsp_measure_time, argsp_profile, argsp_exec_mode, argsp_revalidation, argsp_max_num_exec_til_revalidation, argsp_reduction_factor, argsp_min_num_exec, argsp_min_mode_occurrence, argsp_confidence_level, argsp_max_error_per_function
+    return (
+        argsp_mem_arch,
+        argsp_retrieval_strategy,
+        argsp_retrieval_exec_mode,
+        argsp_hash,
+        argsp_s,
+        argsp_serializer,
+        argsp_mt,
+        argsp_measure_time,
+        argsp_profile,
+        argsp_exec_mode,
+        argsp_revalidation,
+        argsp_max_num_exec_til_revalidation,
+        argsp_reduction_factor,
+        argsp_min_num_exec,
+        argsp_min_mode_occurrence,
+        argsp_confidence_level,
+        argsp_max_error_per_function,
+    )

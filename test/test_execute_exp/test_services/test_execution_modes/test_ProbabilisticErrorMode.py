@@ -2,12 +2,14 @@ import unittest, os, sys, io, random
 from unittest.mock import patch
 import scipy.stats as st
 
-project_folder = os.path.realpath(__file__).split('test/')[0]
+project_folder = os.path.realpath(__file__).split("test/")[0]
 sys.path.append(project_folder)
 
 from execute_exp.entitites.Metadata import Metadata
 from execute_exp.entitites.FunctionCallProv import FunctionCallProv
-from execute_exp.services.execution_modes.ProbabilisticErrorMode import ProbabilisticErrorMode
+from execute_exp.services.execution_modes.ProbabilisticErrorMode import (
+    ProbabilisticErrorMode,
+)
 from execute_exp.services.serializers.PickleSerializer import PickleSerializer
 from execute_exp.services.serializers.CloudpickleSerializer import CloudpickleSerializer
 
@@ -16,23 +18,31 @@ class TestProbabilisticErrorMode(unittest.TestCase):
     def setUp(self):
         self.serializer = random.choice([PickleSerializer(), CloudpickleSerializer()])
         self.errorMode = ProbabilisticErrorMode(self.serializer, 10, 1, 0.95)
-        self.fc_prov = FunctionCallProv(None, None, None, None, None, None, None, None, None, None, None, None, None)
-        self.get_function_call_prov_entry_namespace = 'execute_exp.services.execution_modes.ProbabilisticErrorMode.DataAccess.get_function_call_prov_entry'
-        self.set_necessary_helpers_namespace = 'execute_exp.services.execution_modes.ProbabilisticErrorMode.ProbabilisticErrorMode._set_necessary_helpers'
-        self.function_outputs_dict_2_array_namespace = 'execute_exp.services.execution_modes.ProbabilisticErrorMode.function_outputs_dict_2_array'
+        self.fc_prov = FunctionCallProv(
+            None, None, None, None, None, None, None, None, None, None, None, None, None
+        )
+        self.get_function_call_prov_entry_namespace = "execute_exp.services.execution_modes.ProbabilisticErrorMode.DataAccess.get_function_call_prov_entry"
+        self.set_necessary_helpers_namespace = "execute_exp.services.execution_modes.ProbabilisticErrorMode.ProbabilisticErrorMode._set_necessary_helpers"
+        self.function_outputs_dict_2_array_namespace = "execute_exp.services.execution_modes.ProbabilisticErrorMode.function_outputs_dict_2_array"
 
-    def test_func_call_can_be_cached_when_function_error_helper_is_none_and_user_set_max_error_per_function(self):
+    def test_func_call_can_be_cached_when_function_error_helper_is_none_and_user_set_max_error_per_function(
+        self,
+    ):
         def set_confidence_error():
             self.errorMode._fc_prov.confidence_error = 0.1
 
         self.errorMode = ProbabilisticErrorMode(self.serializer, 10, 0.2, 0.95)
         self.fc_prov.confidence_error = None
         self.fc_prov.confidence_lv = None
-        with patch(self.set_necessary_helpers_namespace, side_effect=set_confidence_error) as set_necessary_helpers:
+        with patch(
+            self.set_necessary_helpers_namespace, side_effect=set_confidence_error
+        ) as set_necessary_helpers:
             self.assertTrue(self.errorMode.func_call_can_be_cached(self.fc_prov))
             set_necessary_helpers.assert_called_once()
 
-    def test_func_call_can_be_cached_when_function_error_helper_is_none_and_user_does_not_set_max_error_per_function(self):
+    def test_func_call_can_be_cached_when_function_error_helper_is_none_and_user_does_not_set_max_error_per_function(
+        self,
+    ):
         self.errorMode = ProbabilisticErrorMode(self.serializer, 10, None, 0.95)
         self.fc_prov.confidence_error = None
         self.fc_prov.confidence_lv = None
@@ -40,18 +50,24 @@ class TestProbabilisticErrorMode(unittest.TestCase):
             self.assertTrue(self.errorMode.func_call_can_be_cached(self.fc_prov))
             set_necessary_helpers.assert_not_called()
 
-    def test_func_call_can_be_cached_when_function_error_helper_is_calculated_with_a_different_confidence_level(self):
+    def test_func_call_can_be_cached_when_function_error_helper_is_calculated_with_a_different_confidence_level(
+        self,
+    ):
         def set_confidence_error():
             self.errorMode._fc_prov.confidence_error = 0.1
 
         self.errorMode = ProbabilisticErrorMode(self.serializer, 10, 0.2, 0.95)
         self.fc_prov.confidence_error = 0.6
         self.fc_prov.confidence_lv = 0.99
-        with patch(self.set_necessary_helpers_namespace, side_effect=set_confidence_error) as set_necessary_helpers:
+        with patch(
+            self.set_necessary_helpers_namespace, side_effect=set_confidence_error
+        ) as set_necessary_helpers:
             self.assertTrue(self.errorMode.func_call_can_be_cached(self.fc_prov))
             set_necessary_helpers.assert_called_once()
 
-    def test_func_call_can_be_cached_when_function_error_helper_is_calculated_with_the_same_confidence_level(self):
+    def test_func_call_can_be_cached_when_function_error_helper_is_calculated_with_the_same_confidence_level(
+        self,
+    ):
         self.errorMode = ProbabilisticErrorMode(self.serializer, 10, 0.2, 0.95)
         self.fc_prov.confidence_error = 0.3
         self.fc_prov.confidence_lv = 0.95
@@ -59,7 +75,9 @@ class TestProbabilisticErrorMode(unittest.TestCase):
             self.assertFalse(self.errorMode.func_call_can_be_cached(self.fc_prov))
             set_necessary_helpers.assert_not_called()
 
-    def test_func_call_can_be_cached_when_func_error_is_greater_than_user_max_error_per_function(self):
+    def test_func_call_can_be_cached_when_func_error_is_greater_than_user_max_error_per_function(
+        self,
+    ):
         self.errorMode = ProbabilisticErrorMode(self.serializer, 10, 0.2, 0.95)
         self.fc_prov.confidence_error = 0.5
         self.fc_prov.confidence_lv = 0.95
@@ -67,7 +85,9 @@ class TestProbabilisticErrorMode(unittest.TestCase):
             self.assertFalse(self.errorMode.func_call_can_be_cached(self.fc_prov))
             set_necessary_helpers.assert_not_called()
 
-    def test_func_call_can_be_cached_when_func_error_is_equal_to_the_user_max_error_per_function(self):
+    def test_func_call_can_be_cached_when_func_error_is_equal_to_the_user_max_error_per_function(
+        self,
+    ):
         self.errorMode = ProbabilisticErrorMode(self.serializer, 10, 0.213, 0.95)
         self.fc_prov.confidence_error = 0.213
         self.fc_prov.confidence_lv = 0.95
@@ -75,7 +95,9 @@ class TestProbabilisticErrorMode(unittest.TestCase):
             self.assertTrue(self.errorMode.func_call_can_be_cached(self.fc_prov))
             set_necessary_helpers.assert_not_called()
 
-    def test_func_call_can_be_cached_when_func_error_is_lower_than_the_user_max_error_per_function(self):
+    def test_func_call_can_be_cached_when_func_error_is_lower_than_the_user_max_error_per_function(
+        self,
+    ):
         self.errorMode = ProbabilisticErrorMode(self.serializer, 10, 0.2412, 0.95)
         self.fc_prov.confidence_error = 0.112312
         self.fc_prov.confidence_lv = 0.95
@@ -83,13 +105,17 @@ class TestProbabilisticErrorMode(unittest.TestCase):
             self.assertTrue(self.errorMode.func_call_can_be_cached(self.fc_prov))
             set_necessary_helpers.assert_not_called()
 
-    @patch('sys.stderr', new_callable=io.StringIO)
-    def test_set_necessary_helpers_when_function_has_one_output_value(self, stderr_mock):
+    @patch("sys.stderr", new_callable=io.StringIO)
+    def test_set_necessary_helpers_when_function_has_one_output_value(
+        self, stderr_mock
+    ):
         self.errorMode = ProbabilisticErrorMode(self.serializer, 10, 1, 0.95)
         self.errorMode._fc_prov = self.fc_prov
         self.fc_prov._FunctionCallProv__outputs = {self.serializer.dumps(2): 10}
         self.fc_prov.total_num_exec = 10
-        with patch(self.function_outputs_dict_2_array_namespace, return_value=10 * [2]) as function_outputs_dict_2_array:
+        with patch(
+            self.function_outputs_dict_2_array_namespace, return_value=10 * [2]
+        ) as function_outputs_dict_2_array:
             self.errorMode._set_necessary_helpers()
             function_outputs_dict_2_array.assert_called_once()
             self.assertEqual(self.fc_prov.mean_output, 2)
@@ -101,16 +127,20 @@ class TestProbabilisticErrorMode(unittest.TestCase):
     def test_set_necessary_helpers_when_function_has_many_output_values(self):
         self.errorMode = ProbabilisticErrorMode(self.serializer, 10, 1, 0.99)
         self.errorMode._fc_prov = self.fc_prov
-        self.fc_prov._FunctionCallProv__outputs = {self.serializer.dumps(2): 10,
-                                                   self.serializer.dumps(0): 3,
-                                                   self.serializer.dumps(-1.3): 6,
-                                                   self.serializer.dumps(4.27): 8}
+        self.fc_prov._FunctionCallProv__outputs = {
+            self.serializer.dumps(2): 10,
+            self.serializer.dumps(0): 3,
+            self.serializer.dumps(-1.3): 6,
+            self.serializer.dumps(4.27): 8,
+        }
         self.fc_prov.total_num_exec = 27
         output_array = 10 * [2] + 3 * [0] + 6 * [-1.3] + 8 * [4.27]
         output_mean = st.tmean(output_array)
         interval = st.t.interval(0.99, 26, loc=output_mean, scale=st.sem(output_array))
         output_error = round((interval[1] - interval[0]) / 2, 9)
-        with patch(self.function_outputs_dict_2_array_namespace, return_value=output_array) as function_outputs_dict_2_array:
+        with patch(
+            self.function_outputs_dict_2_array_namespace, return_value=output_array
+        ) as function_outputs_dict_2_array:
             self.errorMode._set_necessary_helpers()
             function_outputs_dict_2_array.assert_called_once()
             self.assertEqual(self.fc_prov.mean_output, output_mean)
@@ -122,15 +152,19 @@ class TestProbabilisticErrorMode(unittest.TestCase):
     def test_set_necessary_helpers_when_function_executed_less_than_30_times(self):
         self.errorMode = ProbabilisticErrorMode(self.serializer, 10, 1, 0.77)
         self.errorMode._fc_prov = self.fc_prov
-        self.fc_prov._FunctionCallProv__outputs = {self.serializer.dumps(2): 10,
-                                                   self.serializer.dumps(0): 5,
-                                                   self.serializer.dumps(4.27): 8}
+        self.fc_prov._FunctionCallProv__outputs = {
+            self.serializer.dumps(2): 10,
+            self.serializer.dumps(0): 5,
+            self.serializer.dumps(4.27): 8,
+        }
         self.fc_prov.total_num_exec = 23
         output_array = 10 * [2] + 5 * [0] + 8 * [4.27]
         output_mean = st.tmean(output_array)
         interval = st.t.interval(0.77, 22, loc=output_mean, scale=st.sem(output_array))
         output_error = round((interval[1] - interval[0]) / 2, 9)
-        with patch(self.function_outputs_dict_2_array_namespace, return_value=output_array) as function_outputs_dict_2_array:
+        with patch(
+            self.function_outputs_dict_2_array_namespace, return_value=output_array
+        ) as function_outputs_dict_2_array:
             self.errorMode._set_necessary_helpers()
             function_outputs_dict_2_array.assert_called_once()
             self.assertEqual(self.fc_prov.mean_output, output_mean)
@@ -142,15 +176,19 @@ class TestProbabilisticErrorMode(unittest.TestCase):
     def test_set_necessary_helpers_when_function_executed_exactly_30_times(self):
         self.errorMode = ProbabilisticErrorMode(self.serializer, 10, 1, 0.88)
         self.errorMode._fc_prov = self.fc_prov
-        self.fc_prov._FunctionCallProv__outputs = {self.serializer.dumps(2): 10,
-                                                   self.serializer.dumps(3): 8,
-                                                   self.serializer.dumps(-2.01): 12}
+        self.fc_prov._FunctionCallProv__outputs = {
+            self.serializer.dumps(2): 10,
+            self.serializer.dumps(3): 8,
+            self.serializer.dumps(-2.01): 12,
+        }
         self.fc_prov.total_num_exec = 30
         output_array = 10 * [2] + 8 * [3] + 12 * [-2.01]
         output_mean = st.tmean(output_array)
         interval = st.t.interval(0.88, 29, loc=output_mean, scale=st.sem(output_array))
         output_error = round((interval[1] - interval[0]) / 2, 9)
-        with patch(self.function_outputs_dict_2_array_namespace, return_value=output_array) as function_outputs_dict_2_array:
+        with patch(
+            self.function_outputs_dict_2_array_namespace, return_value=output_array
+        ) as function_outputs_dict_2_array:
             self.errorMode._set_necessary_helpers()
             function_outputs_dict_2_array.assert_called_once()
             self.assertEqual(self.fc_prov.mean_output, output_mean)
@@ -162,15 +200,19 @@ class TestProbabilisticErrorMode(unittest.TestCase):
     def test_set_necessary_helpers_when_function_executed_exactly_31_times(self):
         self.errorMode = ProbabilisticErrorMode(self.serializer, 10, 1, 0.66)
         self.errorMode._fc_prov = self.fc_prov
-        self.fc_prov._FunctionCallProv__outputs = {self.serializer.dumps(2): 10,
-                                                   self.serializer.dumps(3): 9,
-                                                   self.serializer.dumps(-2.01): 12}
+        self.fc_prov._FunctionCallProv__outputs = {
+            self.serializer.dumps(2): 10,
+            self.serializer.dumps(3): 9,
+            self.serializer.dumps(-2.01): 12,
+        }
         self.fc_prov.total_num_exec = 31
         output_array = 10 * [2] + 9 * [3] + 12 * [-2.01]
         output_mean = st.tmean(output_array)
         interval = st.norm.interval(0.66, loc=output_mean, scale=st.sem(output_array))
         output_error = round((interval[1] - interval[0]) / 2, 9)
-        with patch(self.function_outputs_dict_2_array_namespace, return_value=output_array) as function_outputs_dict_2_array:
+        with patch(
+            self.function_outputs_dict_2_array_namespace, return_value=output_array
+        ) as function_outputs_dict_2_array:
             self.errorMode._set_necessary_helpers()
             function_outputs_dict_2_array.assert_called_once()
             self.assertEqual(self.fc_prov.mean_output, output_mean)
@@ -182,15 +224,19 @@ class TestProbabilisticErrorMode(unittest.TestCase):
     def test_set_necessary_helpers_when_function_executed_more_than_30_times(self):
         self.errorMode = ProbabilisticErrorMode(self.serializer, 10, 1, 0.8)
         self.errorMode._fc_prov = self.fc_prov
-        self.fc_prov._FunctionCallProv__outputs = {self.serializer.dumps(-5.2): 30,
-                                                   self.serializer.dumps(-4): 10,
-                                                   self.serializer.dumps(-7.01): 12}
+        self.fc_prov._FunctionCallProv__outputs = {
+            self.serializer.dumps(-5.2): 30,
+            self.serializer.dumps(-4): 10,
+            self.serializer.dumps(-7.01): 12,
+        }
         self.fc_prov.total_num_exec = 52
         output_array = 30 * [-5.2] + 10 * [-4] + 12 * [-7.01]
         output_mean = st.tmean(output_array)
         interval = st.norm.interval(0.8, loc=output_mean, scale=st.sem(output_array))
         output_error = round((interval[1] - interval[0]) / 2, 9)
-        with patch(self.function_outputs_dict_2_array_namespace, return_value=output_array) as function_outputs_dict_2_array:
+        with patch(
+            self.function_outputs_dict_2_array_namespace, return_value=output_array
+        ) as function_outputs_dict_2_array:
             self.errorMode._set_necessary_helpers()
             function_outputs_dict_2_array.assert_called_once()
             self.assertEqual(self.fc_prov.mean_output, output_mean)
@@ -202,65 +248,103 @@ class TestProbabilisticErrorMode(unittest.TestCase):
     def test_get_func_call_cache_when_func_mean_output_helper_is_None(self):
         self.fc_prov.mean_output = None
         output_array = 5 * [3] + 2 * [0]
-        with patch(self.function_outputs_dict_2_array_namespace, return_value=output_array) as function_outputs_dict_2_array:
-            self.assertEqual(round(self.errorMode.get_func_call_cache(self.fc_prov), 9),
-                             round(st.tmean(output_array), 9))
+        with patch(
+            self.function_outputs_dict_2_array_namespace, return_value=output_array
+        ) as function_outputs_dict_2_array:
+            self.assertEqual(
+                round(self.errorMode.get_func_call_cache(self.fc_prov), 9),
+                round(st.tmean(output_array), 9),
+            )
             function_outputs_dict_2_array.assert_called_once()
 
     def test_get_func_call_cache_when_func_mean_output_helper_is_not_None(self):
         self.fc_prov.mean_output = 0.23
-        with patch(self.function_outputs_dict_2_array_namespace) as function_outputs_dict_2_array:
+        with patch(
+            self.function_outputs_dict_2_array_namespace
+        ) as function_outputs_dict_2_array:
             self.assertEqual(self.errorMode.get_func_call_cache(self.fc_prov), 0.23)
             function_outputs_dict_2_array.assert_not_called()
 
-    def test_func_call_acted_as_expected_when_metadata_returned_value_outside_the_expected_interval(self):
-        metadata = Metadata('func_call_hash', [], {}, 9, 0)
+    def test_func_call_acted_as_expected_when_metadata_returned_value_outside_the_expected_interval(
+        self,
+    ):
+        metadata = Metadata("func_call_hash", [], {}, 9, 0)
         self.fc_prov.mean_output = 10
         self.fc_prov.confidence_error = 0.572
-        self.assertFalse(self.errorMode.func_call_acted_as_expected(self.fc_prov, metadata))
+        self.assertFalse(
+            self.errorMode.func_call_acted_as_expected(self.fc_prov, metadata)
+        )
 
-    def test_func_call_acted_as_expected_when_metadata_returned_value_right_in_the_upper_limit_expected(self):
-        metadata = Metadata('func_call_hash', [], {}, 10.152, 0)
+    def test_func_call_acted_as_expected_when_metadata_returned_value_right_in_the_upper_limit_expected(
+        self,
+    ):
+        metadata = Metadata("func_call_hash", [], {}, 10.152, 0)
         self.fc_prov.mean_output = 10
         self.fc_prov.confidence_error = 0.304
-        self.assertTrue(self.errorMode.func_call_acted_as_expected(self.fc_prov, metadata))
+        self.assertTrue(
+            self.errorMode.func_call_acted_as_expected(self.fc_prov, metadata)
+        )
 
-    def test_func_call_acted_as_expected_when_metadata_returned_value_little_higher_than_the_upper_limit_expected(self):
-        metadata = Metadata('func_call_hash', [], {}, 10.1521, 0)
+    def test_func_call_acted_as_expected_when_metadata_returned_value_little_higher_than_the_upper_limit_expected(
+        self,
+    ):
+        metadata = Metadata("func_call_hash", [], {}, 10.1521, 0)
         self.fc_prov.mean_output = 10
         self.fc_prov.confidence_error = 0.304
-        self.assertFalse(self.errorMode.func_call_acted_as_expected(self.fc_prov, metadata))
+        self.assertFalse(
+            self.errorMode.func_call_acted_as_expected(self.fc_prov, metadata)
+        )
 
-    def test_func_call_acted_as_expected_when_metadata_returned_value_right_in_the_lower_limit_expected(self):
-        metadata = Metadata('func_call_hash', [], {}, 2.889, 0)
+    def test_func_call_acted_as_expected_when_metadata_returned_value_right_in_the_lower_limit_expected(
+        self,
+    ):
+        metadata = Metadata("func_call_hash", [], {}, 2.889, 0)
         self.fc_prov.mean_output = 3
         self.fc_prov.confidence_error = 0.222
-        self.assertTrue(self.errorMode.func_call_acted_as_expected(self.fc_prov, metadata))
+        self.assertTrue(
+            self.errorMode.func_call_acted_as_expected(self.fc_prov, metadata)
+        )
 
-    def test_func_call_acted_as_expected_when_metadata_returned_value_little_lower_than_the_lower_limit_expected(self):
-        metadata = Metadata('func_call_hash', [], {}, 2.8889, 0)
+    def test_func_call_acted_as_expected_when_metadata_returned_value_little_lower_than_the_lower_limit_expected(
+        self,
+    ):
+        metadata = Metadata("func_call_hash", [], {}, 2.8889, 0)
         self.fc_prov.mean_output = 3
         self.fc_prov.confidence_error = 0.222
-        self.assertFalse(self.errorMode.func_call_acted_as_expected(self.fc_prov, metadata))
+        self.assertFalse(
+            self.errorMode.func_call_acted_as_expected(self.fc_prov, metadata)
+        )
 
-    def test_func_call_acted_as_expected_when_metadata_returned_value_inside_the_expected_interval(self):
-        metadata = Metadata('func_call_hash', [], {}, 3.1, 0)
+    def test_func_call_acted_as_expected_when_metadata_returned_value_inside_the_expected_interval(
+        self,
+    ):
+        metadata = Metadata("func_call_hash", [], {}, 3.1, 0)
         self.fc_prov.mean_output = 3
         self.fc_prov.confidence_error = 0.222
-        self.assertTrue(self.errorMode.func_call_acted_as_expected(self.fc_prov, metadata))
+        self.assertTrue(
+            self.errorMode.func_call_acted_as_expected(self.fc_prov, metadata)
+        )
 
-    def test_func_call_acted_as_expected_when_metadata_returned_value_inside_the_confidence_interval_but_outside_the_expected_interval(self):
-        metadata = Metadata('func_call_hash', [], {}, 3.2, 0)
+    def test_func_call_acted_as_expected_when_metadata_returned_value_inside_the_confidence_interval_but_outside_the_expected_interval(
+        self,
+    ):
+        metadata = Metadata("func_call_hash", [], {}, 3.2, 0)
         self.fc_prov.mean_output = 3
         self.fc_prov.confidence_error = 0.222
-        self.assertFalse(self.errorMode.func_call_acted_as_expected(self.fc_prov, metadata))
+        self.assertFalse(
+            self.errorMode.func_call_acted_as_expected(self.fc_prov, metadata)
+        )
 
-    def test_func_call_acted_as_expected_when_metadata_returned_value_outside_the_confidence_interval(self):
-        metadata = Metadata('func_call_hash', [], {}, 2, 0)
+    def test_func_call_acted_as_expected_when_metadata_returned_value_outside_the_confidence_interval(
+        self,
+    ):
+        metadata = Metadata("func_call_hash", [], {}, 2, 0)
         self.fc_prov.mean_output = 3
         self.fc_prov.confidence_error = 0.222
-        self.assertFalse(self.errorMode.func_call_acted_as_expected(self.fc_prov, metadata))
+        self.assertFalse(
+            self.errorMode.func_call_acted_as_expected(self.fc_prov, metadata)
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

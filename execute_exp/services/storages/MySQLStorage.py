@@ -11,7 +11,9 @@ class MySQLStorage(Storage):
         super().__init__(serializer)
         self.db_connection = BancoMySQL()
 
-    def get_all_cached_data(self, use_isolated_connection=False) -> Dict[str, CacheData]:
+    def get_all_cached_data(
+        self, use_isolated_connection=False
+    ) -> Dict[str, CacheData]:
         sql = "SELECT func_call_hash, func_output FROM CACHE"
         results = self.db_connection.select(sql)
 
@@ -22,11 +24,13 @@ class MySQLStorage(Storage):
                 output = self._serializer.loads(output_blob)
                 cache_data[function_call_hash] = CacheData(function_call_hash, output)
             except Exception:
-                continue # Ignora dados inválidos
+                continue  # Ignora dados inválidos
 
         return cache_data
 
-    def get_cached_data_of_a_function(self, func_name: str, use_isolated_connection=False) -> Dict[str, CacheData]:
+    def get_cached_data_of_a_function(
+        self, func_name: str, use_isolated_connection=False
+    ) -> Dict[str, CacheData]:
         sql = "SELECT func_call_hash, func_output FROM CACHE WHERE func_name = %s"
         results = self.db_connection.select(sql, (func_name,))
 
@@ -35,13 +39,17 @@ class MySQLStorage(Storage):
             function_call_hash, output_blob = row
             try:
                 output = self._serializer.loads(output_blob)
-                cache_data[function_call_hash] = CacheData(function_call_hash, output, func_name)
+                cache_data[function_call_hash] = CacheData(
+                    function_call_hash, output, func_name
+                )
             except Exception:
-                continue # Ignora dados inválidos
+                continue  # Ignora dados inválidos
 
         return cache_data
 
-    def get_cached_data_of_a_function_call(self, func_call_hash: str, func_name=None, use_isolated_connection=False) -> Optional[CacheData]:
+    def get_cached_data_of_a_function_call(
+        self, func_call_hash: str, func_name=None, use_isolated_connection=False
+    ) -> Optional[CacheData]:
         try:
             sql = "SELECT func_output FROM CACHE WHERE func_call_hash = %s"
             result = self.db_connection.select(sql, (func_call_hash,))
@@ -52,7 +60,9 @@ class MySQLStorage(Storage):
             return None
         return None
 
-    def save_cache_data(self, data: Dict[str, CacheData], use_isolated_connection=False) -> None:
+    def save_cache_data(
+        self, data: Dict[str, CacheData], use_isolated_connection=False
+    ) -> None:
         if not data:
             return
 
@@ -66,8 +76,9 @@ class MySQLStorage(Storage):
             (
                 cache_entry.function_call_hash,
                 self._serializer.dumps(cache_entry.output),
-                cache_entry.func_name
-            ) for cache_entry in data.values()
+                cache_entry.func_name,
+            )
+            for cache_entry in data.values()
         ]
 
         if not sql_params:

@@ -14,26 +14,51 @@ class MongoWithGridFSStorage(Storage):
         self.mongo = mongo_storage
         self.gridfs = gridfs_storage
 
-    def get_all_cached_data(self, use_isolated_connection=False) -> Dict[str, CacheData]:
-        return {**self.mongo.get_all_cached_data(use_isolated_connection),
-                **self.gridfs.get_all_cached_data(use_isolated_connection)}
+    def get_all_cached_data(
+        self, use_isolated_connection=False
+    ) -> Dict[str, CacheData]:
+        return {
+            **self.mongo.get_all_cached_data(use_isolated_connection),
+            **self.gridfs.get_all_cached_data(use_isolated_connection),
+        }
 
-    def get_cached_data_of_a_function(self, func_name: str, use_isolated_connection=False) -> Dict[str, CacheData]:
-        return {**self.mongo.get_cached_data_of_a_function(func_name, use_isolated_connection),
-                **self.gridfs.get_cached_data_of_a_function(func_name, use_isolated_connection)}
+    def get_cached_data_of_a_function(
+        self, func_name: str, use_isolated_connection=False
+    ) -> Dict[str, CacheData]:
+        return {
+            **self.mongo.get_cached_data_of_a_function(
+                func_name, use_isolated_connection
+            ),
+            **self.gridfs.get_cached_data_of_a_function(
+                func_name, use_isolated_connection
+            ),
+        }
 
-    def get_cached_data_of_a_function_call(self, func_call_hash: str, func_name=None, use_isolated_connection=False) -> Optional[CacheData]:
-        cache = self.mongo.get_cached_data_of_a_function_call(func_call_hash, func_name, use_isolated_connection)
+    def get_cached_data_of_a_function_call(
+        self, func_call_hash: str, func_name=None, use_isolated_connection=False
+    ) -> Optional[CacheData]:
+        cache = self.mongo.get_cached_data_of_a_function_call(
+            func_call_hash, func_name, use_isolated_connection
+        )
         if cache is not None:
             return cache
 
-        return self.gridfs.get_cached_data_of_a_function_call(func_call_hash, func_name, use_isolated_connection)
+        return self.gridfs.get_cached_data_of_a_function_call(
+            func_call_hash, func_name, use_isolated_connection
+        )
 
-    def save_cache_data(self, data: Dict[str, CacheData], use_isolated_connection=False) -> None:
-        if len(data) == 0: return
+    def save_cache_data(
+        self, data: Dict[str, CacheData], use_isolated_connection=False
+    ) -> None:
+        if len(data) == 0:
+            return
 
         for func_call_hash, cache_data in data.items():
             try:
-                self.mongo.save_cache_data({func_call_hash: cache_data}, use_isolated_connection)
+                self.mongo.save_cache_data(
+                    {func_call_hash: cache_data}, use_isolated_connection
+                )
             except (pymongo.errors.DocumentTooLarge, pymongo.errors.OperationFailure):
-                self.gridfs.save_cache_data({func_call_hash: cache_data}, use_isolated_connection)
+                self.gridfs.save_cache_data(
+                    {func_call_hash: cache_data}, use_isolated_connection
+                )

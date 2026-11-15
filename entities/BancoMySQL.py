@@ -2,7 +2,7 @@ import mysql.connector
 
 
 class BancoMySQL:
-    database = 'speedupy'
+    database = "speedupy"
 
     def __init__(self):
         self.conexao = None
@@ -51,7 +51,8 @@ class BancoMySQL:
 
     def select(self, sql, arguments=()):
         try:
-            if not self.cursor: return []
+            if not self.cursor:
+                return []
             self.cursor.execute(sql, arguments)
             return self.cursor.fetchall()
         except mysql.connector.Error:
@@ -59,14 +60,17 @@ class BancoMySQL:
 
     def executemany_without_output(self, sql, arguments_list=()):
         try:
-            if not self.cursor: return
+            if not self.cursor:
+                return
 
             current_batch = []
             current_batch_size_bytes = 0
             SQL_METADATA = 4096
             for args in arguments_list:
                 entry_size = SQL_METADATA + len(args[1])  # Estimates registry size
-                if current_batch and (current_batch_size_bytes + entry_size > self._max_packet_size):
+                if current_batch and (
+                    current_batch_size_bytes + entry_size > self._max_packet_size
+                ):
                     self.cursor.executemany(sql, current_batch)
                     current_batch = []
                     current_batch_size_bytes = 0
