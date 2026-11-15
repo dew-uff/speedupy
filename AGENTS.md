@@ -128,8 +128,9 @@ it by running.
 - **Python:** the pinned requirements have wheels for Python 3.9 to 3.11 only.
 - **Not collected:** unittest discovery skips `test/test_entities/`, which has
   no `__init__.py`.
-- **Flaky:** the `different_data_types` test in `test_AccurateMode.py` and in
-  `test_ProbabilisticCountingMode.py` fails in about half of the runs (Task 4).
+- **Sets of objects:** two sets built separately that hold distinct instances
+  of a class without `__hash__` iterate in an order that depends on the ids, so
+  their pickles differ. Share the instance in test data (Task 4).
 
 ## Running the tests
 
