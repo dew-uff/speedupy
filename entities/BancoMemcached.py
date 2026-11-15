@@ -4,11 +4,14 @@ from pymemcache.client.base import Client
 from pymemcache.serde import pickle_serde
 from SingletonMeta import SingletonMeta
 
+
 class BancoMemcached(metaclass=SingletonMeta):
     def __init__(self):
-        self.client = Client(('localhost', 11211),
-                             serializer=pickle_serde.serialize,
-                             deserializer=pickle_serde.deserialize)
+        self.client = Client(
+            ("localhost", 11211),
+            serializer=pickle_serde.serialize,
+            deserializer=pickle_serde.deserialize,
+        )
         atexit.register(self.close_connection)
 
     def get(self, key):

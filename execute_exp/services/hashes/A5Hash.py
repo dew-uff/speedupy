@@ -15,9 +15,9 @@ except OSError as e:
 
 # --- Define C function signature ---
 a5hash_lib.a5hash_128_64.argtypes = [
-    ctypes.c_void_p,   # data pointer
-    ctypes.c_size_t,   # length
-    ctypes.c_uint64,   # seed
+    ctypes.c_void_p,  # data pointer
+    ctypes.c_size_t,  # length
+    ctypes.c_uint64,  # seed
 ]
 
 a5hash_lib.a5hash_128_64.restype = ctypes.c_uint64
@@ -27,7 +27,7 @@ a5hash_lib.a5hash_128_64.restype = ctypes.c_uint64
 class A5Hash(Hash):
     """
     Implementação do a5hash-128.64 via wrapper C usando ctypes.
-    
+
     - Usa a versão 128-bit do algoritmo
     - Retorna apenas os 64 bits inferiores (padrão SMHasher)
     """
@@ -50,7 +50,7 @@ class A5Hash(Hash):
         result = a5hash_lib.a5hash_128_64(
             ctypes.c_void_p(c_ptr),
             ctypes.c_size_t(data_len),
-            ctypes.c_uint64(self.seed)
+            ctypes.c_uint64(self.seed),
         )
 
         # Return as hex string (64-bit → 16 hex chars)

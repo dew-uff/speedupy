@@ -1,5 +1,5 @@
-class CacheData():
-    def __init__(self, function_call_hash:str, output, func_name=None, id=None):
+class CacheData:
+    def __init__(self, function_call_hash: str, output, func_name=None, id=None):
         self.__id = id
         self.__function_call_hash = function_call_hash
         self.__output = output
@@ -26,7 +26,10 @@ class CacheData():
         self.__func_name = func_name
 
     def __eq__(self, other):
-        if not isinstance(other, CacheData): return NotImplemented
-        return self.__function_call_hash == other.__function_call_hash and \
-               self.__output == other.__output and \
-               self.__func_name == other.__func_name
+        if not isinstance(other, CacheData):
+            return NotImplemented
+        return (
+            self.__function_call_hash == other.__function_call_hash
+            and self.__output == other.__output
+            and self.__func_name == other.__func_name
+        )

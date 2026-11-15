@@ -1,7 +1,9 @@
 from typing import Dict, Optional
 from execute_exp.entitites.CacheData import CacheData
 from execute_exp.services.storages.Storage import Storage
-from execute_exp.services.retrieval_strategies.AbstractRetrievalStrategy import AbstractRetrievalStrategy
+from execute_exp.services.retrieval_strategies.AbstractRetrievalStrategy import (
+    AbstractRetrievalStrategy,
+)
 
 
 class FunctionRetrieval(AbstractRetrievalStrategy):
@@ -9,11 +11,19 @@ class FunctionRetrieval(AbstractRetrievalStrategy):
         super().__init__(storage)
         self._functions_already_loaded_from_storage = []
 
-    def get_cache_entry(self, func_call_hash: str, func_name=None) -> Optional[CacheData]:
-        return self._storage.get_cached_data_of_a_function_call(func_call_hash, func_name=func_name)
+    def get_cache_entry(
+        self, func_call_hash: str, func_name=None
+    ) -> Optional[CacheData]:
+        return self._storage.get_cached_data_of_a_function_call(
+            func_call_hash, func_name=func_name
+        )
 
-    def get_function_cache_entries(self, func_name: str, use_thread=False) -> Dict[str, CacheData]:
-        if func_name in self._functions_already_loaded_from_storage: return {}
+    def get_function_cache_entries(
+        self, func_name: str, use_thread=False
+    ) -> Dict[str, CacheData]:
+        if func_name in self._functions_already_loaded_from_storage:
+            return {}
         self._functions_already_loaded_from_storage.append(func_name)
-        return self._storage.get_cached_data_of_a_function(func_name,
-                                                           use_isolated_connection=use_thread)
+        return self._storage.get_cached_data_of_a_function(
+            func_name, use_isolated_connection=use_thread
+        )

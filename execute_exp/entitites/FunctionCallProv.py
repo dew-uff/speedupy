@@ -1,5 +1,21 @@
-class FunctionCallProv():
-    def __init__(self, function_call_hash, outputs, total_num_exec=0, next_revalidation=None, next_index_weighted_seq=0, mode_rel_freq=None, mode_output=None, weighted_output_seq=None, mean_output=None, confidence_lv=None, confidence_low_limit=None, confidence_up_limit=None, confidence_error=None, id=None):
+class FunctionCallProv:
+    def __init__(
+        self,
+        function_call_hash,
+        outputs,
+        total_num_exec=0,
+        next_revalidation=None,
+        next_index_weighted_seq=0,
+        mode_rel_freq=None,
+        mode_output=None,
+        weighted_output_seq=None,
+        mean_output=None,
+        confidence_lv=None,
+        confidence_low_limit=None,
+        confidence_up_limit=None,
+        confidence_error=None,
+        id=None,
+    ):
         self.__id = id
         self.__function_call_hash = function_call_hash
         self.__outputs = outputs

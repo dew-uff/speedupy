@@ -1,10 +1,16 @@
 from unittest.mock import patch
 import unittest, os, sys
 
-project_folder = os.path.realpath(__file__).split('test/')[0]
+project_folder = os.path.realpath(__file__).split("test/")[0]
 sys.path.append(project_folder)
 
-from execute_exp.services.factory import init_revalidation, get_serializer, init_exec_mode, init_mem_arch, get_hash
+from execute_exp.services.factory import (
+    init_revalidation,
+    get_serializer,
+    init_exec_mode,
+    init_mem_arch,
+    get_hash,
+)
 from execute_exp.services.serializers.PickleSerializer import PickleSerializer
 from execute_exp.services.serializers.CloudpickleSerializer import CloudpickleSerializer
 from execute_exp.services.hashes.MD5Hash import MD5Hash
@@ -17,75 +23,120 @@ from execute_exp.services.storages.SQLiteStorage import SQLiteStorage
 from execute_exp.services.storages.RedisStorage import RedisStorage
 from execute_exp.services.storages.MongoStorage import MongoStorage
 from execute_exp.services.storages.GridFSStorage import GridFSStorage
-from execute_exp.services.storages.MongoWithFileSystemStorage import MongoWithFileSystemStorage
+from execute_exp.services.storages.MongoWithFileSystemStorage import (
+    MongoWithFileSystemStorage,
+)
 from execute_exp.services.storages.MongoWithGridFSStorage import MongoWithGridFSStorage
 from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
 from execute_exp.services.retrieval_strategies.LazyRetrieval import LazyRetrieval
-from execute_exp.services.retrieval_strategies.FunctionRetrieval import FunctionRetrieval
+from execute_exp.services.retrieval_strategies.FunctionRetrieval import (
+    FunctionRetrieval,
+)
 from execute_exp.services.retrieval_strategies.EagerRetrieval import EagerRetrieval
 from execute_exp.services.memory_architecures.ZeroDictMemArch import ZeroDictMemArch
 from execute_exp.services.memory_architecures.OneDictMemArch import OneDictMemArch
-from execute_exp.services.memory_architecures.OneDictOldDataOneDictNewDataMemArch import OneDictOldDataOneDictNewDataMemArch
-from execute_exp.services.memory_architecures.OneDictAllDataOneDictNewDataMemArch import OneDictAllDataOneDictNewDataMemArch
-from execute_exp.services.memory_architecures.MemcachedWriteThroughMemArch import MemcachedWriteThroughMemArch
-from execute_exp.services.memory_architecures.MemcachedWriteBackMemArch import MemcachedWriteBackMemArch
+from execute_exp.services.memory_architecures.OneDictOldDataOneDictNewDataMemArch import (
+    OneDictOldDataOneDictNewDataMemArch,
+)
+from execute_exp.services.memory_architecures.OneDictAllDataOneDictNewDataMemArch import (
+    OneDictAllDataOneDictNewDataMemArch,
+)
+from execute_exp.services.memory_architecures.MemcachedWriteThroughMemArch import (
+    MemcachedWriteThroughMemArch,
+)
+from execute_exp.services.memory_architecures.MemcachedWriteBackMemArch import (
+    MemcachedWriteBackMemArch,
+)
 from execute_exp.services.execution_modes.AccurateMode import AccurateMode
-from execute_exp.services.execution_modes.ProbabilisticCountingMode import ProbabilisticCountingMode
-from execute_exp.services.execution_modes.ProbabilisticErrorMode import ProbabilisticErrorMode
+from execute_exp.services.execution_modes.ProbabilisticCountingMode import (
+    ProbabilisticCountingMode,
+)
+from execute_exp.services.execution_modes.ProbabilisticErrorMode import (
+    ProbabilisticErrorMode,
+)
 from execute_exp.services.revalidations.NoRevalidation import NoRevalidation
 from execute_exp.services.revalidations.FixedRevalidation import FixedRevalidation
-from execute_exp.services.revalidations.AdaptativeRevalidation import AdaptativeRevalidation
+from execute_exp.services.revalidations.AdaptativeRevalidation import (
+    AdaptativeRevalidation,
+)
 import sys, random
 
 
 class TestFactory(unittest.TestCase):
     def set_random_values(self, SpeeduPySettings):
-        self.mem_arch = random.choice([['0-dict', ZeroDictMemArch],
-                                       ['1-dict', OneDictMemArch],
-                                       ['2-dict', OneDictOldDataOneDictNewDataMemArch],
-                                       ['2-dict-fast', OneDictAllDataOneDictNewDataMemArch],
-                                       ['memcached-wt', MemcachedWriteThroughMemArch],
-                                       ['memcached-wb', MemcachedWriteBackMemArch]])
+        self.mem_arch = random.choice(
+            [
+                ["0-dict", ZeroDictMemArch],
+                ["1-dict", OneDictMemArch],
+                ["2-dict", OneDictOldDataOneDictNewDataMemArch],
+                ["2-dict-fast", OneDictAllDataOneDictNewDataMemArch],
+                ["memcached-wt", MemcachedWriteThroughMemArch],
+                ["memcached-wb", MemcachedWriteBackMemArch],
+            ]
+        )
         SpeeduPySettings().mem_arch = [self.mem_arch[0]]
 
-        SpeeduPySettings().retrieval_exec_mode = [random.choice(['sequential', 'thread'])]
+        SpeeduPySettings().retrieval_exec_mode = [
+            random.choice(["sequential", "thread"])
+        ]
 
-        self.retrieval_strategy = random.choice([['lazy', LazyRetrieval],
-                                                 ['function', FunctionRetrieval],
-                                                 ['eager', EagerRetrieval]])
+        self.retrieval_strategy = random.choice(
+            [
+                ["lazy", LazyRetrieval],
+                ["function", FunctionRetrieval],
+                ["eager", EagerRetrieval],
+            ]
+        )
         SpeeduPySettings().retrieval_strategy = [self.retrieval_strategy[0]]
 
-        self.storage = random.choice([['sqlite', SQLiteStorage],
-                                      ['redis', RedisStorage],
-                                      ['mongo', MongoStorage],
-                                      ['gridfs', GridFSStorage],
-                                      ['mongo-file', MongoWithFileSystemStorage],
-                                      ['mongo-gridfs', MongoWithGridFSStorage],
-                                      ['file', FileSystemStorage]])
+        self.storage = random.choice(
+            [
+                ["sqlite", SQLiteStorage],
+                ["redis", RedisStorage],
+                ["mongo", MongoStorage],
+                ["gridfs", GridFSStorage],
+                ["mongo-file", MongoWithFileSystemStorage],
+                ["mongo-gridfs", MongoWithGridFSStorage],
+                ["file", FileSystemStorage],
+            ]
+        )
         SpeeduPySettings().storage = [self.storage[0]]
 
-        self.serializer = random.choice([['pickle', PickleSerializer],
-                                         ['cloudpickle', CloudpickleSerializer]])
+        self.serializer = random.choice(
+            [["pickle", PickleSerializer], ["cloudpickle", CloudpickleSerializer]]
+        )
         SpeeduPySettings().serializer = [self.serializer[0]]
 
-        self.hash = random.choice([['md5', MD5Hash],
-                                   ['murmur', MurmurHash],
-                                   ['xxhash', XXHashHash],
-                                   ['meowhash', MeowHash],
-                                   ['museair', MuseairBFastHash],
-                                   ['a5hash', A5Hash]])
+        self.hash = random.choice(
+            [
+                ["md5", MD5Hash],
+                ["murmur", MurmurHash],
+                ["xxhash", XXHashHash],
+                ["meowhash", MeowHash],
+                ["museair", MuseairBFastHash],
+                ["a5hash", A5Hash],
+            ]
+        )
         SpeeduPySettings().hash = [self.hash[0]]
 
-        self.exec_mode = random.choice([['no-cache', None],
-                                        ['manual', None],
-                                        ['accurate', AccurateMode],
-                                        ['probabilistic-counting', ProbabilisticCountingMode],
-                                        ['probabilistic-error', ProbabilisticErrorMode]])
+        self.exec_mode = random.choice(
+            [
+                ["no-cache", None],
+                ["manual", None],
+                ["accurate", AccurateMode],
+                ["probabilistic-counting", ProbabilisticCountingMode],
+                ["probabilistic-error", ProbabilisticErrorMode],
+            ]
+        )
         SpeeduPySettings().exec_mode = [self.exec_mode[0]]
 
-        self.revalidation = random.choice([['none', NoRevalidation],
-                                           ['fixed', FixedRevalidation],
-                                           ['adaptative', AdaptativeRevalidation]])
+        self.revalidation = random.choice(
+            [
+                ["none", NoRevalidation],
+                ["fixed", FixedRevalidation],
+                ["adaptative", AdaptativeRevalidation],
+            ]
+        )
         SpeeduPySettings().revalidation = [self.revalidation[0]]
 
         SpeeduPySettings().min_num_exec = random.randint(10, 50)
@@ -108,8 +159,10 @@ class TestFactory(unittest.TestCase):
         self.assertIsInstance(retrieval_strategy, self.retrieval_strategy[1])
         self.assertIsInstance(storage, self.storage[1])
         self.assertIsInstance(serializer, self.serializer[1])
-        if SpeeduPySettings().retrieval_exec_mode == ['sequential']: self.assertFalse(mem_arch._use_threads)
-        if SpeeduPySettings().retrieval_exec_mode == ['thread']: self.assertTrue(mem_arch._use_threads)
+        if SpeeduPySettings().retrieval_exec_mode == ["sequential"]:
+            self.assertFalse(mem_arch._use_threads)
+        if SpeeduPySettings().retrieval_exec_mode == ["thread"]:
+            self.assertTrue(mem_arch._use_threads)
 
     @patch("execute_exp.services.factory.SpeeduPySettings")
     def test_get_serializer(self, SpeeduPySettings):
@@ -131,9 +184,14 @@ class TestFactory(unittest.TestCase):
         self.assertEqual(result._min_num_exec, SpeeduPySettings().min_num_exec)
 
         if self.exec_mode[1] == ProbabilisticCountingMode:
-            self.assertEqual(result._min_mode_occurrence, SpeeduPySettings().min_mode_occurrence)
+            self.assertEqual(
+                result._min_mode_occurrence, SpeeduPySettings().min_mode_occurrence
+            )
         elif self.exec_mode[1] == ProbabilisticErrorMode:
-            self.assertEqual(result._max_error_per_function, SpeeduPySettings().max_error_per_function)
+            self.assertEqual(
+                result._max_error_per_function,
+                SpeeduPySettings().max_error_per_function,
+            )
             self.assertEqual(result._confidence_lv, SpeeduPySettings().confidence_lv)
 
     @patch("execute_exp.services.factory.SpeeduPySettings")
@@ -148,10 +206,19 @@ class TestFactory(unittest.TestCase):
 
         self.assertIsInstance(result, self.revalidation[1])
         if self.revalidation[1] == FixedRevalidation:
-            self.assertEqual(result._FixedRevalidation__fixed_num_exec_til_reval, SpeeduPySettings().max_num_exec_til_reval)
+            self.assertEqual(
+                result._FixedRevalidation__fixed_num_exec_til_reval,
+                SpeeduPySettings().max_num_exec_til_reval,
+            )
         elif self.revalidation[1] == AdaptativeRevalidation:
-            self.assertEqual(result._AdaptativeRevalidation__current_num_exec_til_reval, SpeeduPySettings().max_num_exec_til_reval)
-            self.assertEqual(result._AdaptativeRevalidation__adaptative_factor, SpeeduPySettings().reduction_factor)
+            self.assertEqual(
+                result._AdaptativeRevalidation__current_num_exec_til_reval,
+                SpeeduPySettings().max_num_exec_til_reval,
+            )
+            self.assertEqual(
+                result._AdaptativeRevalidation__adaptative_factor,
+                SpeeduPySettings().reduction_factor,
+            )
 
     @patch("execute_exp.services.factory.SpeeduPySettings")
     def test_get_hash(self, SpeeduPySettings):
@@ -164,5 +231,5 @@ class TestFactory(unittest.TestCase):
         self.assertIsInstance(serializer, self.serializer[1])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

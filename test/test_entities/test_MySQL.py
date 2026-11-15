@@ -2,7 +2,7 @@ import os, sys, unittest
 from unittest.mock import Mock
 from mysql.connector import Error
 
-project_folder = os.path.realpath(__file__).split('test/')[0]
+project_folder = os.path.realpath(__file__).split("test/")[0]
 sys.path.append(project_folder)
 
 from entities.BancoMySQL import BancoMySQL

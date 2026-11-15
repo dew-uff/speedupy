@@ -60,7 +60,7 @@ def to_canonical(obj: Any, visited: Optional[Set] = None) -> Any:
                 k: to_canonical(v, visited)
                 for k, v in sorted(vars(obj).items())
                 if not callable(v) and not k.startswith("_")
-            }
+            },
         }
 
     # --- Slots ---
@@ -71,7 +71,7 @@ def to_canonical(obj: Any, visited: Optional[Set] = None) -> Any:
                 slot: to_canonical(getattr(obj, slot), visited)
                 for slot in sorted(obj.__slots__)
                 if hasattr(obj, slot)
-            }
+            },
         }
 
     # --- Fallback ---

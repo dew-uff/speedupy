@@ -10,12 +10,17 @@ class AbstractExecutionMode(ABC):
         self._min_num_exec = min_num_exec
 
     @abstractmethod
-    def func_call_can_be_cached(self, fc_prov: FunctionCallProv) -> bool: pass
+    def func_call_can_be_cached(self, fc_prov: FunctionCallProv) -> bool:
+        pass
 
     @abstractmethod
-    def get_func_call_cache(self, fc_prov: FunctionCallProv): pass
+    def get_func_call_cache(self, fc_prov: FunctionCallProv):
+        pass
 
-    def func_call_acted_as_expected(self, fc_prov: FunctionCallProv, metadata: Metadata): pass  # Implemented by each subclass except ProbabilisticFrequencyMode!
+    def func_call_acted_as_expected(
+        self, fc_prov: FunctionCallProv, metadata: Metadata
+    ):
+        pass  # Implemented by each subclass except ProbabilisticFrequencyMode!
 
     @property
     def min_num_exec(self):

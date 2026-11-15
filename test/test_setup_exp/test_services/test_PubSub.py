@@ -1,14 +1,13 @@
 import unittest, os, sys
 from unittest.mock import Mock
 
-project_folder = os.path.realpath(__file__).split('test/')[0]
+project_folder = os.path.realpath(__file__).split("test/")[0]
 sys.path.append(project_folder)
 
 from setup_exp.services.PubSub import PubSub
 
 
 class TestPubSub(unittest.TestCase):
-
     def setUp(self):
         self.pubsub = PubSub()
         self.calls = []
@@ -31,7 +30,9 @@ class TestPubSub(unittest.TestCase):
         self.pubsub.subscribe("event1", self.cb1)
         self.pubsub.subscribe("event2", self.cb1)
 
-        self.assertDictEqual(self.pubsub.subscribers, {"event1": [self.cb1], "event2": [self.cb1]})
+        self.assertDictEqual(
+            self.pubsub.subscribers, {"event1": [self.cb1], "event2": [self.cb1]}
+        )
 
     def test_unsubscribe_item_that_is_not_subscribed(self):
         self.assertDictEqual(self.pubsub.subscribers, {})
@@ -56,5 +57,5 @@ class TestPubSub(unittest.TestCase):
         self.cb3.assert_not_called()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

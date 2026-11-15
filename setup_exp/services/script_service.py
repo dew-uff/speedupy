@@ -5,15 +5,22 @@ from util import get_script_path
 from setup_exp.entities.Script import Script
 from setup_exp.entities.Experiment import Experiment
 from setup_exp.services.ASTSearcherService import ASTSearcherService
-from setup_exp.services.ScriptFunctionCallHierarchyAnalyzer import ScriptFunctionCallHierarchyAnalyzer
-from setup_exp.services.ScriptFunctionGraphCreatorService import ScriptFunctionGraphCreatorService
-from setup_exp.services.DeterministicFunctionUpdaterService import DeterministicFunctionUpdaterService
+from setup_exp.services.ScriptFunctionCallHierarchyAnalyzer import (
+    ScriptFunctionCallHierarchyAnalyzer,
+)
+from setup_exp.services.ScriptFunctionGraphCreatorService import (
+    ScriptFunctionGraphCreatorService,
+)
+from setup_exp.services.DeterministicFunctionUpdaterService import (
+    DeterministicFunctionUpdaterService,
+)
 from setup_exp.services.function_service import decorate_function
 
-def create_script(script_name:str, experiment_base_dir:str) -> Script:
+
+def create_script(script_name: str, experiment_base_dir: str) -> Script:
     script_path = get_script_path(script_name, experiment_base_dir)
     script_AST = _python_code_to_AST(script_path)
-    if(script_AST is None):
+    if script_AST is None:
         raise RuntimeError
 
     script_ASTSearcher = ASTSearcherService(script_AST)
@@ -21,12 +28,18 @@ def create_script(script_name:str, experiment_base_dir:str) -> Script:
 
     for function_name in script_ASTSearcher.functions:
         script_ASTSearcher.functions[function_name].qualname = function_name
-    
-    return Script(script_name, script_AST, script_ASTSearcher.import_commands, script_ASTSearcher.functions)
 
-def _python_code_to_AST(file_name:str) -> ast.Module:
+    return Script(
+        script_name,
+        script_AST,
+        script_ASTSearcher.import_commands,
+        script_ASTSearcher.functions,
+    )
+
+
+def _python_code_to_AST(file_name: str) -> ast.Module:
     try:
-        #Opening file
+        # Opening file
         file = open(file_name, "r")
 
     except:
@@ -36,7 +49,7 @@ def _python_code_to_AST(file_name:str) -> ast.Module:
 
     else:
         try:
-            #Generating AST from Python code
+            # Generating AST from Python code
             return ast.parse(file.read())
 
         except:
@@ -44,22 +57,37 @@ def _python_code_to_AST(file_name:str) -> ast.Module:
             print("Check if your Python script is correctly writen.")
             return None
 
-def analyze_script_function_call_hierarchy(main_script:Script, experiment:Experiment) -> None:
-    u_def_imported_scripts = main_script.get_user_defined_imported_scripts(experiment.base_dir)
-    __analyze_user_defined_imported_scripts_function_call_hierarchy(u_def_imported_scripts, experiment)
+
+def analyze_script_function_call_hierarchy(
+    main_script: Script, experiment: Experiment
+) -> None:
+    u_def_imported_scripts = main_script.get_user_defined_imported_scripts(
+        experiment.base_dir
+    )
+    __analyze_user_defined_imported_scripts_function_call_hierarchy(
+        u_def_imported_scripts, experiment
+    )
 
     analyzer = ScriptFunctionCallHierarchyAnalyzer(main_script, experiment)
-    function_graph_creator = ScriptFunctionGraphCreatorService(main_script, u_def_imported_scripts, experiment, analyzer)
+    function_graph_creator = ScriptFunctionGraphCreatorService(
+        main_script, u_def_imported_scripts, experiment, analyzer
+    )
     DeterministicFunctionUpdaterService(analyzer)
     analyzer.analyze()
 
     main_script.function_graph = function_graph_creator.script_function_graph
 
-def __analyze_user_defined_imported_scripts_function_call_hierarchy(u_def_imported_scripts:List[str], experiment:Experiment) -> None:
-    for script_name in u_def_imported_scripts:
-        analyze_script_function_call_hierarchy(experiment.scripts[script_name], experiment)
 
-def decorate_script_functions(script:Script) -> bool:
+def __analyze_user_defined_imported_scripts_function_call_hierarchy(
+    u_def_imported_scripts: List[str], experiment: Experiment
+) -> None:
+    for script_name in u_def_imported_scripts:
+        analyze_script_function_call_hierarchy(
+            experiment.scripts[script_name], experiment
+        )
+
+
+def decorate_script_functions(script: Script) -> bool:
     """This function decorates all functions of a script that can be decorated with @maybe_deterministic. It returns True if at least one function was decorated. If no functions were marked with @maybe_deterministic, this function returns False."""
     script_decorated = False
     for function in script.functions.values():
@@ -67,21 +95,30 @@ def decorate_script_functions(script:Script) -> bool:
         script_decorated = script_decorated or function_decorated
     return script_decorated
 
-def add_decorator_import(script:Script, decorator_name:str) -> None:
-    if _script_already_has_decorator_import(script, decorator_name): return
+
+def add_decorator_import(script: Script, decorator_name: str) -> None:
+    if _script_already_has_decorator_import(script, decorator_name):
+        return
     current_folder = os.getcwd()
     imports = f"import sys\nsys.path.append('{current_folder}')\n"
     imports += f"from speedupy.speedupy import {decorator_name}"
     imports = ast.parse(imports)
     script.AST.body = imports.body + script.AST.body
 
-def _script_already_has_decorator_import(script:Script, decorator_name:str) -> bool:
+
+def _script_already_has_decorator_import(script: Script, decorator_name: str) -> bool:
     for cmd in script.import_commands:
-        if isinstance(cmd, ast.ImportFrom) and cmd.module == 'speedupy.speedupy' and cmd.level == 0:
+        if (
+            isinstance(cmd, ast.ImportFrom)
+            and cmd.module == "speedupy.speedupy"
+            and cmd.level == 0
+        ):
             for alias in cmd.names:
-                if alias.name == decorator_name: return True
+                if alias.name == decorator_name:
+                    return True
     return False
 
-def overwrite_decorated_script(script:Script):        
-    with open(script.name, 'wt') as f:
+
+def overwrite_decorated_script(script: Script):
+    with open(script.name, "wt") as f:
         f.write(ast.unparse(script.AST))

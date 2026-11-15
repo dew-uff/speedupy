@@ -11,7 +11,9 @@ class AbstractMemcachedArch(AbstractMemArch):
 
     def get_initial_cache_entries(self) -> None:
         def populate_memcached():
-            data = self._retrieval_strategy.get_initial_cache_entries(use_thread=self._use_threads)
+            data = self._retrieval_strategy.get_initial_cache_entries(
+                use_thread=self._use_threads
+            )
             self._memcached.set_group_of_key_value_pairs(data)
 
         if self._use_threads:
@@ -22,13 +24,17 @@ class AbstractMemcachedArch(AbstractMemArch):
 
     def get_cache_entry(self, func_call_hash: str, func_name=None):
         cached_value = self._memcached.get(func_call_hash)
-        if cached_value: return cached_value.output
+        if cached_value:
+            return cached_value.output
 
         self._get_function_entries_from_storage(func_name)
         cached_value = self._memcached.get(func_call_hash)
-        if cached_value: return cached_value.output
+        if cached_value:
+            return cached_value.output
 
-        persistent_cache_data = self._retrieval_strategy.get_cache_entry(func_call_hash, func_name)
+        persistent_cache_data = self._retrieval_strategy.get_cache_entry(
+            func_call_hash, func_name
+        )
         if persistent_cache_data:
             self._memcached.set(func_call_hash, persistent_cache_data)
             return persistent_cache_data.output
@@ -37,8 +43,9 @@ class AbstractMemcachedArch(AbstractMemArch):
 
     def _get_function_entries_from_storage(self, func_name: str) -> None:
         def update_memcached():
-            data = self._retrieval_strategy.get_function_cache_entries(func_name,
-                                                                       use_thread=self._use_threads)
+            data = self._retrieval_strategy.get_function_cache_entries(
+                func_name, use_thread=self._use_threads
+            )
             self._memcached.set_group_of_key_value_pairs(data)
 
         if self._use_threads:
@@ -47,8 +54,13 @@ class AbstractMemcachedArch(AbstractMemArch):
         else:
             update_memcached()
 
-    def create_cache_entry(self, func_call_hash: str, func_return, func_name=None) -> None: pass  # Implemented by each subclass!
+    def create_cache_entry(
+        self, func_call_hash: str, func_return, func_name=None
+    ) -> None:
+        pass  # Implemented by each subclass!
 
-    def save_new_cache_entries(self) -> None: pass  # Implemented by each subclass!
+    def save_new_cache_entries(self) -> None:
+        pass  # Implemented by each subclass!
 
-    def get_new_cache_entries_size(self) -> int: pass  # Implemented by each subclass!
+    def get_new_cache_entries_size(self) -> int:
+        pass  # Implemented by each subclass!

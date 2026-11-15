@@ -28,6 +28,7 @@ What it does, and why:
    needs a changed value still changes it; the fixture only undoes it.
    ``sys.version_info`` matters most: pytest reads it.
 """
+
 import os
 import shutil
 import socket
@@ -81,10 +82,18 @@ MARKER_MAP = {
     "test_execute_exp/test_services/test_storages/test_RedisStorage.py": ("redis",),
     "test_execute_exp/test_services/test_storages/test_MongoStorage.py": ("mongo",),
     "test_execute_exp/test_services/test_storages/test_GridFSStorage.py": ("mongo",),
-    "test_execute_exp/test_services/test_storages/test_MongoWithFileSystemStorage.py": ("mongo",),
-    "test_execute_exp/test_services/test_storages/test_MongoWithGridFSStorage.py": ("mongo",),
-    "test_execute_exp/test_services/test_memory_architectures/test_MemcachedWriteBackMemArch.py": ("memcached",),
-    "test_execute_exp/test_services/test_memory_architectures/test_MemcachedWriteThroughMemArch.py": ("memcached",),
+    "test_execute_exp/test_services/test_storages/test_MongoWithFileSystemStorage.py": (
+        "mongo",
+    ),
+    "test_execute_exp/test_services/test_storages/test_MongoWithGridFSStorage.py": (
+        "mongo",
+    ),
+    "test_execute_exp/test_services/test_memory_architectures/test_MemcachedWriteBackMemArch.py": (
+        "memcached",
+    ),
+    "test_execute_exp/test_services/test_memory_architectures/test_MemcachedWriteThroughMemArch.py": (
+        "memcached",
+    ),
     # Not collected today (see NOT_COLLECTED); the markers are ready for Task 12.
     "test_execute_exp/test_services/test_factory.py": ("native",),
     "test_execute_exp/test_services/test_hashes/test_A5Hash.py": ("native",),
@@ -92,9 +101,15 @@ MARKER_MAP = {
     "test_execute_exp/test_services/test_hashes/test_MuseairBFastHash.py": ("native",),
     # These build SpeeduPy(), which calls get_hash(): the default hash is a native
     # one. The key may go down to a test: file::Class::test.
-    "test_speedupy_execution_modes.py::TestSpeeduPyExecMode::test_initialize_speedupy_on_no_cache_exec_mode_with_time_measure": ("native",),
-    "test_speedupy_execution_modes.py::TestSpeeduPyExecMode::test_initialize_speedupy_on_no_cache_exec_mode_without_time_measure": ("native",),
-    "test_speedupy_execution_modes.py::TestSpeeduPyExecMode::test_initialize_speedupy_using_cache_exec_modes_with_and_without_time_measure_and_profile": ("native",),
+    "test_speedupy_execution_modes.py::TestSpeeduPyExecMode::test_initialize_speedupy_on_no_cache_exec_mode_with_time_measure": (
+        "native",
+    ),
+    "test_speedupy_execution_modes.py::TestSpeeduPyExecMode::test_initialize_speedupy_on_no_cache_exec_mode_without_time_measure": (
+        "native",
+    ),
+    "test_speedupy_execution_modes.py::TestSpeeduPyExecMode::test_initialize_speedupy_using_cache_exec_modes_with_and_without_time_measure_and_profile": (
+        "native",
+    ),
 }
 
 _original_cwd = os.getcwd()
@@ -143,7 +158,9 @@ class _RootIsNotAPackage:
 
 def pytest_configure(config):
     global _scratch_dir
-    config.pluginmanager.register(_RootIsNotAPackage(), "speedupy-root-is-not-a-package")
+    config.pluginmanager.register(
+        _RootIsNotAPackage(), "speedupy-root-is-not-a-package"
+    )
     _scratch_dir = tempfile.mkdtemp(prefix="speedupy-tests-")
     os.chdir(_scratch_dir)
 
@@ -157,12 +174,18 @@ def pytest_unconfigure(config):
 def pytest_sessionstart(session):
     if not _servers_enabled() or session.config.option.collectonly:
         return
-    unreachable = [f"{name} ({host}:{port})" for name, (host, port) in SERVERS.items()
-                   if not _is_reachable(host, port)]
+    unreachable = [
+        f"{name} ({host}:{port})"
+        for name, (host, port) in SERVERS.items()
+        if not _is_reachable(host, port)
+    ]
     if unreachable:
-        pytest.exit(f"{ENV_SERVERS}=1, but these servers are unreachable: "
-                    f"{', '.join(unreachable)}. Start them, or unset {ENV_SERVERS} "
-                    "to run only the tests that need no server.", returncode=1)
+        pytest.exit(
+            f"{ENV_SERVERS}=1, but these servers are unreachable: "
+            f"{', '.join(unreachable)}. Start them, or unset {ENV_SERVERS} "
+            "to run only the tests that need no server.",
+            returncode=1,
+        )
 
 
 @pytest.fixture(autouse=True)
@@ -205,7 +228,9 @@ def pytest_collection_modifyitems(config, items):
         if item.get_closest_marker("native"):
             _deselected["native"] += 1  # Task 12 replaces this by a skip.
             deselected.append(item)
-        elif not _servers_enabled() and any(item.get_closest_marker(name) for name in ALL_SERVERS):
+        elif not _servers_enabled() and any(
+            item.get_closest_marker(name) for name in ALL_SERVERS
+        ):
             _deselected["server"] += 1
             deselected.append(item)
         else:
@@ -219,8 +244,10 @@ def pytest_terminal_summary(terminalreporter):
     if _deselected["server"]:
         terminalreporter.write_line(
             f"{_deselected['server']} tests that need a server were deselected: "
-            f"set {ENV_SERVERS}=1 to run them (see AGENTS.md).")
+            f"set {ENV_SERVERS}=1 to run them (see AGENTS.md)."
+        )
     if _deselected["native"]:
         terminalreporter.write_line(
             f"{_deselected['native']} tests that need a native library were deselected "
-            "(Task 12 of the retrofit loads the libraries on demand).")
+            "(Task 12 of the retrofit loads the libraries on demand)."
+        )
