@@ -18,9 +18,10 @@ What it does, and why:
    With it set, every server is probed once at the start and the session aborts
    naming the unreachable ones: a missing server is an error, never a skip.
    The probe is skipped under ``--collect-only``, which touches no server.
-5. The modules that cannot be imported without a native library are kept out
-   of collection, and the tests marked ``native`` are deselected. Task 12 of the
-   retrofit removes ``NOT_COLLECTED`` and replaces the deselection by a skip.
+5. A test marked ``native`` needs the ``.so`` files it names (``NATIVE_MAP``
+   below, or ``@pytest.mark.native("libmeow.so")`` on the test). It is skipped,
+   with the missing file in the reason, when one is absent, and fails when
+   ``SPEEDUPY_REQUIRE_NATIVE=1``.
 6. The process state a test may leave behind is restored after every test, so
    that no test depends on another and the order can be random (Task 8): the
    instances of the ``SingletonMeta`` classes and their attributes,
@@ -45,6 +46,7 @@ sys.argv = sys.argv[:1]
 
 TEST_DIR = Path(__file__).resolve().parent
 ENV_SERVERS = "SPEEDUPY_TEST_SERVERS"
+ENV_REQUIRE_NATIVE = "SPEEDUPY_REQUIRE_NATIVE"
 
 # The hosts and ports are the ones the code under test uses.
 SERVERS = {
@@ -54,17 +56,6 @@ SERVERS = {
     "memcached": ("localhost", 11211),
 }
 ALL_SERVERS = tuple(SERVERS)
-
-# Modules that cannot be imported without a native library: they load libmeow.so,
-# liba5hash.so or libmuseair.so at import time. Task 12 loads each one on first
-# use and removes this list.
-NOT_COLLECTED = [
-    "test_execute_exp/test_services/test_factory.py",
-    "test_execute_exp/test_services/test_hashes/test_A5Hash.py",
-    "test_execute_exp/test_services/test_hashes/test_MeowHash.py",
-    "test_execute_exp/test_services/test_hashes/test_MuseairBFastHash.py",
-]
-collect_ignore = list(NOT_COLLECTED)
 
 # Path relative to ``test/`` (a directory, a file, or ``file::Class::test``) ->
 # markers. A whole file is marked when any of its fixtures touches a
@@ -94,27 +85,23 @@ MARKER_MAP = {
     "test_execute_exp/test_services/test_memory_architectures/test_MemcachedWriteThroughMemArch.py": (
         "memcached",
     ),
-    # Not collected today (see NOT_COLLECTED); the markers are ready for Task 12.
-    "test_execute_exp/test_services/test_factory.py": ("native",),
-    "test_execute_exp/test_services/test_hashes/test_A5Hash.py": ("native",),
-    "test_execute_exp/test_services/test_hashes/test_MeowHash.py": ("native",),
-    "test_execute_exp/test_services/test_hashes/test_MuseairBFastHash.py": ("native",),
-    # These build SpeeduPy(), which calls get_hash(): the default hash is a native
-    # one. The key may go down to a test: file::Class::test.
-    "test_speedupy_execution_modes.py::TestSpeeduPyExecMode::test_initialize_speedupy_on_no_cache_exec_mode_with_time_measure": (
-        "native",
-    ),
-    "test_speedupy_execution_modes.py::TestSpeeduPyExecMode::test_initialize_speedupy_on_no_cache_exec_mode_without_time_measure": (
-        "native",
-    ),
-    "test_speedupy_execution_modes.py::TestSpeeduPyExecMode::test_initialize_speedupy_using_cache_exec_modes_with_and_without_time_measure_and_profile": (
-        "native",
+}
+
+HASHES_DIR = TEST_DIR.parent / "execute_exp" / "services" / "hashes"
+
+# Path relative to ``test/`` -> the native libraries (files in ``HASHES_DIR``)
+# the tests below it need. Same keys as ``MARKER_MAP``.
+NATIVE_MAP = {
+    "test_execute_exp/test_services/test_hashes/test_A5Hash.py": ("liba5hash.so",),
+    "test_execute_exp/test_services/test_hashes/test_MeowHash.py": ("libmeow.so",),
+    "test_execute_exp/test_services/test_hashes/test_MuseairBFastHash.py": (
+        "libmuseair.so",
     ),
 }
 
 _original_cwd = os.getcwd()
 _scratch_dir = None
-_deselected = {"server": 0, "native": 0}
+_deselected = {"server": 0}
 
 
 def _servers_enabled() -> bool:
@@ -129,13 +116,21 @@ def _is_reachable(host: str, port: int) -> bool:
         return False
 
 
-def _markers_of(item):
+def _test_id(item):
     file_part = Path(str(item.path)).resolve().relative_to(TEST_DIR).as_posix()
     rest = item.nodeid.partition("::")[2]
-    test_id = f"{file_part}::{rest}" if rest else file_part
-    for key, markers in MARKER_MAP.items():
+    return f"{file_part}::{rest}" if rest else file_part
+
+
+def _matching(mapping, test_id):
+    for key, value in mapping.items():
         if test_id == key or test_id.startswith((key + "::", key.rstrip("/") + "/")):
-            yield from markers
+            yield value
+
+
+def _markers_of(item):
+    for markers in _matching(MARKER_MAP, _test_id(item)):
+        yield from markers
 
 
 class _RootIsNotAPackage:
@@ -222,13 +217,12 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         for marker in _markers_of(item):
             item.add_marker(getattr(pytest.mark, marker))
+        for libraries in _matching(NATIVE_MAP, _test_id(item)):
+            item.add_marker(pytest.mark.native(*libraries))
 
     kept, deselected = [], []
     for item in items:
-        if item.get_closest_marker("native"):
-            _deselected["native"] += 1  # Task 12 replaces this by a skip.
-            deselected.append(item)
-        elif not _servers_enabled() and any(
+        if not _servers_enabled() and any(
             item.get_closest_marker(name) for name in ALL_SERVERS
         ):
             _deselected["server"] += 1
@@ -246,8 +240,18 @@ def pytest_terminal_summary(terminalreporter):
             f"{_deselected['server']} tests that need a server were deselected: "
             f"set {ENV_SERVERS}=1 to run them (see AGENTS.md)."
         )
-    if _deselected["native"]:
-        terminalreporter.write_line(
-            f"{_deselected['native']} tests that need a native library were deselected "
-            "(Task 12 of the retrofit loads the libraries on demand)."
-        )
+
+
+def pytest_runtest_setup(item):
+    missing = [
+        name
+        for marker in item.iter_markers("native")
+        for name in marker.args
+        if not (HASHES_DIR / name).exists()
+    ]
+    if not missing:
+        return
+    reason = f"native library not built: {', '.join(missing)}"
+    if os.environ.get(ENV_REQUIRE_NATIVE) == "1":
+        pytest.fail(f"{reason} ({ENV_REQUIRE_NATIVE}=1)", pytrace=False)
+    pytest.skip(reason)

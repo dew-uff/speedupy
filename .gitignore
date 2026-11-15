@@ -4,3 +4,4 @@ env/
 examples/
 .venv/
 .pytest_cache/
+*.so

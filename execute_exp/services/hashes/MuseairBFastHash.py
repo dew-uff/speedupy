@@ -1,27 +1,22 @@
 import ctypes
-import os
 
 from execute_exp.services.hashes.Hash import Hash
+from execute_exp.services.hashes.native import load_native_library
 
-# --- Load shared library (.so) ---
-current_dir = os.path.dirname(os.path.abspath(__file__))
-lib_path = os.path.join(current_dir, "libmuseair.so")
-
-try:
-    museair_lib = ctypes.CDLL(lib_path)
-except OSError as e:
-    raise ImportError(f"Erro ao carregar libmuseair.so: {e}")
+LIBRARY = "libmuseair.so"
 
 
-# --- Define C function signature ---
-museair_lib.museair_bfast_64.argtypes = [
-    ctypes.c_void_p,  # data pointer
-    ctypes.c_size_t,  # length
-    ctypes.c_uint64,  # seed
-    ctypes.POINTER(ctypes.c_uint64),  # output pointer
-]
-
-museair_lib.museair_bfast_64.restype = None
+def _get_library():
+    lib = load_native_library(LIBRARY)
+    # Define the C function signature (idempotent).
+    lib.museair_bfast_64.argtypes = [
+        ctypes.c_void_p,  # data pointer
+        ctypes.c_size_t,  # length
+        ctypes.c_uint64,  # seed
+        ctypes.POINTER(ctypes.c_uint64),  # output pointer
+    ]
+    lib.museair_bfast_64.restype = None
+    return lib
 
 
 # --- Hash implementation ---
@@ -48,7 +43,7 @@ class MuseairBFastHash(Hash):
         out = ctypes.c_uint64()
 
         # Call shared library function
-        museair_lib.museair_bfast_64(
+        _get_library().museair_bfast_64(
             ctypes.c_void_p(c_ptr),
             ctypes.c_size_t(data_len),
             ctypes.c_uint64(self.seed),
