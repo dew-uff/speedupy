@@ -1,6 +1,6 @@
-from execute_exp.services.revalidations.AbstractRevalidation import AbstractRevalidation
-from execute_exp.entitites.Metadata import Metadata
 from execute_exp.entitites.FunctionCallProv import FunctionCallProv
+from execute_exp.entitites.Metadata import Metadata
+from execute_exp.services.revalidations.AbstractRevalidation import AbstractRevalidation
 
 
 class NoRevalidation(AbstractRevalidation):

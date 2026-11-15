@@ -3,7 +3,6 @@
 import datetime
 import os
 
-
 try:
     debug_enabled = os.environ["DEBUG"]
 except:

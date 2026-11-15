@@ -1,4 +1,7 @@
-import unittest, os, sys, random
+import os
+import random
+import sys
+import unittest
 from unittest.mock import Mock
 
 project_folder = os.path.realpath(__file__).split("test/")[0]

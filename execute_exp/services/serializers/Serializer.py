@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Union, BinaryIO
+from typing import Any, BinaryIO, Union
 
 
 class Serializer(ABC):

@@ -1,17 +1,20 @@
-import unittest, os, sys, random
-from execute_exp.services.serializers.PickleSerializer import PickleSerializer
-from execute_exp.services.serializers.CloudpickleSerializer import CloudpickleSerializer
+import os
+import random
+import sys
+import unittest
 
+from execute_exp.services.serializers.CloudpickleSerializer import CloudpickleSerializer
+from execute_exp.services.serializers.PickleSerializer import PickleSerializer
 
 project_folder = os.path.realpath(__file__).split("test/")[0]
 sys.path.append(project_folder)
 
+from execute_exp.entitites.FunctionCallProv import FunctionCallProv
 from execute_exp.services.execution_modes.util import (
-    func_call_mode_output_occurs_enough,
     _set_statistical_mode_helpers,
+    func_call_mode_output_occurs_enough,
     function_outputs_dict_2_array,
 )
-from execute_exp.entitites.FunctionCallProv import FunctionCallProv
 
 
 class TestUtil(unittest.TestCase):

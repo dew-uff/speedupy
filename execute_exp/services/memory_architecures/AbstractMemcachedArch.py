@@ -1,6 +1,7 @@
 import threading
-from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
+
 from entities.BancoMemcached import BancoMemcached
+from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
 
 
 class AbstractMemcachedArch(AbstractMemArch):

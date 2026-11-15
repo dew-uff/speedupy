@@ -1,18 +1,21 @@
-import unittest, os, sys, ast
+import ast
+import os
+import sys
+import unittest
 from unittest.mock import Mock
 
 project_folder = os.path.realpath(__file__).split("test/")[0]
 sys.path.append(project_folder)
 
-from setup_exp.entities.Script import Script
 from setup_exp.entities.Experiment import Experiment
-from setup_exp.services.ScriptFunctionGraphCreatorService import (
-    ScriptFunctionGraphCreatorService,
-)
+from setup_exp.entities.FunctionGraph import FunctionGraph
+from setup_exp.entities.Script import Script
 from setup_exp.services.ScriptFunctionCallHierarchyAnalyzer import (
     ScriptFunctionCallHierarchyAnalyzer,
 )
-from setup_exp.entities.FunctionGraph import FunctionGraph
+from setup_exp.services.ScriptFunctionGraphCreatorService import (
+    ScriptFunctionGraphCreatorService,
+)
 
 
 class TestScriptFunctionGraphCreatorService(unittest.TestCase):

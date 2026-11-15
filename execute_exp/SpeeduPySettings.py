@@ -1,5 +1,5 @@
-from SingletonMeta import SingletonMeta
 from execute_exp.parser_params import get_params
+from SingletonMeta import SingletonMeta
 
 
 class SpeeduPySettings(metaclass=SingletonMeta):

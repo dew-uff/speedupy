@@ -1,12 +1,16 @@
-import unittest, os, sys, time, random
+import os
+import random
+import sys
+import time
+import unittest
 from unittest.mock import Mock
+
 from test_helpers import random_str
 
 project_folder = os.path.realpath(__file__).split("test/")[0]
 sys.path.append(project_folder)
 
 from execute_exp.entitites.CacheData import CacheData
-
 from test_execute_exp.test_services.test_memory_architectures.AbstractMemArchTest import (
     AbstractMemArchTest,
 )

@@ -1,18 +1,18 @@
-import unittest, os, sys, ast, importlib
-from unittest.mock import patch
+import ast
+import os
+import sys
+import unittest
 
 project_folder = os.path.realpath(__file__).split("test/")[0]
 sys.path.append(project_folder)
 
-from hashlib import md5
 
-from setup_exp.entities.Script import Script
 from setup_exp.entities.Experiment import Experiment
+from setup_exp.entities.Script import Script
 from setup_exp.services.function_service import (
-    decorate_main_function,
     decorate_function,
+    decorate_main_function,
 )
-from constantes import Constantes
 
 
 class TestFunctionService(unittest.TestCase):

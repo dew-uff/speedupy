@@ -1,5 +1,5 @@
-from typing import Union
 import ast
+from typing import Union
 
 
 def decorate_main_function(main_function: ast.FunctionDef) -> None:

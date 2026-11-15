@@ -1,7 +1,9 @@
 import atexit
 from typing import Dict
+
 from pymemcache.client.base import Client
 from pymemcache.serde import pickle_serde
+
 from SingletonMeta import SingletonMeta
 
 

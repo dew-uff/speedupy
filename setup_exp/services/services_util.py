@@ -1,5 +1,5 @@
-from typing import Union, Optional
 import ast
+from typing import Optional, Union
 
 
 # MAYBE IN THE FUTURE "get_original_name_of_script_imported_with_import" AND

@@ -55,6 +55,10 @@ jobs:
         if: ${{ !cancelled() }}
         run: uv run --locked --only-group dev ruff format --check .
 
+      - name: Lint
+        if: ${{ !cancelled() }}
+        run: uv run --locked --only-group dev ruff check .
+
   test:
     # min-tests: floor for passed + skipped + xfailed + xpassed. Raise it in the
     # pull request that adds tests; lower it only with the reason written in

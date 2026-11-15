@@ -1,6 +1,9 @@
-from typing import Union, List, Dict
-import os, ast, json, sys
+import ast
+import json
+import os
+import sys
 from copy import deepcopy
+from typing import Dict, List, Union
 
 
 def check_python_version():

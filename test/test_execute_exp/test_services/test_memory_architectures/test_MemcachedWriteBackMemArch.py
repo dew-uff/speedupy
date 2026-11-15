@@ -1,19 +1,24 @@
-import unittest, os, sys, time, random
+import os
+import random
+import sys
+import time
+import unittest
+
 from test_helpers import random_str
 
 project_folder = os.path.realpath(__file__).split("test/")[0]
 sys.path.append(project_folder)
 
+from typing import Dict
+
+from pymemcache.client.base import Client
+from pymemcache.serde import pickle_serde
+
+from execute_exp.entitites.CacheData import CacheData
+from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
 from execute_exp.services.memory_architecures.MemcachedWriteBackMemArch import (
     MemcachedWriteBackMemArch,
 )
-from execute_exp.entitites.CacheData import CacheData
-
-from typing import Dict
-from pymemcache.client.base import Client
-from pymemcache.serde import pickle_serde
-from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
-
 from test_execute_exp.test_services.test_memory_architectures.AbstractMemArchTest import (
     AbstractMemArchTest,
 )

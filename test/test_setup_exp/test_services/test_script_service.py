@@ -1,16 +1,20 @@
-import unittest, unittest.mock, os, sys, ast
+import ast
+import os
+import sys
+import unittest
+import unittest.mock
 from unittest.mock import patch
 
 project_folder = os.path.realpath(__file__).split("test/")[0]
 sys.path.append(project_folder)
 
+from setup_exp.entities.FunctionGraph import FunctionGraph
+from setup_exp.entities.Script import Script
 from setup_exp.services.script_service import (
-    decorate_script_functions,
     add_decorator_import,
+    decorate_script_functions,
     overwrite_decorated_script,
 )
-from setup_exp.entities.Script import Script
-from setup_exp.entities.FunctionGraph import FunctionGraph
 
 
 class TestScriptService(unittest.TestCase):
@@ -209,7 +213,7 @@ class TestScriptService(unittest.TestCase):
 
         add_decorator_import(script, "maybe_deterministic")
         code1 = ast.unparse(script.AST.body[:2])
-        code2 = f"from speedupy.speedupy import maybe_deterministic\n@maybe_deterministic\ndef f1(a, b, c=10):\n\treturn a * b / c"
+        code2 = "from speedupy.speedupy import maybe_deterministic\n@maybe_deterministic\ndef f1(a, b, c=10):\n\treturn a * b / c"
         code1 = self.normalize_string(code1)
         code2 = self.normalize_string(code2)
         self.assertEqual(code1, code2)
@@ -256,7 +260,7 @@ class TestScriptService(unittest.TestCase):
         script = Script("script_test.py", fileAST, import_commands, functions)
         add_decorator_import(script, "initialize_speedupy")
         code1 = ast.unparse(script.AST.body[:2])
-        code2 = f"from speedupy.speedupy import initialize_speedupy\n@maybe_deterministic\ndef f1(a, b, c=10):\n\treturn a * b / c"
+        code2 = "from speedupy.speedupy import initialize_speedupy\n@maybe_deterministic\ndef f1(a, b, c=10):\n\treturn a * b / c"
         code1 = self.normalize_string(code1)
         code2 = self.normalize_string(code2)
         self.assertEqual(code1, code2)

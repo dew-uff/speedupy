@@ -1,18 +1,19 @@
-import sys, os
+import os
+import sys
 
 project_folder = os.path.realpath(__file__).split("setup_exp/")[0]
 sys.path.append(project_folder)
 
 from constantes import Constantes
+from setup_exp.services.environment_service import init_env
 from setup_exp.services.experiment_service import (
-    create_experiment,
-    overwrite_decorated_experiment,
     analyze_experiment_function_call_hierarchy,
+    create_experiment,
     decorate_experiment_functions,
     get_experiment_functions_hashes,
+    overwrite_decorated_experiment,
 )
-from setup_exp.services.environment_service import init_env
-from util import save_json_file, check_python_version
+from util import check_python_version, save_json_file
 
 
 def validate_main_script_specified():

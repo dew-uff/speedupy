@@ -1,33 +1,34 @@
 from typing import Optional
+
 from execute_exp.services.execution_modes.AbstractExecutionMode import (
     AbstractExecutionMode,
 )
-from execute_exp.services.revalidations.AbstractRevalidation import AbstractRevalidation
+from execute_exp.services.hashes.Hash import Hash
 from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
 from execute_exp.services.retrieval_strategies.AbstractRetrievalStrategy import (
     AbstractRetrievalStrategy,
 )
-from execute_exp.services.storages.Storage import Storage
+from execute_exp.services.revalidations.AbstractRevalidation import AbstractRevalidation
 from execute_exp.services.serializers.Serializer import Serializer
-from execute_exp.services.hashes.Hash import Hash
+from execute_exp.services.storages.Storage import Storage
 from execute_exp.SpeeduPySettings import SpeeduPySettings
 
 
 def init_mem_arch() -> AbstractMemArch:
-    from execute_exp.services.memory_architecures.ZeroDictMemArch import ZeroDictMemArch
-    from execute_exp.services.memory_architecures.OneDictMemArch import OneDictMemArch
-    from execute_exp.services.memory_architecures.OneDictOldDataOneDictNewDataMemArch import (
-        OneDictOldDataOneDictNewDataMemArch,
-    )
-    from execute_exp.services.memory_architecures.OneDictAllDataOneDictNewDataMemArch import (
-        OneDictAllDataOneDictNewDataMemArch,
+    from execute_exp.services.memory_architecures.MemcachedWriteBackMemArch import (
+        MemcachedWriteBackMemArch,
     )
     from execute_exp.services.memory_architecures.MemcachedWriteThroughMemArch import (
         MemcachedWriteThroughMemArch,
     )
-    from execute_exp.services.memory_architecures.MemcachedWriteBackMemArch import (
-        MemcachedWriteBackMemArch,
+    from execute_exp.services.memory_architecures.OneDictAllDataOneDictNewDataMemArch import (
+        OneDictAllDataOneDictNewDataMemArch,
     )
+    from execute_exp.services.memory_architecures.OneDictMemArch import OneDictMemArch
+    from execute_exp.services.memory_architecures.OneDictOldDataOneDictNewDataMemArch import (
+        OneDictOldDataOneDictNewDataMemArch,
+    )
+    from execute_exp.services.memory_architecures.ZeroDictMemArch import ZeroDictMemArch
 
     retrieval_strategy = _init_retrieval_strategy()
     use_threads = SpeeduPySettings().retrieval_exec_mode == ["thread"]
@@ -46,11 +47,11 @@ def init_mem_arch() -> AbstractMemArch:
 
 
 def _init_retrieval_strategy() -> AbstractRetrievalStrategy:
-    from execute_exp.services.retrieval_strategies.LazyRetrieval import LazyRetrieval
+    from execute_exp.services.retrieval_strategies.EagerRetrieval import EagerRetrieval
     from execute_exp.services.retrieval_strategies.FunctionRetrieval import (
         FunctionRetrieval,
     )
-    from execute_exp.services.retrieval_strategies.EagerRetrieval import EagerRetrieval
+    from execute_exp.services.retrieval_strategies.LazyRetrieval import LazyRetrieval
 
     storage = _init_storage()
     if SpeeduPySettings().retrieval_strategy == ["lazy"]:
@@ -62,18 +63,18 @@ def _init_retrieval_strategy() -> AbstractRetrievalStrategy:
 
 
 def _init_storage() -> Storage:
-    from execute_exp.services.storages.SQLiteStorage import SQLiteStorage
-    from execute_exp.services.storages.RedisStorage import RedisStorage
-    from execute_exp.services.storages.MongoStorage import MongoStorage
+    from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
     from execute_exp.services.storages.GridFSStorage import GridFSStorage
+    from execute_exp.services.storages.MongoStorage import MongoStorage
     from execute_exp.services.storages.MongoWithFileSystemStorage import (
         MongoWithFileSystemStorage,
     )
     from execute_exp.services.storages.MongoWithGridFSStorage import (
         MongoWithGridFSStorage,
     )
-    from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
     from execute_exp.services.storages.MySQLStorage import MySQLStorage
+    from execute_exp.services.storages.RedisStorage import RedisStorage
+    from execute_exp.services.storages.SQLiteStorage import SQLiteStorage
 
     serializer = get_serializer()
     if SpeeduPySettings().storage == ["sqlite"]:
@@ -99,10 +100,10 @@ def _init_storage() -> Storage:
 
 
 def get_serializer() -> Serializer:
-    from execute_exp.services.serializers.PickleSerializer import PickleSerializer
     from execute_exp.services.serializers.CloudpickleSerializer import (
         CloudpickleSerializer,
     )
+    from execute_exp.services.serializers.PickleSerializer import PickleSerializer
 
     if SpeeduPySettings().serializer == ["pickle"]:
         return PickleSerializer()
@@ -140,11 +141,11 @@ def init_exec_mode() -> Optional[AbstractExecutionMode]:
 def init_revalidation(
     exec_mode: Optional[AbstractExecutionMode],
 ) -> Optional[AbstractRevalidation]:
-    from execute_exp.services.revalidations.NoRevalidation import NoRevalidation
-    from execute_exp.services.revalidations.FixedRevalidation import FixedRevalidation
     from execute_exp.services.revalidations.AdaptativeRevalidation import (
         AdaptativeRevalidation,
     )
+    from execute_exp.services.revalidations.FixedRevalidation import FixedRevalidation
+    from execute_exp.services.revalidations.NoRevalidation import NoRevalidation
 
     if exec_mode is None:
         return
@@ -161,12 +162,12 @@ def init_revalidation(
 
 
 def get_hash() -> Hash:
-    from execute_exp.services.hashes.MD5Hash import MD5Hash
-    from execute_exp.services.hashes.MurmurHash import MurmurHash
-    from execute_exp.services.hashes.XXHashHash import XXHashHash
-    from execute_exp.services.hashes.MeowHash import MeowHash
-    from execute_exp.services.hashes.MuseairBFastHash import MuseairBFastHash
     from execute_exp.services.hashes.A5Hash import A5Hash
+    from execute_exp.services.hashes.MD5Hash import MD5Hash
+    from execute_exp.services.hashes.MeowHash import MeowHash
+    from execute_exp.services.hashes.MurmurHash import MurmurHash
+    from execute_exp.services.hashes.MuseairBFastHash import MuseairBFastHash
+    from execute_exp.services.hashes.XXHashHash import XXHashHash
 
     serializer = get_serializer()
     if SpeeduPySettings().hash == ["md5"]:

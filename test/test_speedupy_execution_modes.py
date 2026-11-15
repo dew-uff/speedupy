@@ -1,14 +1,17 @@
-import unittest, os, sys, inspect, random
 import importlib
+import inspect
+import os
+import random
+import sys
+import unittest
 from unittest.mock import Mock
-
 
 project_folder = os.path.realpath(__file__).split("test/")[0]
 sys.path.append(project_folder)
 
-from execute_exp.SpeeduPySettings import SpeeduPySettings
-from execute_exp.services.DataAccess import DataAccess
 import speedupy
+from execute_exp.services.DataAccess import DataAccess
+from execute_exp.SpeeduPySettings import SpeeduPySettings
 
 
 class TestSpeeduPyExecMode(unittest.TestCase):

@@ -1,4 +1,7 @@
-import unittest, os, sys, json
+import json
+import os
+import sys
+import unittest
 from unittest.mock import Mock, call
 
 project_folder = os.path.realpath(__file__).split("test/")[0]

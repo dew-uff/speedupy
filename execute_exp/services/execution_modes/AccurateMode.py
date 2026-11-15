@@ -1,9 +1,8 @@
-from execute_exp.entitites.Metadata import Metadata
 from execute_exp.entitites.FunctionCallProv import FunctionCallProv
+from execute_exp.entitites.Metadata import Metadata
 from execute_exp.services.execution_modes.AbstractExecutionMode import (
     AbstractExecutionMode,
 )
-from execute_exp.services.DataAccess import DataAccess
 
 
 class AccurateMode(AbstractExecutionMode):

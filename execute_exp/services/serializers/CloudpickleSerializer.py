@@ -1,5 +1,6 @@
+from typing import Any, BinaryIO, Union
+
 import cloudpickle
-from typing import Any, Union, BinaryIO
 
 from execute_exp.services.serializers.Serializer import Serializer
 from execute_exp.services.serializers.util import to_canonical

@@ -1,11 +1,13 @@
-import unittest, os, sys
+import os
+import sys
+import unittest
 from unittest.mock import patch
 
 project_folder = os.path.realpath(__file__).split("test/")[0]
 sys.path.append(project_folder)
 
-from execute_exp.services.revalidations.AbstractRevalidation import AbstractRevalidation
 from execute_exp.entitites.FunctionCallProv import FunctionCallProv
+from execute_exp.services.revalidations.AbstractRevalidation import AbstractRevalidation
 
 
 class TestAbstractRevalidation(unittest.TestCase):

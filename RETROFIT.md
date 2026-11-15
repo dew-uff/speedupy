@@ -615,7 +615,8 @@ Sonnet · medium · clear first: yes · depends on: 10
    write a test that shows state shared between calls, then fix. The
    `func_globals={}` of the test helpers is never read: the decorator removes
    it and setup injects `None`.
-3. Bare `except` (`E722`): name the exception. Star import (`F403`) in
+3. Bare `except` (`E722`): name the exception. Comparison to `None` with `==`
+   (`E711`, two places): use `is`. Star import (`F403`) in
    `setup_exp/entities/FunctionGraph.py`: import the names.
 4. Remove the temporary ignores of Task 10.
 

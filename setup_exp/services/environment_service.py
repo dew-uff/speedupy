@@ -1,12 +1,13 @@
 import os
-from logger.log import debug
+
 from constantes import Constantes
-from entities.BancoMemcached import BancoMemcached
-from entities.BancoSQLite import BancoSQLite
-from entities.BancoRedis import BancoRedis
-from entities.BancoMongo import BancoMongo
 from entities.BancoGridFS import BancoGridFS
+from entities.BancoMemcached import BancoMemcached
+from entities.BancoMongo import BancoMongo
 from entities.BancoMySQL import BancoMySQL
+from entities.BancoRedis import BancoRedis
+from entities.BancoSQLite import BancoSQLite
+from logger.log import debug
 
 
 def init_env():
