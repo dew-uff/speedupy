@@ -81,6 +81,7 @@ class TestMemcachedWriteBackMemArch(AbstractMemArchTest, unittest.TestCase):
     def test_create_cache_entry_writes_only_to_memcached(self):
         self.mem_arch.create_cache_entry("hash123", "resultado")
 
+        time.sleep(0.1)  # Memcached need some time to insert elements to the database
         self.assertEqual(
             self.memcached.get("hash123"), CacheData("hash123", "resultado")
         )

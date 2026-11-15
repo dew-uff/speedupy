@@ -44,6 +44,9 @@ class TestEnvironmentService(unittest.TestCase):
         )
 
     def setUp(self):
+        # The tests count what they put in the servers: start them empty,
+        # whatever the tests that ran before left there.
+        self.clear_servers()
         self.mysql_client = mysql.connector.connect(host="127.0.0.1", user="root")
         self.mysql = self.mysql_client.cursor()
 
@@ -54,13 +57,26 @@ class TestEnvironmentService(unittest.TestCase):
         cls.memcached.close()
 
     def tearDown(self):
+        # A test may close self.mysql midway; a failure before it reconnects
+        # must not turn into a teardown error that hides it.
+        self.mysql.close()
+        self.mysql_client.close()
+        self.clear_servers()
+
+    def clear_servers(self):
         os.system("rm -rf {}".format(self.FOLDER_NAME))
         self.redis.flushdb()
         self.mongo_client.drop_database("speedupy")
-        self.memcached.flush_all()
-        self.mysql.execute("DROP DATABASE IF EXISTS speedupy")
-        self.mysql.close()
-        self.mysql_client.close()
+        self.memcached.flush_all(noreply=False)
+        mysql_client = mysql.connector.connect(host="127.0.0.1", user="root")
+        mysql_client.cursor().execute("DROP DATABASE IF EXISTS speedupy")
+        mysql_client.close()
+
+    def count_memcached_items(self):
+        # flush_all hides the items at once but curr_items drops only later,
+        # when they are read or crawled: count the keys populate_memcached_cache
+        # writes instead.
+        return len(self.memcached.get_many([str(i) for i in range(5)]))
 
     def populate_redis_database(self):
         for i in range(5):
@@ -156,7 +172,7 @@ class TestEnvironmentService(unittest.TestCase):
         self.assertEqual(self.redis.dbsize(), 5)
         self.assertEqual(self.mongo.count_documents({}), 5)
         self.assertEqual(self.gridfs.files.count_documents({}), 5)
-        self.assertEqual(self.memcached.stats()[b"curr_items"], 5)
+        self.assertEqual(self.count_memcached_items(), 5)
         self.mysql.execute("SELECT COUNT(*) FROM CACHE")
         self.assertTupleEqual(self.mysql.fetchone(), (5,))
         self.mysql.close()
@@ -168,7 +184,7 @@ class TestEnvironmentService(unittest.TestCase):
         self.assertEqual(self.redis.dbsize(), 0)
         self.assertEqual(self.mongo.count_documents({}), 0)
         self.assertEqual(self.gridfs.files.count_documents({}), 0)
-        self.assertEqual(self.memcached.stats()[b"curr_items"], 0)
+        self.assertEqual(self.count_memcached_items(), 0)
         self.mysql_client = mysql.connector.connect(
             host="127.0.0.1", user="root", database="speedupy"
         )
@@ -190,7 +206,7 @@ class TestEnvironmentService(unittest.TestCase):
         self.assertEqual(self.redis.dbsize(), 5)
         self.assertEqual(self.mongo.count_documents({}), 5)
         self.assertEqual(self.gridfs.files.count_documents({}), 5)
-        self.assertEqual(self.memcached.stats()[b"curr_items"], 5)
+        self.assertEqual(self.count_memcached_items(), 5)
         self.mysql.execute("SELECT COUNT(*) FROM CACHE")
         self.assertTupleEqual(self.mysql.fetchone(), (5,))
 
