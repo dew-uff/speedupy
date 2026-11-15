@@ -76,7 +76,7 @@ class ScriptFunctionCallHierarchyAnalyzer(ast.NodeVisitor, PubSub):
                 function_called_name
             )
 
-        if function_called != None:
+        if function_called is not None:
             self.publish(
                 "function_call",
                 {

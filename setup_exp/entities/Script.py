@@ -10,14 +10,14 @@ class Script:
         self,
         name="",
         AST=None,
-        import_commands=set(),
-        functions={},
+        import_commands=None,
+        functions=None,
         function_graph=None,
     ):
         self.__name = name
         self.__AST = AST
-        self.__import_commands = import_commands
-        self.__functions = functions
+        self.__import_commands = set() if import_commands is None else import_commands
+        self.__functions = {} if functions is None else functions
         self.__function_graph = function_graph
 
     def get_user_defined_imported_scripts(self, experiment_base_dir: str):

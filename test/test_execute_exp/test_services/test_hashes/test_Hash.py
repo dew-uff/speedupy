@@ -1,11 +1,7 @@
 import json
 import os
-import sys
 import unittest
 from unittest.mock import Mock, call
-
-project_folder = os.path.realpath(__file__).split("test/")[0]
-sys.path.append(project_folder)
 
 from execute_exp.services.hashes.Hash import Hash
 
@@ -87,6 +83,22 @@ class TestHash(unittest.TestCase):
             separators=(",", ":"),
         ).encode("utf-8")
         self.hash._hash.assert_called_once_with(expected_args)
+
+    def test_get_id_default_kwargs_are_not_shared_between_calls(self):
+        seen_kwargs = []
+
+        def record_then_mutate(obj):
+            if isinstance(obj, dict):
+                seen_kwargs.append(dict(obj))
+                obj["leaked"] = True
+            return obj
+
+        self.serializer.to_canonical = Mock(side_effect=record_then_mutate)
+
+        self.hash.get_id("return 1")
+        self.hash.get_id("return 1")
+
+        self.assertEqual(seen_kwargs, [{}, {}])
 
 
 if __name__ == "__main__":

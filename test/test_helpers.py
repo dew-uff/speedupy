@@ -10,7 +10,7 @@ def random_str(length=20):
 
 
 @deterministic
-def func(i: int, v: set = {}, func_globals={}):
+def func(i: int, v: set = None, func_globals=None):
     print("stdout msg")
     print("stderr msg", file=sys.stderr)
     return 2

@@ -1,9 +1,4 @@
-import os
-import sys
 import unittest
-
-project_folder = os.path.realpath(__file__).split("test/")[0]
-sys.path.append(project_folder)
 
 from execute_exp.services.revalidations.NoRevalidation import NoRevalidation
 

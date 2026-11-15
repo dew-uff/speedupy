@@ -7,7 +7,9 @@ class Hash:
     def __init__(self, serializer: Serializer):
         self._serializer = serializer
 
-    def get_id(self, fun_source: str, fun_args=(), fun_kwargs={}) -> str:
+    def get_id(self, fun_source: str, fun_args=(), fun_kwargs=None) -> str:
+        if fun_kwargs is None:
+            fun_kwargs = {}
         canonical = {
             "args": self._serializer.to_canonical(fun_args),
             "kwargs": self._serializer.to_canonical(fun_kwargs),

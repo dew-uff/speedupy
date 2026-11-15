@@ -43,7 +43,9 @@ def _python_code_to_AST(file_name: str) -> ast.Module:
         # Opening file
         file = open(file_name, "r")
 
-    except:
+    # Any failure to open the file is reported the same way. Not only OSError can
+    # happen: a path with a null byte raises ValueError, a non-path TypeError.
+    except Exception:
         print("Error while trying to open file!")
         print("Check if the file exists!")
         return None
@@ -53,7 +55,10 @@ def _python_code_to_AST(file_name: str) -> ast.Module:
             # Generating AST from Python code
             return ast.parse(file.read())
 
-        except:
+        # Any failure to read or parse the file is reported the same way: reading
+        # can raise OSError or UnicodeDecodeError, parsing SyntaxError, ValueError
+        # (null bytes), RecursionError or MemoryError.
+        except Exception:
             print("Error while trying to generate AST from the Python code!")
             print("Check if your Python script is correctly writen.")
             return None

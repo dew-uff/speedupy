@@ -1,12 +1,8 @@
 import ast
 import os
-import sys
 import unittest
 import unittest.mock
 from typing import Dict, List
-
-project_folder = os.path.realpath(__file__).split("test/")[0]
-sys.path.append(project_folder)
 
 from setup_exp.services.ASTSearcherService import ASTSearcherService
 

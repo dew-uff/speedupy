@@ -1,14 +1,8 @@
+import json
 import os
 import sys
 import unittest
 import unittest.mock
-
-current = os.path.dirname(os.path.realpath(__file__))
-parent = os.path.dirname(current)
-sys.path.append(parent)
-
-import json
-import sys
 from hashlib import md5
 
 from mmh3 import hash128

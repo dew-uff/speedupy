@@ -1,13 +1,6 @@
-import os
-import sys
+import random
 import unittest
 from unittest.mock import patch
-
-project_folder = os.path.realpath(__file__).split("test/")[0]
-sys.path.append(project_folder)
-
-import random
-import sys
 
 from execute_exp.services.execution_modes.AccurateMode import AccurateMode
 from execute_exp.services.execution_modes.ProbabilisticCountingMode import (

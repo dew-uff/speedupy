@@ -1,15 +1,10 @@
 import hashlib
-import os
 import random
-import sys
 import unittest
 from unittest.mock import Mock
 
 import mmh3
 import xxhash
-
-project_folder = os.path.realpath(__file__).split("test/")[0]
-sys.path.append(project_folder)
 
 from execute_exp.entitites.Metadata import Metadata
 from execute_exp.services.DataAccess import DataAccess
@@ -50,7 +45,9 @@ class TestDataAccess(unittest.TestCase):
     def tearDown(self) -> None:
         self.dataAccess._DataAccess__METADATA = {}
 
-    def manually_get_id(self, f_source, f_args, f_kwargs, hash_algorithm=["md5"]):
+    def manually_get_id(self, f_source, f_args, f_kwargs, hash_algorithm=None):
+        if hash_algorithm is None:
+            hash_algorithm = ["md5"]
         f_call_hash = b""
         if f_args != []:
             f_call_hash += self.serializer.dumps(f_args)

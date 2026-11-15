@@ -1,10 +1,5 @@
 import os
-import sys
 import unittest
-
-project_folder = os.path.realpath(__file__).split("test/")[0]
-sys.path.append(project_folder)
-
 from typing import Dict
 
 from constantes import Constantes

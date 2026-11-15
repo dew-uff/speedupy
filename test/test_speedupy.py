@@ -1,11 +1,6 @@
-import os
 import sys
 import unittest
 from unittest.mock import Mock, patch
-
-current = os.path.dirname(os.path.realpath(__file__))
-parent = os.path.dirname(current)
-sys.path.append(parent)
 
 from execute_exp.services.Profiler import Profiler
 from speedupy import _execute_func_measuring_time, deterministic
@@ -87,7 +82,7 @@ class TestSpeeduPy(unittest.TestCase):
 
     def test_deterministic_when_function_has_no_args(self):
         @deterministic
-        def func(x=10, y=20, z=30, func_globals={}):
+        def func(x=10, y=20, z=30, func_globals=None):
             return False
 
         self.assertFalse(func(x=1, y=2, z=3, func_globals=globals()))
@@ -104,7 +99,7 @@ class TestSpeeduPy(unittest.TestCase):
 
     def test_deterministic_when_function_has_no_kwargs(self):
         @deterministic
-        def func(i, j, k, func_globals={}):
+        def func(i, j, k, func_globals=None):
             return {"my", "set", "!"}
 
         self.assertSetEqual(func(1, 2, 3, func_globals=globals()), {"my", "set", "!"})
@@ -119,7 +114,7 @@ class TestSpeeduPy(unittest.TestCase):
 
     def test_deterministic_when_function_has_no_input(self):
         @deterministic
-        def func(func_globals={}):
+        def func(func_globals=None):
             return ["my", -2.3, False]
 
         self.assertListEqual(func(func_globals=globals()), ["my", -2.3, False])
@@ -136,7 +131,7 @@ class TestSpeeduPy(unittest.TestCase):
         self,
     ):
         @deterministic
-        def func(lista: list, s: set = {}, func_globals={}):
+        def func(lista: list, s: set = None, func_globals=None):
             lista.pop()
             s.remove("a")
             return lista, s
@@ -298,7 +293,7 @@ class TestSpeeduPy(unittest.TestCase):
         mock_stderr.write.assert_called_with("stderr msg\n")
 
     def test_execute_func_measuring_time_when_a_function_without_args_is_passed(self):
-        def func2(x=1.12312, y=[1, 5, 2]):
+        def func2(x=1.12312, y=None):
             return 3.14
 
         result, stdout_msg, stderr_msg, _ = _execute_func_measuring_time(

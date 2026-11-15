@@ -4,7 +4,6 @@ from typing import List
 
 from setup_exp.entities.Experiment import Experiment
 from setup_exp.entities.Script import Script
-from util import *
 
 
 class FunctionGraph:
