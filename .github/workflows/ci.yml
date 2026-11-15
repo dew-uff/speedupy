@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+# A newer push to the same branch or pull request makes the running workflow
+# obsolete. On `main` every commit keeps its own run: a cancelled run would
+# leave a commit without a verdict.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+# No job writes to the repository.
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+# Every job runs the CPython that uv downloads, never a Python of the runner
+# image, so the interpreter does not change when GitHub updates the image.
+env:
+  UV_MANAGED_PYTHON: "1"
+
+jobs:
+  # Cheap checks, in parallel with the suite, so a red here does not hide the
+  # result of the tests. Each check runs even when the one before it failed.
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install uv and Python 3.10
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          python-version: "3.10"
+          enable-cache: true
+
+      # pyproject.toml changed without `uv lock`: every `uv sync --locked`
+      # would fail with a message about the lock, far from the cause.
+      - name: Lock is up to date
+        run: uv lock --check
+
+      # requirements.txt stays for users; its pins must equal the ones in
+      # [project.dependencies] (Task 3).
+      - name: Pins of requirements.txt and pyproject.toml agree
+        if: ${{ !cancelled() }}
+        run: uv run --no-project python .github/scripts/check-pins.py
+
+  test:
+    # min-tests: floor for passed + skipped + xfailed + xpassed. Raise it in the
+    # pull request that adds tests; lower it only with the reason written in
+    # the pull request.
+    env:
+      MIN_TESTS: 262
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # setup-uv hands python-version to uv, which downloads that CPython even
+      # when the image has one (UV_MANAGED_PYTHON, at the top).
+      - name: Install uv and Python 3.10
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          python-version: "3.10"
+          enable-cache: true
+
+      # --locked: install exactly what uv.lock says, and fail instead of
+      # re-resolving when the lock and pyproject.toml disagree.
+      - name: Install dependencies
+        id: sync
+        run: uv sync --locked
+
+      # No server runs here: the server tests are deselected (see AGENTS.md).
+      - name: Run tests
+        run: |
+          set -o pipefail
+          uv run --no-sync pytest | tee pytest.log
+
+      # The count in the job summary, and a failure when the count drops below
+      # MIN_TESTS or the log has no summary line: a zero exit status does not
+      # prove that the tests ran.
+      - name: Record the test count
+        if: ${{ !cancelled() && steps.sync.outcome == 'success' }}
+        run: |
+          bash .github/scripts/pytest-summary.sh pytest.log "$MIN_TESTS" \
+            "ubuntu-latest, 3.10" "uv sync --locked && uv run --no-sync pytest"
+
+  # The one check that the ruleset of `main` requires (Task 7). It fails when
+  # any job failed or was cancelled, so adding a job to `needs` is all it takes
+  # to make that job blocking.
+  ci-ok:
+    if: always()
+    needs: [checks, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: All required jobs passed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: |
+          echo "::error::checks=${{ needs.checks.result }} test=${{ needs.test.result }}"
+          exit 1

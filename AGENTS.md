@@ -73,6 +73,21 @@ Do not assume the machine has what a task needs.
    local containers, a check left unrun. If the dev declines, stop, say what
    cannot be delivered and write that in the issue.
 
+## Definition of done
+
+A change is done when all of these hold:
+
+- `uv run pytest` is green (see "Running the tests").
+- The floor is raised in the pull request that adds tests: `MIN_TESTS` in the
+  `test` job of `.github/workflows/ci.yml` is the least number of tests
+  (passed, skipped, xfailed and xpassed) a run may report. It is lowered only
+  with the reason written in the pull request.
+- CI is green at the tip of the branch. `ci-ok` is the one job that says so; it
+  fails when `checks` or `test` failed or was cancelled. A job added to the
+  workflow joins the `needs` of `ci-ok`.
+
+CI runs no server: the server tests stay deselected there until Task 14.
+
 ## Safety
 
 **The setup and the suite erase data on localhost.** On its first run,
