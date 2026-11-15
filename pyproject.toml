@@ -24,6 +24,7 @@ package = false
 dev = [
     "pytest",
     "pytest-cov",
+    "pytest-randomly",
 ]
 
 [tool.pytest.ini_options]

@@ -1,4 +1,4 @@
-import unittest, os, sys, importlib
+import unittest, os, sys
 from unittest.mock import patch
 
 project_folder = os.path.realpath(__file__).split('test/')[0]
@@ -8,7 +8,10 @@ import setup_exp.setup as setup
 
 class TestSetup(unittest.TestCase):
     def setUp(self):
-        importlib.reload(sys)
+        # The tests assign to sys.argv; patch.object puts it back.
+        patcher = patch.object(sys, 'argv', sys.argv)
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
     def tearDown(self):
         paths = ['.speedupy/', 'teste.xyz', 'teste.temp', 'folder1', 'folder2']

@@ -13,8 +13,18 @@ import speedupy
 
 class TestSpeeduPyExecMode(unittest.TestCase):
     def setUp(self):
+        # The tests reload speedupy with other options and replace its attributes
+        # by mocks: put the module and the settings back afterwards.
+        for obj in (speedupy, SpeeduPySettings()):
+            saved = dict(vars(obj))
+            self.addCleanup(self._restore_attributes, obj, saved)
         SpeeduPySettings().measure_time = False
         SpeeduPySettings().profile = False
+
+    @staticmethod
+    def _restore_attributes(obj, saved):
+        vars(obj).clear()
+        vars(obj).update(saved)
 
     def test_initialize_speedupy_on_no_cache_exec_mode_without_time_measure(self):
         SpeeduPySettings().exec_mode = ['no-cache']

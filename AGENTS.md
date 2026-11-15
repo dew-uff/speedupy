@@ -131,9 +131,13 @@ it by running.
   `__init__.py` in the current directory and remove them with `rm`. The paths
   in `constantes.py` are relative, so changing directory is enough to move them.
   The conftest runs the session in a scratch directory.
-- **Singletons are never reset:** `SingletonMeta` keeps one instance per class
-  for the life of the process. `test/test_entities/test_BancoRedis.py` builds
-  `BancoRedis()` under a mocked client, which then stays in the singleton.
+- **Singletons live as long as the process:** `SingletonMeta` keeps one instance
+  per class. The autouse fixture `_restore_process_state` in `test/conftest.py`
+  puts back, after every test, the instances and their attributes, `sys.argv`,
+  `sys.version_info` and the current directory. It restores attributes by name,
+  so an object mutated in place (a list inside a singleton) is not undone. A test
+  that builds a singleton under a mock starts from no instance and says so, as
+  `test_BancoRedis.py` does.
 - **Native libraries:** `MeowHash.py`, `A5Hash.py` and `MuseairBFastHash.py`
   load `libmeow.so`, `liba5hash.so` and `libmuseair.so` at import. The files are
   not versioned, no source is in the repository, and they export custom symbols
@@ -173,6 +177,12 @@ It runs the tests that need no server and no native library, in a scratch
 directory, and writes nothing in the checkout (`.pytest_cache/` and
 `__pycache__/` are git-ignored). Pytest's own options work (`-q`, `-k`, `-m`):
 `test/conftest.py` trims `sys.argv` before any test module loads.
+
+- **Random order.** pytest-randomly shuffles the tests and prints its seed in the
+  header (`Using --randomly-seed=N`); the job summary of CI records it. To
+  rerun an order: `uv run pytest --randomly-seed=N`. A test that
+  passes only in a fixed order is a bug in the test: fix it, or open an issue
+  and note the number beside the module.
 
 - **Markers.** `mysql`, `mongo`, `redis`, `memcached` and `native` come from the
   map `MARKER_MAP` in `test/conftest.py`, not from the test files. A test class

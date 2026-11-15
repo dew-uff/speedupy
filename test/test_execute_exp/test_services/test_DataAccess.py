@@ -15,6 +15,11 @@ from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMem
 
 class TestDataAccess(unittest.TestCase):
     def setUp(self):
+        # The tests fill the DataAccess and SpeeduPySettings singletons with
+        # mocks and random options: put their attributes back afterwards.
+        for singleton in (DataAccess(), SpeeduPySettings()):
+            saved = dict(vars(singleton))
+            self.addCleanup(self._restore_attributes, singleton, saved)
         serializer = random.choice([['pickle', PickleSerializer()],
                                     ['cloudpickle', CloudpickleSerializer()]])
         SpeeduPySettings().serializer = [serializer[0]]
@@ -26,6 +31,11 @@ class TestDataAccess(unittest.TestCase):
                                                'f3': 'f3_hash'}
         self.dataAccess._hash = Mock(Hash)
         self.dataAccess._mem_arch = Mock(AbstractMemArch)
+
+    @staticmethod
+    def _restore_attributes(obj, saved):
+        vars(obj).clear()
+        vars(obj).update(saved)
 
     def tearDown(self) -> None:
         self.dataAccess._DataAccess__METADATA = {}
