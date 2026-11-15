@@ -208,6 +208,12 @@ directory, and writes nothing in the checkout (`.pytest_cache/` and
 
 ## Running the tests with servers
 
+Docker is needed only for this suite, the tests that need a server. Plain
+`uv run pytest` needs neither a server nor Docker, and SpeeduPy itself never
+needs Docker. Until Task 15 (issue #15), though, the first setup of an
+experiment reaches all four servers whatever the storage, so even an
+experiment that uses the `file` or `sqlite` storage fails there without them.
+
 From the repository root, two commands:
 
 ```bash
