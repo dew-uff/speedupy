@@ -262,7 +262,7 @@ Task 2 fills the "Decision" column. A task that names a decision waits for it.
 | 2 | Maintainer decisions | maintainer | Sonnet | medium | yes | none | pending |
 | 3 | uv project and lock | dev | Sonnet | low | yes | none | done (#39) |
 | 4 | Fix the two flaky tests | dev | Sonnet | low | yes | 3 | done (#42) |
-| 5 | pytest harness, safe by default | dev | Sonnet | high | yes | 3, 4 | pending |
+| 5 | pytest harness, safe by default | dev | Sonnet | high | yes | 3, 4 | done (#47) |
 | 6 | CI without servers | dev | Sonnet | medium | yes | 5 | pending |
 | 7 | Require CI on `main` | admin | Sonnet | low | yes | 6 | pending |
 | 8 | Test isolation and random order | dev | Sonnet | high | yes | 6 | pending |
