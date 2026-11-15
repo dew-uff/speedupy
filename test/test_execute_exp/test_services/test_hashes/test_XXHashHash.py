@@ -1,5 +1,10 @@
-import unittest, os, sys, xxhash, json
+import json
+import os
+import sys
+import unittest
 from unittest.mock import Mock
+
+import xxhash
 
 project_folder = os.path.realpath(__file__).split("test/")[0]
 sys.path.append(project_folder)

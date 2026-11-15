@@ -1,5 +1,5 @@
-from SingletonMeta import SingletonMeta
 from execute_exp.services.DataAccess import DataAccess
+from SingletonMeta import SingletonMeta
 
 
 class Profiler(metaclass=SingletonMeta):

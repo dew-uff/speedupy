@@ -1,5 +1,7 @@
-import unittest, os, sys
-from unittest.mock import Mock, call
+import os
+import sys
+import unittest
+from unittest.mock import Mock
 
 project_folder = os.path.realpath(__file__).split("test/")[0]
 sys.path.append(project_folder)

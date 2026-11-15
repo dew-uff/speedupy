@@ -32,6 +32,22 @@ dev = [
 # The oldest Python the project supports (D6).
 target-version = "py310"
 
+[tool.ruff.lint]
+# Blocking rules, as noWorkflow selects them. Line length is the formatter's.
+select = ["E4", "E7", "E9", "F", "W605", "B006", "I"]
+ignore = [
+    # Task 11 removes this: E402 (imports after code).
+    "E402",
+    # Task 11 removes this: B006 (mutable default arguments).
+    "B006",
+    # Task 11 removes this: E722 (bare except).
+    "E722",
+    # Task 11 removes this: E711 (comparison to None with ==).
+    "E711",
+    # Task 11 removes this: F403 (star import in FunctionGraph.py).
+    "F403",
+]
+
 [tool.ruff.format]
 # LF on every platform; .gitattributes does the same for git.
 line-ending = "lf"

@@ -1,8 +1,9 @@
 import cloudpickle
+
+from execute_exp.entitites.CacheData import CacheData
 from execute_exp.services.memory_architecures.AbstractOneDictMemArch import (
     AbstractOneDictMemArch,
 )
-from execute_exp.entitites.CacheData import CacheData
 
 
 class OneDictMemArch(AbstractOneDictMemArch):

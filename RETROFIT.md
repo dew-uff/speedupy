@@ -267,7 +267,7 @@ Task 2 fills the "Decision" column. A task that names a decision waits for it.
 | 7 | Require CI on `main` | admin | Sonnet | low | yes | 6 | pending |
 | 8 | Test isolation and random order | dev | Sonnet | high | yes | 6 | done (#52) |
 | 9 | Format once | dev | Sonnet | low | yes | 8, D1 | done (#55) |
-| 10 | Lint: automatic fixes and the gate | dev | Sonnet | medium | yes | 9 | pending |
+| 10 | Lint: automatic fixes and the gate | dev | Sonnet | medium | yes | 9 | done (#57) |
 | 11 | Lint: violations that need judgment | dev | Sonnet | medium | yes | 10 | pending |
 | 12 | Native libraries, part 1: lazy loading | dev | Sonnet | medium | yes | 6 | pending |
 | 13 | Disposable servers and the first full run | dev | Opus | medium | yes | 8, 12 | pending |
@@ -615,7 +615,8 @@ Sonnet · medium · clear first: yes · depends on: 10
    write a test that shows state shared between calls, then fix. The
    `func_globals={}` of the test helpers is never read: the decorator removes
    it and setup injects `None`.
-3. Bare `except` (`E722`): name the exception. Star import (`F403`) in
+3. Bare `except` (`E722`): name the exception. Comparison to `None` with `==`
+   (`E711`, two places): use `is`. Star import (`F403`) in
    `setup_exp/entities/FunctionGraph.py`: import the names.
 4. Remove the temporary ignores of Task 10.
 

@@ -1,5 +1,9 @@
-from typing import List, Dict
-import unittest, unittest.mock, os, sys, ast
+import ast
+import os
+import sys
+import unittest
+import unittest.mock
+from typing import Dict, List
 
 project_folder = os.path.realpath(__file__).split("test/")[0]
 sys.path.append(project_folder)

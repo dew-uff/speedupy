@@ -1,12 +1,14 @@
-import unittest, os, sys, random
-from unittest.mock import patch, Mock
+import os
+import sys
+import unittest
+from unittest.mock import Mock, patch
 
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 
 from execute_exp.services.Profiler import Profiler
-from speedupy import deterministic, _execute_func_measuring_time
+from speedupy import _execute_func_measuring_time, deterministic
 
 
 class TestSpeeduPy(unittest.TestCase):

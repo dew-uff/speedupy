@@ -1,6 +1,8 @@
+import ast
+import os
 from typing import List, Optional
-import ast, os
-from util import is_an_user_defined_script, import_command_to_imported_scripts_names
+
+from util import import_command_to_imported_scripts_names, is_an_user_defined_script
 
 
 class Script:

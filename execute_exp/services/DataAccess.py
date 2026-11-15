@@ -1,9 +1,9 @@
-from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
-from execute_exp.function_calls_prov_table import FunctionCallsProvTable
+from constantes import Constantes
 from execute_exp.entitites.FunctionCallProv import FunctionCallProv
 from execute_exp.entitites.Metadata import Metadata
+from execute_exp.function_calls_prov_table import FunctionCallsProvTable
+from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
 from SingletonMeta import SingletonMeta
-from constantes import Constantes
 from util import get_content_json_file
 
 
@@ -15,7 +15,7 @@ class DataAccess(metaclass=SingletonMeta):
         self.__function_calls_prov_table: FunctionCallsProvTable
 
     def init_data_access(self):
-        from execute_exp.services.factory import init_mem_arch, get_hash, get_serializer
+        from execute_exp.services.factory import get_hash, get_serializer, init_mem_arch
 
         self._mem_arch = init_mem_arch()
         self._hash = get_hash()

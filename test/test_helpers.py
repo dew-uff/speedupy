@@ -1,4 +1,7 @@
-import sys, random, string
+import random
+import string
+import sys
+
 from speedupy import deterministic
 
 

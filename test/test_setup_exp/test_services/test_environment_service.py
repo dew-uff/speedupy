@@ -1,19 +1,28 @@
-import unittest, mysql.connector, redis, pymongo, gridfs, os, sys, random, pickle
+import os
+import pickle
+import random
+import sys
+import unittest
+from pathlib import Path
+
+import gridfs
+import mysql.connector
+import pymongo
+import redis
 from pymemcache.client.base import Client
 from pymemcache.serde import pickle_serde
-from pathlib import Path
 
 project_folder = os.path.realpath(__file__).split("test/")[0]
 sys.path.append(project_folder)
 
 from entities.BancoSQLite import BancoSQLite
 from setup_exp.services.environment_service import (
-    _create_databases,
-    _create_cache_folder,
-    _create_folder,
     _cache_folder_exists,
-    _folder_exists,
+    _create_cache_folder,
+    _create_databases,
+    _create_folder,
     _env_exists,
+    _folder_exists,
     init_env,
 )
 

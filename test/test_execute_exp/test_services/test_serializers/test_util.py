@@ -1,5 +1,7 @@
-import unittest, os, sys
-from types import FunctionType
+import os
+import sys
+import unittest
+
 import numpy as np
 
 project_folder = os.path.realpath(__file__).split("test/")[0]

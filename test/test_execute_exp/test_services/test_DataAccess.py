@@ -1,16 +1,23 @@
-import unittest, os, sys, hashlib, mmh3, xxhash, random
+import hashlib
+import os
+import random
+import sys
+import unittest
 from unittest.mock import Mock
+
+import mmh3
+import xxhash
 
 project_folder = os.path.realpath(__file__).split("test/")[0]
 sys.path.append(project_folder)
 
-from execute_exp.SpeeduPySettings import SpeeduPySettings
 from execute_exp.entitites.Metadata import Metadata
 from execute_exp.services.DataAccess import DataAccess
-from execute_exp.services.serializers.PickleSerializer import PickleSerializer
-from execute_exp.services.serializers.CloudpickleSerializer import CloudpickleSerializer
 from execute_exp.services.hashes.Hash import Hash
 from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
+from execute_exp.services.serializers.CloudpickleSerializer import CloudpickleSerializer
+from execute_exp.services.serializers.PickleSerializer import PickleSerializer
+from execute_exp.SpeeduPySettings import SpeeduPySettings
 
 
 class TestDataAccess(unittest.TestCase):

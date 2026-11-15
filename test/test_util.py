@@ -1,14 +1,20 @@
-import unittest, unittest.mock, os, sys, ast
+import os
+import sys
+import unittest
+import unittest.mock
 
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 
-from util import save_json_file, check_python_version
+import json
+import sys
 from hashlib import md5
+
 from mmh3 import hash128
 from xxhash import xxh128_hexdigest
-import json, sys
+
+from util import check_python_version, save_json_file
 
 
 class TestUtil(unittest.TestCase):

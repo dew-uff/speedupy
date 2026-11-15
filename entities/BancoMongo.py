@@ -1,6 +1,8 @@
 import atexit
+from typing import Dict, Optional
+
 from pymongo import MongoClient, UpdateOne
-from typing import Optional, Dict
+
 from SingletonMeta import SingletonMeta
 
 

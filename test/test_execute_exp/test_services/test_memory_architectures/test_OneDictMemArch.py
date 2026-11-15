@@ -1,14 +1,16 @@
+import os
+import random
+import sys
+import unittest
 from typing import Dict
-import unittest, os, sys, random
 
 project_folder = os.path.realpath(__file__).split("test/")[0]
 sys.path.append(project_folder)
 
-from execute_exp.services.memory_architecures.OneDictMemArch import OneDictMemArch
-from execute_exp.entitites.CacheData import CacheData
-from test_helpers import random_str
-from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
 
+from execute_exp.entitites.CacheData import CacheData
+from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
+from execute_exp.services.memory_architecures.OneDictMemArch import OneDictMemArch
 from test_execute_exp.test_services.test_memory_architectures.AbstractOneDictMemArchTest import (
     AbstractOneDictMemArchTest,
 )

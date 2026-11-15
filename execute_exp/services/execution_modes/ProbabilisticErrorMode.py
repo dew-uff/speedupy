@@ -1,12 +1,14 @@
-from execute_exp.entitites.Metadata import Metadata
+from math import isnan
+
+import scipy.stats as st
+
 from execute_exp.entitites.FunctionCallProv import FunctionCallProv
+from execute_exp.entitites.Metadata import Metadata
 from execute_exp.services.execution_modes.AbstractExecutionMode import (
     AbstractExecutionMode,
 )
 from execute_exp.services.execution_modes.util import function_outputs_dict_2_array
 from execute_exp.services.serializers.Serializer import Serializer
-import scipy.stats as st
-from math import isnan
 
 
 class ProbabilisticErrorMode(AbstractExecutionMode):

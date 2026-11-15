@@ -1,5 +1,5 @@
-from typing import List
 import ast
+
 from setup_exp.entities.Experiment import Experiment
 from setup_exp.entities.FunctionGraph import FunctionGraph
 from setup_exp.entities.Script import Script

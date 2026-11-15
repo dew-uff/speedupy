@@ -1,52 +1,14 @@
+import os
+import sys
+import unittest
 from unittest.mock import patch
-import unittest, os, sys
 
 project_folder = os.path.realpath(__file__).split("test/")[0]
 sys.path.append(project_folder)
 
-from execute_exp.services.factory import (
-    init_revalidation,
-    get_serializer,
-    init_exec_mode,
-    init_mem_arch,
-    get_hash,
-)
-from execute_exp.services.serializers.PickleSerializer import PickleSerializer
-from execute_exp.services.serializers.CloudpickleSerializer import CloudpickleSerializer
-from execute_exp.services.hashes.MD5Hash import MD5Hash
-from execute_exp.services.hashes.MurmurHash import MurmurHash
-from execute_exp.services.hashes.XXHashHash import XXHashHash
-from execute_exp.services.hashes.MeowHash import MeowHash
-from execute_exp.services.hashes.MuseairBFastHash import MuseairBFastHash
-from execute_exp.services.hashes.A5Hash import A5Hash
-from execute_exp.services.storages.SQLiteStorage import SQLiteStorage
-from execute_exp.services.storages.RedisStorage import RedisStorage
-from execute_exp.services.storages.MongoStorage import MongoStorage
-from execute_exp.services.storages.GridFSStorage import GridFSStorage
-from execute_exp.services.storages.MongoWithFileSystemStorage import (
-    MongoWithFileSystemStorage,
-)
-from execute_exp.services.storages.MongoWithGridFSStorage import MongoWithGridFSStorage
-from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
-from execute_exp.services.retrieval_strategies.LazyRetrieval import LazyRetrieval
-from execute_exp.services.retrieval_strategies.FunctionRetrieval import (
-    FunctionRetrieval,
-)
-from execute_exp.services.retrieval_strategies.EagerRetrieval import EagerRetrieval
-from execute_exp.services.memory_architecures.ZeroDictMemArch import ZeroDictMemArch
-from execute_exp.services.memory_architecures.OneDictMemArch import OneDictMemArch
-from execute_exp.services.memory_architecures.OneDictOldDataOneDictNewDataMemArch import (
-    OneDictOldDataOneDictNewDataMemArch,
-)
-from execute_exp.services.memory_architecures.OneDictAllDataOneDictNewDataMemArch import (
-    OneDictAllDataOneDictNewDataMemArch,
-)
-from execute_exp.services.memory_architecures.MemcachedWriteThroughMemArch import (
-    MemcachedWriteThroughMemArch,
-)
-from execute_exp.services.memory_architecures.MemcachedWriteBackMemArch import (
-    MemcachedWriteBackMemArch,
-)
+import random
+import sys
+
 from execute_exp.services.execution_modes.AccurateMode import AccurateMode
 from execute_exp.services.execution_modes.ProbabilisticCountingMode import (
     ProbabilisticCountingMode,
@@ -54,12 +16,54 @@ from execute_exp.services.execution_modes.ProbabilisticCountingMode import (
 from execute_exp.services.execution_modes.ProbabilisticErrorMode import (
     ProbabilisticErrorMode,
 )
-from execute_exp.services.revalidations.NoRevalidation import NoRevalidation
-from execute_exp.services.revalidations.FixedRevalidation import FixedRevalidation
+from execute_exp.services.factory import (
+    get_hash,
+    get_serializer,
+    init_exec_mode,
+    init_mem_arch,
+    init_revalidation,
+)
+from execute_exp.services.hashes.A5Hash import A5Hash
+from execute_exp.services.hashes.MD5Hash import MD5Hash
+from execute_exp.services.hashes.MeowHash import MeowHash
+from execute_exp.services.hashes.MurmurHash import MurmurHash
+from execute_exp.services.hashes.MuseairBFastHash import MuseairBFastHash
+from execute_exp.services.hashes.XXHashHash import XXHashHash
+from execute_exp.services.memory_architecures.MemcachedWriteBackMemArch import (
+    MemcachedWriteBackMemArch,
+)
+from execute_exp.services.memory_architecures.MemcachedWriteThroughMemArch import (
+    MemcachedWriteThroughMemArch,
+)
+from execute_exp.services.memory_architecures.OneDictAllDataOneDictNewDataMemArch import (
+    OneDictAllDataOneDictNewDataMemArch,
+)
+from execute_exp.services.memory_architecures.OneDictMemArch import OneDictMemArch
+from execute_exp.services.memory_architecures.OneDictOldDataOneDictNewDataMemArch import (
+    OneDictOldDataOneDictNewDataMemArch,
+)
+from execute_exp.services.memory_architecures.ZeroDictMemArch import ZeroDictMemArch
+from execute_exp.services.retrieval_strategies.EagerRetrieval import EagerRetrieval
+from execute_exp.services.retrieval_strategies.FunctionRetrieval import (
+    FunctionRetrieval,
+)
+from execute_exp.services.retrieval_strategies.LazyRetrieval import LazyRetrieval
 from execute_exp.services.revalidations.AdaptativeRevalidation import (
     AdaptativeRevalidation,
 )
-import sys, random
+from execute_exp.services.revalidations.FixedRevalidation import FixedRevalidation
+from execute_exp.services.revalidations.NoRevalidation import NoRevalidation
+from execute_exp.services.serializers.CloudpickleSerializer import CloudpickleSerializer
+from execute_exp.services.serializers.PickleSerializer import PickleSerializer
+from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
+from execute_exp.services.storages.GridFSStorage import GridFSStorage
+from execute_exp.services.storages.MongoStorage import MongoStorage
+from execute_exp.services.storages.MongoWithFileSystemStorage import (
+    MongoWithFileSystemStorage,
+)
+from execute_exp.services.storages.MongoWithGridFSStorage import MongoWithGridFSStorage
+from execute_exp.services.storages.RedisStorage import RedisStorage
+from execute_exp.services.storages.SQLiteStorage import SQLiteStorage
 
 
 class TestFactory(unittest.TestCase):

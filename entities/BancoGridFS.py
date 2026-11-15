@@ -1,7 +1,9 @@
 import atexit
+from typing import Dict, Optional
+
+from gridfs import GridFSBucket
 from pymongo import MongoClient
-from gridfs import GridFSBucket, NoFile
-from typing import Optional, Dict
+
 from SingletonMeta import SingletonMeta
 
 

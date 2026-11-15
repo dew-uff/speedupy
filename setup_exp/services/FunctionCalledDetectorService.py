@@ -1,17 +1,17 @@
 import os.path
 
 from setup_exp.entities.Experiment import Experiment
-from util import (
-    is_an_user_defined_script,
-    script_name_to_script_path,
-    import_command_to_imported_scripts_names,
-)
+from setup_exp.entities.Script import Script
 from setup_exp.services.services_util import (
+    get_import_command_of_function,
     get_original_name_of_function_imported_with_import_from,
     get_original_name_of_script_imported,
-    get_import_command_of_function,
 )
-from setup_exp.entities.Script import Script
+from util import (
+    import_command_to_imported_scripts_names,
+    is_an_user_defined_script,
+    script_name_to_script_path,
+)
 
 
 class FunctionCalledDetectorService:

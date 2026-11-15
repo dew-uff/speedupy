@@ -1,18 +1,19 @@
-import os, hashlib
-from typing import List, Dict, Set
+import hashlib
+import os
+from typing import Dict, List, Set
 
-from setup_exp.entities.Script import Script
 from setup_exp.entities.Experiment import Experiment
 from setup_exp.entities.FunctionGraph import FunctionGraph
+from setup_exp.entities.Script import Script
+from setup_exp.services.function_service import decorate_main_function
 from setup_exp.services.script_service import (
-    create_script,
+    add_decorator_import,
     analyze_script_function_call_hierarchy,
+    create_script,
     decorate_script_functions,
     overwrite_decorated_script,
-    add_decorator_import,
 )
-from setup_exp.services.function_service import decorate_main_function
-from util import is_an_user_defined_script, get_script_path
+from util import get_script_path, is_an_user_defined_script
 
 
 # TODO: TEST

@@ -1,5 +1,8 @@
-import atexit, redis
+import atexit
 from typing import Dict
+
+import redis
+
 from SingletonMeta import SingletonMeta
 
 
