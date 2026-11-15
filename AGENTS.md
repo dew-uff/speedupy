@@ -109,8 +109,9 @@ The storage, memory-architecture and environment tests do the same.
 a scratch directory (see "Running the tests"). What is still unsafe:
 
 - Do not run `setup_exp/setup.py`, or `SPEEDUPY_TEST_SERVERS=1 uv run pytest`,
-  on a machine whose local servers hold data that matters. Until Task 13 gives
-  disposable servers, use the container the `Dockerfile` builds.
+  against servers on this machine that hold data that matters. Run them
+  against the disposable servers of `compose.yaml` (see "Running the tests
+  with servers").
 - Do not bypass the harness with `python -m unittest`. It runs every server
   test, and a setup test writes and removes `__init__.py` in the current
   directory, which at the repository root is a tracked file.
@@ -195,7 +196,8 @@ directory, and writes nothing in the checkout (`.pytest_cache/` and
 - **Servers are opt-in.** `SPEEDUPY_TEST_SERVERS=1 uv run pytest` runs the server
   tests too. It first probes the four servers and aborts naming the unreachable
   ones: a missing server is an error, never a skip. These tests erase data (see
-  "Safety") and never run in parallel. Disposable servers arrive in Task 13.
+  "Safety") and never run in parallel. Run them against the disposable
+  servers: see "Running the tests with servers" below.
 - **Native tests** need the `.so` files and are skipped, with the missing file
   in the reason (`-rs`), when they are absent. `SPEEDUPY_REQUIRE_NATIVE=1` makes
   a missing file a failure. A test names its libraries in `NATIVE_MAP` in
@@ -203,6 +205,41 @@ directory, and writes nothing in the checkout (`.pytest_cache/` and
   are built from Task 25 on.
 - `uv run pytest --collect-only -q` touches no server, whatever the variable
   says. The count by what each test needs is in `RETROFIT.md`, "Baseline".
+
+## Running the tests with servers
+
+Docker is needed only for this suite, the tests that need a server. Plain
+`uv run pytest` needs neither a server nor Docker, and SpeeduPy itself never
+needs Docker. Until Task 15 (issue #15), though, the first setup of an
+experiment reaches all four servers whatever the storage, so even an
+experiment that uses the `file` or `sqlite` storage fails there without them.
+
+From the repository root, two commands:
+
+```bash
+docker compose up -d --wait
+SPEEDUPY_TEST_SERVERS=1 uv run pytest
+```
+
+`compose.yaml` starts MySQL, MongoDB, Redis and Memcached, in the versions of
+the `Dockerfile`, with nothing persisted; `--wait` returns when their health
+checks pass. `docker compose down -v` removes them and leaves nothing behind.
+
+- **A server already on the machine is protected.** The ports are the default
+  ones, bound to the loopback only, and compose refuses to start when one is
+  taken. Stop the local server first; never point the tests at it.
+- **Never in parallel.** The tests share Redis database 0, the `speedupy`
+  databases and the whole Memcached: one run at a time, and no `-n`.
+- **`localhost` may be `::1`.** The code reaches MongoDB, Redis and Memcached
+  as `localhost`, and pymemcache tries only the first address it resolves to,
+  so those three are bound to `[::1]` too.
+- **MongoDB needs file descriptors.** A run opens about 750 connections, more
+  than the container's default limit of 1024; `compose.yaml` sets 64000, as
+  MongoDB recommends.
+- **Memcached in a test:** pymemcache writes with `noreply` by default, so a
+  read through another client may overtake a write, and `flush_all` hides the
+  items at once but `curr_items` drops only later. Read the keys back; do not
+  count them with `stats()`.
 
 ## Formatting
 

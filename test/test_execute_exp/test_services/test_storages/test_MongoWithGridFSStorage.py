@@ -153,7 +153,9 @@ class TestMongoWithGridFSStorage(AbstractStorageTest, unittest.TestCase):
         self.manually_cache_a_record("func_call_hash2", [1, {2, 4, 1}, -2])
         self.manually_cache_a_record("func_call_hash3", "My test")
 
-        cache_data = self.storage.get_cached_data_of_a_function_call("func_call_hash1")
+        cache_data = self.storage.get_cached_data_of_a_function_call(
+            "func_call_hash1", func_name=func_name
+        )
         self.assert_two_cache_data_are_equal(
             cache_data, CacheData("func_call_hash1", (big_str,), func_name=func_name)
         )
