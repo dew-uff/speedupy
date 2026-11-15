@@ -9,6 +9,9 @@
 #   LABEL      job name shown in the summary heading
 #   REPRODUCE  command that reruns this job locally
 #
+# It also records the seed that pytest-randomly printed ("Using
+# --randomly-seed=1234"), and the command that reruns the same order.
+#
 # The exit status of pytest already fails the step that ran it. This check
 # catches what a zero exit status hides: a run that collected fewer tests than
 # before (a module that stopped being collected, a decorator that made tests
@@ -28,6 +31,12 @@ if [ -f "$log" ]; then
   # "===== 338 passed, 5 skipped, 4 warnings in 1.81s =====", possibly with
   # " (0:01:15)" after the duration.
   line=$(grep -E '^=+ .* in [0-9.]+s( \([0-9:]+\))? =+$' "$log" | tail -n 1 || true)
+fi
+
+# pytest-randomly prints "Using --randomly-seed=1234" in the header.
+seed=""
+if [ -f "$log" ]; then
+  seed=$(grep -oE -m1 'randomly-seed=[0-9]+' "$log" | grep -oE '[0-9]+$' || true)
 fi
 
 count=0
@@ -50,12 +59,20 @@ fi
   echo
   echo "- tests: $count (floor $min_tests)"
   echo "- summary: \`${line:-missing}\`"
+  [ -n "$seed" ] && echo "- random order, seed: $seed"
   [ -n "$problem" ] && echo "- **failed:** $problem"
   echo
   echo "Reproduce locally:"
   echo '```'
   echo "$reproduce"
   echo '```'
+  if [ -n "$seed" ]; then
+    echo
+    echo "Same order as this run:"
+    echo '```'
+    echo "$reproduce --randomly-seed=$seed"
+    echo '```'
+  fi
 } >>"$summary"
 
 if [ -n "$problem" ]; then

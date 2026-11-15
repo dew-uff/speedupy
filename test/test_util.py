@@ -8,7 +8,7 @@ from util import save_json_file, check_python_version
 from hashlib import md5
 from mmh3 import hash128
 from xxhash import xxh128_hexdigest
-import json, importlib, sys
+import json, sys
 
 class TestUtil(unittest.TestCase):
     @classmethod
@@ -16,7 +16,10 @@ class TestUtil(unittest.TestCase):
         cls.JSON_FILENAME = 'test.json'
 
     def setUp(self):
-        importlib.reload(sys)
+        # The tests assign to sys.version_info; patch.object puts it back.
+        patcher = unittest.mock.patch.object(sys, 'version_info', sys.version_info)
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
     def test_check_python_version_with_minimum_version(self):
         sys.version_info=(3, 9)

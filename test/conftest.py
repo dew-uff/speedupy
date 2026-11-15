@@ -21,9 +21,12 @@ What it does, and why:
 5. The modules that cannot be imported without a native library are kept out
    of collection, and the tests marked ``native`` are deselected. Task 12 of the
    retrofit removes ``NOT_COLLECTED`` and replaces the deselection by a skip.
-6. ``sys.version_info`` is restored after every test, because
-   ``test/test_util.py`` leaves it changed and pytest reads it. Task 8 widens
-   this to the other process state a test may leave behind.
+6. The process state a test may leave behind is restored after every test, so
+   that no test depends on another and the order can be random (Task 8): the
+   instances of the ``SingletonMeta`` classes and their attributes,
+   ``sys.argv``, ``sys.version_info`` and the current directory. A test that
+   needs a changed value still changes it; the fixture only undoes it.
+   ``sys.version_info`` matters most: pytest reads it.
 """
 import os
 import shutil
@@ -33,6 +36,8 @@ import tempfile
 from pathlib import Path
 
 import pytest
+
+from SingletonMeta import SingletonMeta
 
 # Must stay first: nothing below may import a module that builds SpeeduPySettings.
 sys.argv = sys.argv[:1]
@@ -161,10 +166,32 @@ def pytest_sessionstart(session):
 
 
 @pytest.fixture(autouse=True)
-def _restore_sys_version_info():
-    saved = sys.version_info
+def _restore_process_state():
+    """Undo what a test changed in the process, whether it passed or not.
+
+    ``SingletonMeta`` keeps one instance per class for the life of the process.
+    A test that builds one under a mock, or assigns to an attribute of one,
+    would otherwise hand that to every test after it. The instances that
+    exist before the test are kept, with their attributes put back (the
+    attributes are restored by name, so an object mutated in place is not
+    undone); the ones the test created are dropped.
+    """
+    instances = dict(SingletonMeta._instances)
+    attributes = {cls: dict(vars(obj)) for cls, obj in instances.items()}
+    argv, argv_items = sys.argv, list(sys.argv)
+    version_info = sys.version_info
+    cwd = os.getcwd()
     yield
-    sys.version_info = saved
+    sys.version_info = version_info
+    argv[:] = argv_items
+    sys.argv = argv
+    os.chdir(cwd)
+    SingletonMeta._instances.clear()
+    SingletonMeta._instances.update(instances)
+    for cls, saved in attributes.items():
+        obj = instances[cls]
+        vars(obj).clear()
+        vars(obj).update(saved)
 
 
 @pytest.hookimpl(tryfirst=True)
