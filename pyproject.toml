@@ -1,0 +1,27 @@
+[project]
+name = "speedupy"
+version = "1.7.0"
+description = "Speeds up scripts by memoizing pure functions with a persistent cache."
+readme = "README.md"
+# D6: every pin installs from wheels on 3.10 and 3.11 only.
+requires-python = ">=3.10,<3.12"
+dependencies = [
+    "mmh3==4.0.1",
+    "numpy==1.26.4",
+    "scipy==1.12.0",
+    "xxhash==3.4.1",
+    "redis==4.3.6",
+    "pymongo==4.13.0",
+    "pymemcache==4.0.0",
+    "mysql-connector-python==9.4.0",
+    "cloudpickle==3.1.1",
+]
+
+[tool.uv]
+package = false
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-cov",
+]
