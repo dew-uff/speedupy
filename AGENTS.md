@@ -143,8 +143,10 @@ it by running.
   that builds a singleton under a mock starts from no instance and says so, as
   `test_BancoRedis.py` does.
 - **Native libraries:** `MeowHash.py`, `A5Hash.py` and `MuseairBFastHash.py`
-  load `libmeow.so`, `liba5hash.so` and `libmuseair.so` at import. The files are
-  not versioned, no source is in the repository, and they export custom symbols
+  load `libmeow.so`, `liba5hash.so` and `libmuseair.so` on first use, through
+  `load_native_library` in `execute_exp/services/hashes/native.py`; a missing
+  file raises an `ImportError` that names it, and only that hash fails. The
+  files are git-ignored (`*.so`), no source is in the repository, and they export custom symbols
   (`MeowHash_32`, `GetMeowDefaultSeed`, `a5hash_128_64`, `museair_bfast_64`).
 - **Running an experiment:** setup injects `sys.path.append(<cwd>)` and `from
   speedupy.speedupy import …` into the script, so the checkout must be
@@ -158,9 +160,6 @@ it by running.
   `test_serializers/test_util.py` compare Python 3.10 bytecode and fail on 3.11.
 - **Not collected by unittest:** unittest discovery skips `test/test_entities/`,
   which has no `__init__.py`. pytest collects it.
-- **Not collected by pytest:** the modules that cannot be imported without a
-  native library, listed in `NOT_COLLECTED` in `test/conftest.py`. Task 12 removes
-  the list.
 - **Unraisable warnings:** the server storage tests define `__del__` that reads
   `self.mongo`, which exists only after `setUp`. pytest builds every test case
   object, so the deselected ones print `PytestUnraisableExceptionWarning`. It is
@@ -177,7 +176,7 @@ From the repository root, one command:
 uv run pytest
 ```
 
-It runs the tests that need no server and no native library, in a scratch
+It runs the tests that need no server (the native ones skip without the `.so` files), in a scratch
 directory, and writes nothing in the checkout (`.pytest_cache/` and
 `__pycache__/` are git-ignored). Pytest's own options work (`-q`, `-k`, `-m`):
 `test/conftest.py` trims `sys.argv` before any test module loads.
@@ -189,14 +188,19 @@ directory, and writes nothing in the checkout (`.pytest_cache/` and
   and note the number beside the module.
 
 - **Markers.** `mysql`, `mongo`, `redis`, `memcached` and `native` come from the
-  map `MARKER_MAP` in `test/conftest.py`, not from the test files. A test class
+  maps `MARKER_MAP` and `NATIVE_MAP` in `test/conftest.py`, not from the test
+  files. A test class
   whose fixtures touch a server is marked as a whole, even for a test that does
   not use the server. A new test file that needs a server gets its entry there.
 - **Servers are opt-in.** `SPEEDUPY_TEST_SERVERS=1 uv run pytest` runs the server
   tests too. It first probes the four servers and aborts naming the unreachable
   ones: a missing server is an error, never a skip. These tests erase data (see
   "Safety") and never run in parallel. Disposable servers arrive in Task 13.
-- **Native tests** are deselected until Task 12.
+- **Native tests** need the `.so` files and are skipped, with the missing file
+  in the reason (`-rs`), when they are absent. `SPEEDUPY_REQUIRE_NATIVE=1` makes
+  a missing file a failure. A test names its libraries in `NATIVE_MAP` in
+  `test/conftest.py`, or with `@pytest.mark.native("libmeow.so")`. The files
+  are built from Task 25 on.
 - `uv run pytest --collect-only -q` touches no server, whatever the variable
   says. The count by what each test needs is in `RETROFIT.md`, "Baseline".
 

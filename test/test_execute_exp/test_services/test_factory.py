@@ -1,6 +1,6 @@
-import random
-import unittest
 from unittest.mock import patch
+
+import pytest
 
 from execute_exp.services.execution_modes.AccurateMode import AccurateMode
 from execute_exp.services.execution_modes.ProbabilisticCountingMode import (
@@ -58,175 +58,175 @@ from execute_exp.services.storages.MongoWithGridFSStorage import MongoWithGridFS
 from execute_exp.services.storages.RedisStorage import RedisStorage
 from execute_exp.services.storages.SQLiteStorage import SQLiteStorage
 
+MEM_ARCHS = [
+    ("0-dict", ZeroDictMemArch),
+    ("1-dict", OneDictMemArch),
+    ("2-dict", OneDictOldDataOneDictNewDataMemArch),
+    ("2-dict-fast", OneDictAllDataOneDictNewDataMemArch),
+    pytest.param(
+        "memcached-wt", MemcachedWriteThroughMemArch, marks=pytest.mark.memcached
+    ),
+    pytest.param(
+        "memcached-wb", MemcachedWriteBackMemArch, marks=pytest.mark.memcached
+    ),
+]
+RETRIEVAL_STRATEGIES = [
+    ("lazy", LazyRetrieval),
+    ("function", FunctionRetrieval),
+    ("eager", EagerRetrieval),
+]
+STORAGES = [
+    ("sqlite", SQLiteStorage),
+    pytest.param("redis", RedisStorage, marks=pytest.mark.redis),
+    pytest.param("mongo", MongoStorage, marks=pytest.mark.mongo),
+    pytest.param("gridfs", GridFSStorage, marks=pytest.mark.mongo),
+    pytest.param("mongo-file", MongoWithFileSystemStorage, marks=pytest.mark.mongo),
+    pytest.param("mongo-gridfs", MongoWithGridFSStorage, marks=pytest.mark.mongo),
+    ("file", FileSystemStorage),
+]
+SERIALIZERS = [("pickle", PickleSerializer), ("cloudpickle", CloudpickleSerializer)]
+HASHES = [
+    ("md5", MD5Hash),
+    ("murmur", MurmurHash),
+    ("xxhash", XXHashHash),
+    pytest.param("meowhash", MeowHash, marks=pytest.mark.native("libmeow.so")),
+    pytest.param(
+        "museair", MuseairBFastHash, marks=pytest.mark.native("libmuseair.so")
+    ),
+    pytest.param("a5hash", A5Hash, marks=pytest.mark.native("liba5hash.so")),
+]
+EXEC_MODES = [
+    ("no-cache", None),
+    ("manual", None),
+    ("accurate", AccurateMode),
+    ("probabilistic-counting", ProbabilisticCountingMode),
+    ("probabilistic-error", ProbabilisticErrorMode),
+]
+REVALIDATIONS = [
+    ("none", NoRevalidation),
+    ("fixed", FixedRevalidation),
+    ("adaptative", AdaptativeRevalidation),
+]
 
-class TestFactory(unittest.TestCase):
-    def set_random_values(self, SpeeduPySettings):
-        self.mem_arch = random.choice(
-            [
-                ["0-dict", ZeroDictMemArch],
-                ["1-dict", OneDictMemArch],
-                ["2-dict", OneDictOldDataOneDictNewDataMemArch],
-                ["2-dict-fast", OneDictAllDataOneDictNewDataMemArch],
-                ["memcached-wt", MemcachedWriteThroughMemArch],
-                ["memcached-wb", MemcachedWriteBackMemArch],
-            ]
+
+@pytest.fixture
+def settings(tmp_path, monkeypatch):
+    """The settings with one fixed value per option; a test changes the one it covers.
+
+    The SQLite storage opens its database in ``.speedupy/`` of the current
+    directory, so the test runs in a directory that has one.
+    """
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / ".speedupy").mkdir()
+    with patch("execute_exp.services.factory.SpeeduPySettings") as SpeeduPySettings:
+        settings = SpeeduPySettings()
+        settings.mem_arch = ["0-dict"]
+        settings.retrieval_exec_mode = ["sequential"]
+        settings.retrieval_strategy = ["lazy"]
+        settings.storage = ["file"]
+        settings.serializer = ["pickle"]
+        settings.hash = ["md5"]
+        settings.exec_mode = ["accurate"]
+        settings.revalidation = ["none"]
+        settings.min_num_exec = 20
+        settings.min_mode_occurrence = 0.5
+        settings.max_error_per_function = 20
+        settings.confidence_lv = 0.9
+        settings.max_num_exec_til_reval = 20
+        settings.reduction_factor = 0.5
+        yield settings
+
+
+@pytest.mark.parametrize(("name", "mem_arch_class"), MEM_ARCHS)
+def test_init_mem_arch_builds_each_memory_architecture(settings, name, mem_arch_class):
+    settings.mem_arch = [name]
+    assert isinstance(init_mem_arch(), mem_arch_class)
+
+
+@pytest.mark.parametrize(("name", "retrieval_class"), RETRIEVAL_STRATEGIES)
+def test_init_mem_arch_builds_each_retrieval_strategy(settings, name, retrieval_class):
+    settings.retrieval_strategy = [name]
+    assert isinstance(init_mem_arch()._retrieval_strategy, retrieval_class)
+
+
+@pytest.mark.parametrize(("name", "storage_class"), STORAGES)
+def test_init_mem_arch_builds_each_storage(settings, name, storage_class):
+    settings.storage = [name]
+    assert isinstance(init_mem_arch()._retrieval_strategy._storage, storage_class)
+
+
+@pytest.mark.parametrize(("name", "serializer_class"), SERIALIZERS)
+def test_init_mem_arch_builds_each_serializer(settings, name, serializer_class):
+    settings.serializer = [name]
+    storage = init_mem_arch()._retrieval_strategy._storage
+    assert isinstance(storage._serializer, serializer_class)
+
+
+@pytest.mark.parametrize(
+    ("mode", "use_threads"), [("sequential", False), ("thread", True)]
+)
+def test_init_mem_arch_follows_the_retrieval_exec_mode(settings, mode, use_threads):
+    settings.retrieval_exec_mode = [mode]
+    assert init_mem_arch()._use_threads is use_threads
+
+
+@pytest.mark.parametrize(("name", "serializer_class"), SERIALIZERS)
+def test_get_serializer(settings, name, serializer_class):
+    settings.serializer = [name]
+    assert isinstance(get_serializer(), serializer_class)
+
+
+@pytest.mark.parametrize(("name", "exec_mode_class"), EXEC_MODES)
+def test_init_exec_mode(settings, name, exec_mode_class):
+    settings.exec_mode = [name]
+
+    result = init_exec_mode()
+
+    if exec_mode_class is None:
+        assert result is None
+        return
+    assert isinstance(result, exec_mode_class)
+    assert isinstance(result._serializer, PickleSerializer)
+    assert result._min_num_exec == settings.min_num_exec
+    if exec_mode_class is ProbabilisticCountingMode:
+        assert result._min_mode_occurrence == settings.min_mode_occurrence
+    elif exec_mode_class is ProbabilisticErrorMode:
+        assert result._max_error_per_function == settings.max_error_per_function
+        assert result._confidence_lv == settings.confidence_lv
+
+
+@pytest.mark.parametrize(("name", "revalidation_class"), REVALIDATIONS)
+def test_init_revalidation(settings, name, revalidation_class):
+    settings.revalidation = [name]
+
+    result = init_revalidation(AccurateMode)
+
+    assert isinstance(result, revalidation_class)
+    if revalidation_class is FixedRevalidation:
+        assert (
+            result._FixedRevalidation__fixed_num_exec_til_reval
+            == settings.max_num_exec_til_reval
         )
-        SpeeduPySettings().mem_arch = [self.mem_arch[0]]
-
-        SpeeduPySettings().retrieval_exec_mode = [
-            random.choice(["sequential", "thread"])
-        ]
-
-        self.retrieval_strategy = random.choice(
-            [
-                ["lazy", LazyRetrieval],
-                ["function", FunctionRetrieval],
-                ["eager", EagerRetrieval],
-            ]
+    elif revalidation_class is AdaptativeRevalidation:
+        assert (
+            result._AdaptativeRevalidation__current_num_exec_til_reval
+            == settings.max_num_exec_til_reval
         )
-        SpeeduPySettings().retrieval_strategy = [self.retrieval_strategy[0]]
-
-        self.storage = random.choice(
-            [
-                ["sqlite", SQLiteStorage],
-                ["redis", RedisStorage],
-                ["mongo", MongoStorage],
-                ["gridfs", GridFSStorage],
-                ["mongo-file", MongoWithFileSystemStorage],
-                ["mongo-gridfs", MongoWithGridFSStorage],
-                ["file", FileSystemStorage],
-            ]
+        assert (
+            result._AdaptativeRevalidation__adaptative_factor
+            == settings.reduction_factor
         )
-        SpeeduPySettings().storage = [self.storage[0]]
-
-        self.serializer = random.choice(
-            [["pickle", PickleSerializer], ["cloudpickle", CloudpickleSerializer]]
-        )
-        SpeeduPySettings().serializer = [self.serializer[0]]
-
-        self.hash = random.choice(
-            [
-                ["md5", MD5Hash],
-                ["murmur", MurmurHash],
-                ["xxhash", XXHashHash],
-                ["meowhash", MeowHash],
-                ["museair", MuseairBFastHash],
-                ["a5hash", A5Hash],
-            ]
-        )
-        SpeeduPySettings().hash = [self.hash[0]]
-
-        self.exec_mode = random.choice(
-            [
-                ["no-cache", None],
-                ["manual", None],
-                ["accurate", AccurateMode],
-                ["probabilistic-counting", ProbabilisticCountingMode],
-                ["probabilistic-error", ProbabilisticErrorMode],
-            ]
-        )
-        SpeeduPySettings().exec_mode = [self.exec_mode[0]]
-
-        self.revalidation = random.choice(
-            [
-                ["none", NoRevalidation],
-                ["fixed", FixedRevalidation],
-                ["adaptative", AdaptativeRevalidation],
-            ]
-        )
-        SpeeduPySettings().revalidation = [self.revalidation[0]]
-
-        SpeeduPySettings().min_num_exec = random.randint(10, 50)
-        SpeeduPySettings().min_mode_occurrence = random.random()
-        SpeeduPySettings().max_error_per_function = random.randint(10, 50)
-        SpeeduPySettings().confidence_lv = random.random()
-        SpeeduPySettings().max_num_exec_til_reval = random.randint(10, 50)
-        SpeeduPySettings().reduction_factor = random.random()
-
-    @patch("execute_exp.services.factory.SpeeduPySettings")
-    def test_init_mem_arch(self, SpeeduPySettings):
-        self.set_random_values(SpeeduPySettings)
-
-        mem_arch = init_mem_arch()
-        retrieval_strategy = mem_arch._retrieval_strategy
-        storage = retrieval_strategy._storage
-        serializer = storage._serializer
-
-        self.assertIsInstance(mem_arch, self.mem_arch[1])
-        self.assertIsInstance(retrieval_strategy, self.retrieval_strategy[1])
-        self.assertIsInstance(storage, self.storage[1])
-        self.assertIsInstance(serializer, self.serializer[1])
-        if SpeeduPySettings().retrieval_exec_mode == ["sequential"]:
-            self.assertFalse(mem_arch._use_threads)
-        if SpeeduPySettings().retrieval_exec_mode == ["thread"]:
-            self.assertTrue(mem_arch._use_threads)
-
-    @patch("execute_exp.services.factory.SpeeduPySettings")
-    def test_get_serializer(self, SpeeduPySettings):
-        self.set_random_values(SpeeduPySettings)
-        self.assertIsInstance(get_serializer(), self.serializer[1])
-
-    @patch("execute_exp.services.factory.SpeeduPySettings")
-    def test_init_exec_mode(self, SpeeduPySettings):
-        self.set_random_values(SpeeduPySettings)
-
-        result = init_exec_mode()
-
-        if self.exec_mode[1] is None:
-            self.assertIsNone(result)
-            return
-
-        self.assertIsInstance(result, self.exec_mode[1])
-        self.assertIsInstance(result._serializer, self.serializer[1])
-        self.assertEqual(result._min_num_exec, SpeeduPySettings().min_num_exec)
-
-        if self.exec_mode[1] == ProbabilisticCountingMode:
-            self.assertEqual(
-                result._min_mode_occurrence, SpeeduPySettings().min_mode_occurrence
-            )
-        elif self.exec_mode[1] == ProbabilisticErrorMode:
-            self.assertEqual(
-                result._max_error_per_function,
-                SpeeduPySettings().max_error_per_function,
-            )
-            self.assertEqual(result._confidence_lv, SpeeduPySettings().confidence_lv)
-
-    @patch("execute_exp.services.factory.SpeeduPySettings")
-    def test_init_revalidation(self, SpeeduPySettings):
-        self.set_random_values(SpeeduPySettings)
-
-        result = init_revalidation(self.exec_mode[1])
-
-        if self.exec_mode[1] is None:
-            self.assertIsNone(result)
-            return
-
-        self.assertIsInstance(result, self.revalidation[1])
-        if self.revalidation[1] == FixedRevalidation:
-            self.assertEqual(
-                result._FixedRevalidation__fixed_num_exec_til_reval,
-                SpeeduPySettings().max_num_exec_til_reval,
-            )
-        elif self.revalidation[1] == AdaptativeRevalidation:
-            self.assertEqual(
-                result._AdaptativeRevalidation__current_num_exec_til_reval,
-                SpeeduPySettings().max_num_exec_til_reval,
-            )
-            self.assertEqual(
-                result._AdaptativeRevalidation__adaptative_factor,
-                SpeeduPySettings().reduction_factor,
-            )
-
-    @patch("execute_exp.services.factory.SpeeduPySettings")
-    def test_get_hash(self, SpeeduPySettings):
-        self.set_random_values(SpeeduPySettings)
-
-        hash = get_hash()
-        serializer = hash._serializer
-
-        self.assertIsInstance(hash, self.hash[1])
-        self.assertIsInstance(serializer, self.serializer[1])
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_init_revalidation_is_none_without_an_exec_mode(settings):
+    assert init_revalidation(None) is None
+
+
+@pytest.mark.parametrize(("name", "hash_class"), HASHES)
+def test_get_hash(settings, name, hash_class):
+    settings.hash = [name]
+
+    result = get_hash()
+
+    assert isinstance(result, hash_class)
+    assert isinstance(result._serializer, PickleSerializer)

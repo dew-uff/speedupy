@@ -162,11 +162,8 @@ def init_revalidation(
 
 
 def get_hash() -> Hash:
-    from execute_exp.services.hashes.A5Hash import A5Hash
     from execute_exp.services.hashes.MD5Hash import MD5Hash
-    from execute_exp.services.hashes.MeowHash import MeowHash
     from execute_exp.services.hashes.MurmurHash import MurmurHash
-    from execute_exp.services.hashes.MuseairBFastHash import MuseairBFastHash
     from execute_exp.services.hashes.XXHashHash import XXHashHash
 
     serializer = get_serializer()
@@ -177,8 +174,14 @@ def get_hash() -> Hash:
     elif SpeeduPySettings().hash == ["xxhash"]:
         return XXHashHash(serializer)
     elif SpeeduPySettings().hash == ["meowhash"]:
+        from execute_exp.services.hashes.MeowHash import MeowHash
+
         return MeowHash(serializer)
     elif SpeeduPySettings().hash == ["museair"]:
+        from execute_exp.services.hashes.MuseairBFastHash import MuseairBFastHash
+
         return MuseairBFastHash(serializer)
     elif SpeeduPySettings().hash == ["a5hash"]:
+        from execute_exp.services.hashes.A5Hash import A5Hash
+
         return A5Hash(serializer)

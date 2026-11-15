@@ -1,26 +1,21 @@
 import ctypes
-import os
 
 from execute_exp.services.hashes.Hash import Hash
+from execute_exp.services.hashes.native import load_native_library
 
-# --- Load shared library (.so) ---
-current_dir = os.path.dirname(os.path.abspath(__file__))
-lib_path = os.path.join(current_dir, "liba5hash.so")
-
-try:
-    a5hash_lib = ctypes.CDLL(lib_path)
-except OSError as e:
-    raise ImportError(f"Erro ao carregar liba5hash.so: {e}")
+LIBRARY = "liba5hash.so"
 
 
-# --- Define C function signature ---
-a5hash_lib.a5hash_128_64.argtypes = [
-    ctypes.c_void_p,  # data pointer
-    ctypes.c_size_t,  # length
-    ctypes.c_uint64,  # seed
-]
-
-a5hash_lib.a5hash_128_64.restype = ctypes.c_uint64
+def _get_library():
+    lib = load_native_library(LIBRARY)
+    # Define the C function signature (idempotent).
+    lib.a5hash_128_64.argtypes = [
+        ctypes.c_void_p,  # data pointer
+        ctypes.c_size_t,  # length
+        ctypes.c_uint64,  # seed
+    ]
+    lib.a5hash_128_64.restype = ctypes.c_uint64
+    return lib
 
 
 # --- Hash implementation ---
@@ -47,7 +42,7 @@ class A5Hash(Hash):
         c_ptr = ctypes.addressof(c_buffer)
 
         # Call shared library
-        result = a5hash_lib.a5hash_128_64(
+        result = _get_library().a5hash_128_64(
             ctypes.c_void_p(c_ptr),
             ctypes.c_size_t(data_len),
             ctypes.c_uint64(self.seed),
