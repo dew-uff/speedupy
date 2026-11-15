@@ -1,5 +1,10 @@
 {
   "sandbox": {
     "enabled": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(uv run pytest *)"
+    ]
   }
 }

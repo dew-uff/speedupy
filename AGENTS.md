@@ -86,12 +86,15 @@ this, whatever storage the experiment uses:
 
 The storage, memory-architecture and environment tests do the same.
 
-Until the pytest harness exists (Task 5 of the retrofit):
+`uv run pytest` is safe: it deselects every test that needs a server and runs in
+a scratch directory (see "Running the tests"). What is still unsafe:
 
-- Do not run the whole suite or `setup_exp/setup.py` on a machine whose local
-  servers hold data that matters. Use the container the `Dockerfile` builds.
-- Never run the suite from the repository root. A setup test writes and removes
-  `__init__.py` in the current directory, and at the root that file is tracked.
+- Do not run `setup_exp/setup.py`, or `SPEEDUPY_TEST_SERVERS=1 uv run pytest`,
+  on a machine whose local servers hold data that matters. Until Task 13 gives
+  disposable servers, use the container the `Dockerfile` builds.
+- Do not bypass the harness with `python -m unittest`. It runs every server
+  test, and a setup test writes and removes `__init__.py` in the current
+  directory, which at the repository root is a tracked file.
 
 ## Reproduction traps
 
@@ -105,12 +108,14 @@ it by running.
   `conftest.py` at the root would be imported as `speedupy.conftest` when the
   checkout directory is named `speedupy`, and `from speedupy import
   deterministic` would then fail. The conftest lives in `test/`, and `test/`
-  never gains an `__init__.py`.
+  never gains an `__init__.py`. Left alone, pytest also makes the root a
+  `Package`: its setup prepends the parent of the checkout to `sys.path`, and
+  `importlib.reload(speedupy)` then reloads the empty `speedupy/__init__.py`
+  instead of `speedupy.py`. The conftest collects the root as a plain directory.
 - **The current directory:** tests write `.speedupy/`, `script_test*.py` and
   `__init__.py` in the current directory and remove them with `rm`. The paths
   in `constantes.py` are relative, so changing directory is enough to move them.
-  `test_FunctionCalledDetectorService.py` changes into its own directory and
-  writes there.
+  The conftest runs the session in a scratch directory.
 - **Singletons are never reset:** `SingletonMeta` keeps one instance per class
   for the life of the process. `test/test_entities/test_BancoRedis.py` builds
   `BancoRedis()` under a mocked client, which then stays in the singleton.
@@ -126,25 +131,45 @@ it by running.
 - **Server tests share state:** Redis database 0, the `speedupy` databases and
   the whole Memcached. They never run in parallel.
 - **Python:** the pinned requirements have wheels for Python 3.9 to 3.11 only.
-- **Not collected:** unittest discovery skips `test/test_entities/`, which has
-  no `__init__.py`.
+  `.python-version` pins 3.10, the version CI uses, because two tests in
+  `test_serializers/test_util.py` compare Python 3.10 bytecode and fail on 3.11.
+- **Not collected by unittest:** unittest discovery skips `test/test_entities/`,
+  which has no `__init__.py`. pytest collects it.
+- **Not collected by pytest:** the modules that cannot be imported without a
+  native library, listed in `NOT_COLLECTED` in `test/conftest.py`. Task 12 removes
+  the list.
+- **Unraisable warnings:** the server storage tests define `__del__` that reads
+  `self.mongo`, which exists only after `setUp`. pytest builds every test case
+  object, so the deselected ones print `PytestUnraisableExceptionWarning`. It is
+  noise, not a failure.
 - **Sets of objects:** two sets built separately that hold distinct instances
   of a class without `__hash__` iterate in an order that depends on the ids, so
   their pickles differ. Share the instance in test data (Task 4).
 
 ## Running the tests
 
-Today's only way, until Task 5 of the retrofit gives a one-command harness:
+From the repository root, one command:
 
 ```bash
-cd test && python3.10 -m unittest
+uv run pytest
 ```
 
-Not run in Task 1, because it erases data on localhost (see "Safety"). Run it
-only in the container the `Dockerfile` builds, or on a machine with no data in
-the local servers. Without servers, each MongoDB test waits 30 s for a
-connection, so the run does not finish. The count by what each test needs is in
-`RETROFIT.md`, "Baseline".
+It runs the tests that need no server and no native library, in a scratch
+directory, and writes nothing in the checkout (`.pytest_cache/` and
+`__pycache__/` are git-ignored). Pytest's own options work (`-q`, `-k`, `-m`):
+`test/conftest.py` trims `sys.argv` before any test module loads.
+
+- **Markers.** `mysql`, `mongo`, `redis`, `memcached` and `native` come from the
+  map `MARKER_MAP` in `test/conftest.py`, not from the test files. A test class
+  whose fixtures touch a server is marked as a whole, even for a test that does
+  not use the server. A new test file that needs a server gets its entry there.
+- **Servers are opt-in.** `SPEEDUPY_TEST_SERVERS=1 uv run pytest` runs the server
+  tests too. It first probes the four servers and aborts naming the unreachable
+  ones: a missing server is an error, never a skip. These tests erase data (see
+  "Safety") and never run in parallel. Disposable servers arrive in Task 13.
+- **Native tests** are deselected until Task 12.
+- `uv run pytest --collect-only -q` touches no server, whatever the variable
+  says. The count by what each test needs is in `RETROFIT.md`, "Baseline".
 
 ## Retrofit
 

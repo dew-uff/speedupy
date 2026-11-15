@@ -9,15 +9,8 @@ from setup_exp.entities.Experiment import Experiment
 from setup_exp.services.FunctionCalledDetectorService import FunctionCalledDetectorService
 
 class TestFunctionCalledDetectorService(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.orig_work_dir = os.getcwd()
-        os.chdir(os.path.dirname(__file__))
-
-    @classmethod
-    def tearDownClass(cls):
-        os.chdir(cls.orig_work_dir)
-    
+    # The tests write in the current directory, which is the scratch directory of
+    # the session (see test/conftest.py), never the directory of this file.
     def tearDown(self):
         files_and_folders = ['script_test.py', 
                              'script_test_2.py',
@@ -40,7 +33,7 @@ class TestFunctionCalledDetectorService(unittest.TestCase):
         fileAST = self.getAST('script_test.py')
         imports = [fileAST.body[0], fileAST.body[1]]
         script = Script('script_test.py', fileAST, imports, {})
-        experiment = Experiment(os.path.dirname(__file__))
+        experiment = Experiment(os.getcwd())
         experiment.add_script(script)
         experiment.set_main_script(script)
 
@@ -58,7 +51,7 @@ class TestFunctionCalledDetectorService(unittest.TestCase):
             f.write('func1()\nfunc2(1)\nfunc2(1, b=10)\n')
         fileAST = self.getAST('script_test.py')
         script = Script('script_test.py', fileAST, [], {})
-        experiment = Experiment(os.path.dirname(__file__))
+        experiment = Experiment(os.getcwd())
         experiment.add_script(script)
         experiment.set_main_script(script)
 
@@ -95,7 +88,7 @@ class TestFunctionCalledDetectorService(unittest.TestCase):
                      'func3.<locals>.func31':fileAST.body[0].body[0]}
         script3 = Script('folder3/subfolder3/script_test_3.py', fileAST, [], functions)
 
-        experiment = Experiment(os.path.dirname(__file__))
+        experiment = Experiment(os.getcwd())
         experiment.add_script(script1)
         experiment.add_script(script2)
         experiment.add_script(script3)
@@ -133,7 +126,7 @@ class TestFunctionCalledDetectorService(unittest.TestCase):
                      'func3.<locals>.func31':fileAST.body[0].body[0]}
         script3 = Script('folder3/subfolder3/script_test_3.py', fileAST, [], functions)
 
-        experiment = Experiment(os.path.dirname(__file__))
+        experiment = Experiment(os.getcwd())
         experiment.add_script(script1)
         experiment.add_script(script2)
         experiment.add_script(script3)
@@ -171,7 +164,7 @@ class TestFunctionCalledDetectorService(unittest.TestCase):
                      'func3.<locals>.func31':fileAST.body[0].body[0]}
         script3 = Script('folder3/subfolder3/script_test_3.py', fileAST, [], functions)
 
-        experiment = Experiment(os.path.dirname(__file__))
+        experiment = Experiment(os.getcwd())
         experiment.add_script(script1)
         experiment.add_script(script2)
         experiment.add_script(script3)
@@ -209,7 +202,7 @@ class TestFunctionCalledDetectorService(unittest.TestCase):
                      'func3.<locals>.func31':fileAST.body[0].body[0]}
         script3 = Script('folder3/subfolder3/script_test_3.py', fileAST, [], functions)
 
-        experiment = Experiment(os.path.dirname(__file__))
+        experiment = Experiment(os.getcwd())
         experiment.add_script(script1)
         experiment.add_script(script2)
         experiment.add_script(script3)
@@ -259,7 +252,7 @@ class TestFunctionCalledDetectorService(unittest.TestCase):
         functions = {'funcsubsubsub2':fileAST.body[0]}
         scriptsubsubsub2 = Script('folder2/subfolder2/subsubfolder2/subsubsubfolder2/script_test_subsubsub2.py', fileAST, [], functions)
 
-        experiment = Experiment(os.path.dirname(__file__))
+        experiment = Experiment(os.getcwd())
         experiment.add_script(script1)
         experiment.add_script(script2)
         experiment.add_script(scriptsub2)
@@ -303,7 +296,7 @@ class TestFunctionCalledDetectorService(unittest.TestCase):
                      'func3.<locals>.func31':fileAST.body[0].body[0]}
         script3 = Script('folder3/subfolder3/script_test_3.py', fileAST, [], functions)
 
-        experiment = Experiment(os.path.dirname(__file__))
+        experiment = Experiment(os.getcwd())
         experiment.add_script(script1)
         experiment.add_script(script2)
         experiment.add_script(script3)

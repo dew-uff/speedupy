@@ -3,3 +3,4 @@ env/
 .speedupy/
 examples/
 .venv/
+.pytest_cache/
