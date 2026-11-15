@@ -247,12 +247,12 @@ Task 2 fills the "Decision" column. A task that names a decision waits for it.
 
 | # | Question | Blocks | Decision |
 | :--- | :--- | :--- | :--- |
-| D1 | Open work before the format commit: PR #16 (`issue_15`) and the branch `btree-impl`. Integrate, close, or accept the rebase? | Task 9 | |
-| D2 | Issue #15: how should setup behave when the servers are not running? PR #16 adds `--storage` to setup. | Task 15 | |
-| D3 | Where are the sources and the build commands of the three native hash libraries? | Task 25 | |
-| D4 | Which license, and which GitHub team or users go in `CODEOWNERS`? | Task 22 | |
-| D5 | For this private repository: how many Actions minutes may CI spend, and are code scanning and secret scanning available on the organization's plan? | Tasks 14, 23 | |
-| D6 | Which Python versions are supported? | Task 24 | |
+| D1 | Open work before the format commit: PR #16 (`issue_15`) and the branch `btree-impl`. Integrate, close, or accept the rebase? | Task 9 | Close both, archived first as the tags `archive/issue_15` and `archive/btree-impl`. Task 15 reimplements the setup option on `main`, taking PR #16 as prior work; the B-tree storage is issue #34, for after the retrofit. |
+| D2 | Issue #15: how should setup behave when the servers are not running? PR #16 adds `--storage` to setup. | Task 15 | Adopt issue #15 as written: setup gets `-s/--storage` with the execution's storage names, default `file`. `init_env` initializes only the chosen storage, `_env_exists` no longer requires the SQLite file, and setup never touches a server that was not selected. The disabling of `FUNCTION_CALLS_PROV` that PR #16 also did is out of scope: issue #35. |
+| D3 | Where are the sources and the build commands of the three native hash libraries? | Task 25 | awaiting: the sources, the commits and the build commands of `liba5hash.so` and `libmuseair.so`, and the commit of `JoaoLopez/meow_hash` used for `libmeow.so`. |
+| D4 | Which license, and which GitHub team or users go in `CODEOWNERS`? | Task 22 | License MIT, already agreed by the group for the release. `CODEOWNERS`: `claytonchagas` and `JoaoLopez`. The thread confirms MIT for the organization and asks whether `JoaoFelipe` wants to be listed. |
+| D5 | For this private repository: how many Actions minutes may CI spend, and are code scanning and secret scanning available on the organization's plan? | Tasks 14, 23 | awaiting: Actions minutes per month, GitHub Advanced Security on the organization's plan, and the proposal to make the repository public before Task 14. |
+| D6 | Which Python versions are supported? | Task 24 | 3.10 to 3.11: every pin installs from wheels there. 3.9 is dropped, the README says 3.10+. 3.12 and 3.13 need a newer `mmh3` pin (no wheel for 4.0.1): issue #36, outside the retrofit. `check_python_version()` is aligned in Task 24. |
 
 ## Status
 
