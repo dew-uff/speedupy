@@ -50,6 +50,11 @@ jobs:
         if: ${{ !cancelled() }}
         run: uv run --no-project python .github/scripts/check-pins.py
 
+      # --only-group dev: ruff alone, without the project's dependencies.
+      - name: Format check
+        if: ${{ !cancelled() }}
+        run: uv run --locked --only-group dev ruff format --check .
+
   test:
     # min-tests: floor for passed + skipped + xfailed + xpassed. Raise it in the
     # pull request that adds tests; lower it only with the reason written in

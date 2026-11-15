@@ -1,0 +1,3 @@
+# Revisions that only reformat, skipped by `git blame` (see AGENTS.md).
+# Task 9 of the retrofit: `ruff format .` over the whole tree.
+f78d493cef641e307d515cb8715043d2087cb7f8
