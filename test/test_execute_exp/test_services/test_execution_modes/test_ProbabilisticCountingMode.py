@@ -49,8 +49,10 @@ class TestProbabilisticCountingMode(unittest.TestCase):
         self.fc_prov.mode_output = [{True: 10}, {False: -2}]
         self.assertTrue(self.countingMode.func_call_acted_as_expected(self.fc_prov, metadata))
 
-        metadata = Metadata('func_call_hash', [], {}, {1, 4, 'test', 7, MyClass()}, 0)
-        self.fc_prov.mode_output = {1, 4, 'test', 7, MyClass()}
+        # One shared instance: a set of distinct MyClass() instances iterates in an order that depends on their ids.
+        my_object = MyClass()
+        metadata = Metadata('func_call_hash', [], {}, {1, 4, 'test', 7, my_object}, 0)
+        self.fc_prov.mode_output = {1, 4, 'test', 7, my_object}
         self.assertTrue(self.countingMode.func_call_acted_as_expected(self.fc_prov, metadata))
 
         metadata = Metadata('func_call_hash', [], {}, MyClass(), 0)
