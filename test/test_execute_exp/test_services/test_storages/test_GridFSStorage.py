@@ -1,13 +1,8 @@
-import os
-import sys
 import unittest
 from typing import Dict
 
 import gridfs
 import pymongo
-
-project_folder = os.path.realpath(__file__).split("test/")[0]
-sys.path.append(project_folder)
 
 from entities.BancoGridFS import BancoGridFS
 from execute_exp.entitites.CacheData import CacheData

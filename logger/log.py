@@ -5,7 +5,7 @@ import os
 
 try:
     debug_enabled = os.environ["DEBUG"]
-except:
+except KeyError:
     debug_enabled = "False"
 
 

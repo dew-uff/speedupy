@@ -1,10 +1,5 @@
-import os
-import sys
 import unittest
 from typing import Dict
-
-project_folder = os.path.realpath(__file__).split("test/")[0]
-sys.path.append(project_folder)
 
 from execute_exp.entitites.CacheData import CacheData
 from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch

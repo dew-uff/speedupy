@@ -80,8 +80,8 @@ A change is done when all of these hold:
 - `uv run pytest` is green (see "Running the tests").
 - `uv run ruff format --check .` is clean. `uv run ruff format .` fixes it.
 - `uv run ruff check .` is clean. The rules are `[tool.ruff.lint]` in
-  `pyproject.toml`; `uv run ruff check --fix .` applies the safe fixes. Each
-  ignore there is temporary and names the task that removes it.
+  `pyproject.toml`; `uv run ruff check --fix .` applies the safe fixes. There
+  is no ignore left: a `# noqa` carries its reason on the line above.
 - The floor is raised in the pull request that adds tests: `MIN_TESTS` in the
   `test` job of `.github/workflows/ci.yml` is the least number of tests
   (passed, skipped, xfailed and xpassed) a run may report. It is lowered only

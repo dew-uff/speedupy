@@ -3,9 +3,6 @@ import sys
 import unittest
 from unittest.mock import patch
 
-project_folder = os.path.realpath(__file__).split("test/")[0]
-sys.path.append(project_folder)
-
 import setup_exp.setup as setup
 
 

@@ -1,10 +1,5 @@
-import os
 import random
-import sys
 import unittest
-
-project_folder = os.path.realpath(__file__).split("test/")[0]
-sys.path.append(project_folder)
 
 from execute_exp.entitites.FunctionCallProv import FunctionCallProv
 from execute_exp.entitites.Metadata import Metadata

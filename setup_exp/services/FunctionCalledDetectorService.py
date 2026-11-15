@@ -74,7 +74,7 @@ class FunctionCalledDetectorService:
                     original_imported_function_name
                 ]
             )
-        except:
+        except KeyError:
             # In this case the function called is a constructor to a class that was imported to the script
             pass
 
@@ -119,7 +119,7 @@ class FunctionCalledDetectorService:
             # with the same name
             # Finding function defined in the smaller scope
             function_called_name_prefix = self.__current_function_name + ".<locals>."
-            while self.__function_called == None:
+            while self.__function_called is None:
                 for possible_func_called_name in self.__possible_functions_called:
                     if (
                         function_called_name_prefix + self.__function_called_name
