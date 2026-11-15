@@ -266,7 +266,7 @@ Task 2 fills the "Decision" column. A task that names a decision waits for it.
 | 6 | CI without servers | dev | Sonnet | medium | yes | 5 | done (#49) |
 | 7 | Require CI on `main` | admin | Sonnet | low | yes | 6 | pending |
 | 8 | Test isolation and random order | dev | Sonnet | high | yes | 6 | done (#52) |
-| 9 | Format once | dev | Sonnet | low | yes | 8, D1 | pending |
+| 9 | Format once | dev | Sonnet | low | yes | 8, D1 | done (#55) |
 | 10 | Lint: automatic fixes and the gate | dev | Sonnet | medium | yes | 9 | pending |
 | 11 | Lint: violations that need judgment | dev | Sonnet | medium | yes | 10 | pending |
 | 12 | Native libraries, part 1: lazy loading | dev | Sonnet | medium | yes | 6 | pending |
