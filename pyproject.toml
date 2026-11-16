@@ -3,6 +3,8 @@ name = "speedupy"
 version = "1.7.0"
 description = "Speeds up scripts by memoizing pure functions with a persistent cache."
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 # D6: every pin installs from wheels on 3.10 and 3.11 only.
 requires-python = ">=3.10,<3.12"
 dependencies = [
