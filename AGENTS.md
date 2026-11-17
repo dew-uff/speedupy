@@ -83,14 +83,16 @@ A change is done when all of these hold:
   `pyproject.toml`; `uv run ruff check --fix .` applies the safe fixes. There
   is no ignore left: a `# noqa` carries its reason on the line above.
 - The floor is raised in the pull request that adds tests: `MIN_TESTS` in the
-  `test` job of `.github/workflows/ci.yml` is the least number of tests
-  (passed, skipped, xfailed and xpassed) a run may report. It is lowered only
-  with the reason written in the pull request.
+  `test` job (no server) and in the `test-servers` job (the whole suite) of
+  `.github/workflows/ci.yml` is the least number of tests (passed, skipped,
+  xfailed and xpassed) that job may report. It is lowered only with the reason
+  written in the pull request.
 - CI is green at the tip of the branch. `ci-ok` is the one job that says so; it
-  fails when `checks` or `test` failed or was cancelled. A job added to the
-  workflow joins the `needs` of `ci-ok`.
+  fails when `checks`, `test` or `test-servers` failed or was cancelled. A job
+  added to the workflow joins the `needs` of `ci-ok`.
 
-CI runs no server: the server tests stay deselected there until Task 14.
+The `test` job runs no server, so the server tests stay deselected there. The
+`test-servers` job starts the containers of `compose.yaml` and runs them.
 
 ## Safety
 

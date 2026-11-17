@@ -272,7 +272,7 @@ Task 2 fills the "Decision" column. A task that names a decision waits for it.
 | 11 | Lint: violations that need judgment | dev | Sonnet | medium | yes | 10 | done (#59) |
 | 12 | Native libraries, part 1: lazy loading | dev | Sonnet | medium | yes | 6 | done (#61) |
 | 13 | Disposable servers and the first full run | dev | Opus | medium | yes | 8, 12 | done (#67) |
-| 14 | CI with servers | dev | Sonnet | medium | yes | 13, D5 | pending |
+| 14 | CI with servers | dev | Sonnet | medium | yes | 13, D5 | done (#76) |
 | 15 | Setup without servers | dev | Sonnet | medium | yes | 14, D2, D7 | pending |
 | 16 | End-to-end oracle: the harness | dev | Opus | medium | yes | 15 | pending |
 | 17 | End-to-end oracle: the option matrix | dev | Sonnet | medium | yes | 16 | pending |
