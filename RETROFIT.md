@@ -19,7 +19,7 @@ For an agent (Claude Code) working with a dev on this repository.
    behind: `git fetch origin`, then `git show origin/main:RETROFIT.md`. Without
    network, use the local file and say it may be out of date.
 2. The next task is the first row whose state is `pending`, whose task
-   dependencies are all `done`, and whose decisions (`D1`…`D6`) are answered in
+   dependencies are all `done`, and whose decisions (`D1`…`D7`) are answered in
    "Maintainer decisions". Name the blocked rows you passed over and what
    blocks each. A row is never passed over because of its "Who": see "Who does
    a task".
@@ -249,10 +249,11 @@ Task 2 fills the "Decision" column. A task that names a decision waits for it.
 | :--- | :--- | :--- | :--- |
 | D1 | Open work before the format commit: PR #16 (`issue_15`) and the branch `btree-impl`. Integrate, close, or accept the rebase? | Task 9 | Close both, archived first as the tags `archive/issue_15` and `archive/btree-impl`. Task 15 reimplements the setup option on `main`, taking PR #16 as prior work; the B-tree storage is issue #34, for after the retrofit. |
 | D2 | Issue #15: how should setup behave when the servers are not running? PR #16 adds `--storage` to setup. | Task 15 | Adopt issue #15 as written: setup gets `-s/--storage` with the execution's storage names, default `file`. `init_env` initializes only the chosen storage, `_env_exists` no longer requires the SQLite file, and setup never touches a server that was not selected. The disabling of `FUNCTION_CALLS_PROV` that PR #16 also did is out of scope: issue #35. |
-| D3 | Where are the sources and the build commands of the three native hash libraries? | Task 25 | awaiting: the sources, the commits and the build commands of `liba5hash.so` and `libmuseair.so`, and the commit of `JoaoLopez/meow_hash` used for `libmeow.so`. |
-| D4 | Which license, and which GitHub team or users go in `CODEOWNERS`? | Task 22 | License MIT, copyright Universidade Federal Fluminense (UFF), confirmed by the admin; `LICENSE` added in issue #68. `CODEOWNERS`: `claytonchagas` and `JoaoLopez`. The thread asks whether `JoaoFelipe` wants to be listed. |
-| D5 | For this private repository: how many Actions minutes may CI spend, and are code scanning and secret scanning available on the organization's plan? | Tasks 14, 23 | awaiting: Actions minutes per month, GitHub Advanced Security on the organization's plan, and the proposal to make the repository public before Task 14. |
+| D3 | Where are the sources and the build commands of the three native hash libraries? | Task 25 | awaiting: the sources, the commits and the build commands of `liba5hash.so` and `libmuseair.so`, and the commit of `JoaoLopez/meow_hash` used for `libmeow.so`. The `.so` files are git-ignored and the repository has no sources or build commands for them. The maintainer asked the team whether the three native hashes (a5hash, MeowHash, MuseAir BFast) stay at all, since they are new, niche and unreviewed; the release used in the 2024 measurements (1.0.1+time-measure) had only md5, murmur and xxhash, with md5 as the default. The admin referred the question to `JoaoLopez`; the answer is expected on 2026-11-19. Task 25 waits for it. |
+| D4 | Which license, and which GitHub team or users go in `CODEOWNERS`? | Task 22 | License MIT, copyright Universidade Federal Fluminense (UFF), confirmed by the admin; `LICENSE` added in issue #68. `CODEOWNERS`: `claytonchagas` and `JoaoLopez` (`JoaoFelipe` is not an owner), confirmed on the team's thread on 2026-11-16. Task 22 adds `CODEOWNERS` with these two. |
+| D5 | For this private repository: how many Actions minutes may CI spend, and are code scanning and secret scanning available on the organization's plan? | Tasks 14, 23 | Answered 2026-11-16 by the admin: the repository is public, and GitHub detects the MIT license. Tasks 14 and 23 are unblocked. |
 | D6 | Which Python versions are supported? | Task 24 | 3.10 to 3.11: every pin installs from wheels there. 3.9 is dropped, the README says 3.10+. 3.12 and 3.13 need a newer `mmh3` pin (no wheel for 4.0.1): issue #36, outside the retrofit. `check_python_version()` is aligned in Task 24. |
+| D7 | Should the server backends be optional? | Task 15 | Proposed by the maintainer and approved by the admin on 2026-11-16, as noWorkflow does. The default install (`pip install speedupy`) brings only the `file` and `sqlite` storages; each server backend is an extra (`speedupy[mysql]`, `speedupy[mongo]`, `speedupy[redis]`, `speedupy[memcached]`) plus `speedupy[all]`. Every storage imports its driver only when selected, with a clear error if it is missing. No backend discussed in a paper leaves the repository, and reproducing a paper stays one command. Task 15 implements the code part together with D2. Packaging and publishing to PyPI (extras, `CITATION.cff`, a README line `pip install speedupy[all]==X.Y.Z`) is a post-retrofit issue, to be opened later. |
 
 ## Status
 
@@ -272,7 +273,7 @@ Task 2 fills the "Decision" column. A task that names a decision waits for it.
 | 12 | Native libraries, part 1: lazy loading | dev | Sonnet | medium | yes | 6 | done (#61) |
 | 13 | Disposable servers and the first full run | dev | Opus | medium | yes | 8, 12 | done (#67) |
 | 14 | CI with servers | dev | Sonnet | medium | yes | 13, D5 | pending |
-| 15 | Setup without servers | dev | Sonnet | medium | yes | 14, D2 | pending |
+| 15 | Setup without servers | dev | Sonnet | medium | yes | 14, D2, D7 | pending |
 | 16 | End-to-end oracle: the harness | dev | Opus | medium | yes | 15 | pending |
 | 17 | End-to-end oracle: the option matrix | dev | Sonnet | medium | yes | 16 | pending |
 | 18 | English, part 1: comments and messages | dev | Sonnet | low | yes | 11 | pending |
@@ -687,15 +688,15 @@ Sonnet · medium · clear first: yes · depends on: 13, D5
 1. Job `test-servers`: `docker compose up -d --wait`, `SPEEDUPY_TEST_SERVERS=1
    uv run pytest`, its own `min-tests`, the compose logs uploaded on failure.
 2. Add it to the `needs` of `ci-ok`.
-3. If D5 limits the minutes, run it on pull requests to `main` and on `main`
-   only.
+3. D5 sets no limit on minutes (the repository is public): run it on every
+   push and pull request.
 
 **Done when.** CI is green with the job listed, and the floor is proven as in
 Task 6.
 
 ### Task 15 — Setup without servers
 
-Sonnet · medium · clear first: yes · depends on: 14, D2 · production change
+Sonnet · medium · clear first: yes · depends on: 14, D2, D7 · production change
 
 **Goal.** Setting up an experiment that uses SQLite or files needs no server.
 
@@ -901,8 +902,9 @@ Sonnet · medium · clear first: yes · depends on: 6, D5
 4. `AGENTS.md` gains "Dependencies": one dependency per step; a major or minor
    bump is never a side effect; a Dependabot pull request is never merged as it
    stands.
-5. If D5 says they are available, an admin turns on code scanning and secret
-   scanning: open an issue for it and assign it as "Who does a task" says.
+5. D5 made the repository public, so code scanning and secret scanning are
+   available: an admin turns them on. Open an issue for it and assign it as
+   "Who does a task" says.
 
 **Done when.** `checks` is green with each exception documented; the bandit
 baseline is committed.
