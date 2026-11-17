@@ -1,4 +1,3 @@
-import time
 import unittest
 from typing import Dict
 
@@ -26,7 +25,7 @@ class TestMemcachedWriteThroughMemArch(AbstractMemArchTest, unittest.TestCase):
             serializer=pickle_serde.serialize,
             deserializer=pickle_serde.deserialize,
         )
-        self.memcached.flush_all()
+        self.memcached.flush_all(noreply=False)
         return MemcachedWriteThroughMemArch(self.retrieval_strategy, False)
 
     def assert_cache_on_RAM_equal(
@@ -53,10 +52,13 @@ class TestMemcachedWriteThroughMemArch(AbstractMemArchTest, unittest.TestCase):
                 "Memcached write-through strategy does not allow non persisted data on RAM!"
             )
 
-        self.memcached.set_many(persisted_data)
+        self.memcached.set_many(persisted_data, noreply=False)
 
     def wait_for_memcached_persistency(self):
-        time.sleep(0.1)  # Memcached need some time to insert elements to the database
+        # Memcached answers the commands of one connection in order, so the reply
+        # to a round trip on the arch's own client says its earlier writes (sent
+        # with noreply) were applied. The sleep this replaces was a guess.
+        self.mem_arch._memcached.client.version()
 
     def test_create_cache_entry_writes_through(self):
         self.mem_arch.create_cache_entry("hash123", "resultado")
