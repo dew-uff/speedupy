@@ -264,7 +264,7 @@ Task 2 fills the "Decision" column. A task that names a decision waits for it.
 | 4 | Fix the two flaky tests | dev | Sonnet | low | yes | 3 | done (#42) |
 | 5 | pytest harness, safe by default | dev | Sonnet | high | yes | 3, 4 | done (#47) |
 | 6 | CI without servers | dev | Sonnet | medium | yes | 5 | done (#49) |
-| 7 | Require CI on `main` | admin | Sonnet | low | yes | 6 | pending |
+| 7 | Require CI on `main` | admin | Sonnet | low | yes | 6 | done (#70) |
 | 8 | Test isolation and random order | dev | Sonnet | high | yes | 6 | done (#52) |
 | 9 | Format once | dev | Sonnet | low | yes | 8, D1 | done (#55) |
 | 10 | Lint: automatic fixes and the gate | dev | Sonnet | medium | yes | 9 | done (#57) |
