@@ -1,5 +1,4 @@
 import random
-import time
 import unittest
 from typing import Dict
 
@@ -28,15 +27,21 @@ class TestMemcachedWriteBackMemArch(AbstractMemArchTest, unittest.TestCase):
             serializer=pickle_serde.serialize,
             deserializer=pickle_serde.deserialize,
         )
-        self.memcached.flush_all()
+        self.memcached.flush_all(noreply=False)
         return MemcachedWriteBackMemArch(self.retrieval_strategy, False)
+
+    def wait_for_memcached_persistency(self):
+        # Memcached answers the commands of one connection in order, so the reply
+        # to a round trip on the arch's own client says its earlier writes (sent
+        # with noreply) were applied. The sleep this replaces was a guess.
+        self.mem_arch._memcached.client.version()
 
     def assert_cache_on_RAM_equal(
         self,
         non_persisted_data: Dict[str, CacheData],
         persisted_data: Dict[str, CacheData],
     ) -> None:
-        time.sleep(0.1)  # Memcached need some time to insert elements to the database
+        self.wait_for_memcached_persistency()
         cache_data = non_persisted_data | persisted_data
         for k, v in cache_data.items():
             self.assertEqual(self.memcached.get(k), v)
@@ -46,8 +51,8 @@ class TestMemcachedWriteBackMemArch(AbstractMemArchTest, unittest.TestCase):
         non_persisted_data: Dict[str, CacheData],
         persisted_data: Dict[str, CacheData],
     ) -> None:
-        self.memcached.set_many(non_persisted_data)
-        self.memcached.set_many(persisted_data)
+        self.memcached.set_many(non_persisted_data, noreply=False)
+        self.memcached.set_many(persisted_data, noreply=False)
         self.mem_arch._new_cache_keys += list(non_persisted_data.keys())
 
     def test_create_cache_entry(self):
@@ -81,7 +86,7 @@ class TestMemcachedWriteBackMemArch(AbstractMemArchTest, unittest.TestCase):
     def test_create_cache_entry_writes_only_to_memcached(self):
         self.mem_arch.create_cache_entry("hash123", "resultado")
 
-        time.sleep(0.1)  # Memcached need some time to insert elements to the database
+        self.wait_for_memcached_persistency()
         self.assertEqual(
             self.memcached.get("hash123"), CacheData("hash123", "resultado")
         )
