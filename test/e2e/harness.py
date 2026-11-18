@@ -9,6 +9,9 @@ script, runs setup, then runs the script three times as a process:
 2. ``--exec-mode manual -mt 0 -s <storage>``: fills the cache;
 3. the same plus ``--profile``: must be served from the cache.
 
+``test_oracle.py`` runs the defaults; ``test_matrix.py`` adds the options a
+user can type (hash, memory architecture, retrieval, serializer) to runs 2 and 3.
+
 What counts as "the same output" (issue #90):
 
 - stdout, stderr and the exit status, compared byte for byte. The two streams
@@ -121,11 +124,35 @@ def split_profiler_block(run: Run) -> tuple:
     return stripped, int(calls.group(1)), int(hits.group(1))
 
 
-def run_oracle(script: str, storage: str, base_dir: Path) -> OracleResult:
+def run_oracle(
+    script: str, storage: str, base_dir: Path, options: tuple = ()
+) -> OracleResult:
+    """Run the three runs; ``options`` are extra arguments of the two cached runs."""
     exp_dir = prepare_experiment(script, storage, base_dir)
-    cached = [script, *CACHED_ARGS, "-s", storage]
+    cached = [script, *CACHED_ARGS, "-s", storage, *options]
     no_cache = _python([script, "--exec-mode", "no-cache"], exp_dir)
     first_cached = _python(cached, exp_dir)
     profiled = _python([*cached, "--profile"], exp_dir)
     second_cached, calls, hits = split_profiler_block(profiled)
     return OracleResult(no_cache, first_cached, second_cached, calls, hits)
+
+
+def assert_oracle(result: OracleResult) -> None:
+    """The property of the tool: the same output, and run 3 served by the cache."""
+    reference = result.no_cache
+    for name, run in (("run 2", result.first_cached), ("run 3", result.second_cached)):
+        context = (
+            f"\nrun 1 (no-cache):\n{reference.describe()}\n{name}:\n{run.describe()}"
+        )
+        assert run.stdout == reference.stdout, f"{name}: stdout differs{context}"
+        assert run.stderr == reference.stderr, f"{name}: stderr differs{context}"
+        assert run.returncode == reference.returncode, (
+            f"{name}: exit status differs{context}"
+        )
+
+    # Every call that reaches @deterministic in run 3 is served from the cache.
+    assert result.deterministic_calls > 0, result.second_cached.describe()
+    assert result.cache_hits == result.deterministic_calls, (
+        f"run 3: {result.cache_hits} cache hits for "
+        f"{result.deterministic_calls} calls to @deterministic"
+    )

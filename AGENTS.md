@@ -249,6 +249,17 @@ The harness runs in a few seconds per script. A corpus script that fails
 because of a defect of SpeeduPy is not added until the defect is fixed; it
 goes in the defect's issue.
 
+**The option matrix.** `test/e2e/test_matrix.py` runs the oracle over the
+options a user can type (hash, memory architecture, retrieval strategy and
+execution mode, serializer, storage) as a pairwise covering array, a literal
+table with the default combination first. A combination that fails today is a
+`xfail(strict=True)` row whose reason names its issue (`#87`, `#88`); it leaves
+the table when the issue is fixed. The server storages and the Memcached
+architectures are in `test/e2e/test_matrix_servers.py`, which runs only in the
+server job. When an option gains or loses a value, regenerate the table (greedy,
+default row first, known-defect pairs left out), review the diff, and keep
+`test_the_table_covers_every_valid_pair` green.
+
 ## Running the tests with servers
 
 Docker is needed only for this suite, the tests that need a server. Plain
