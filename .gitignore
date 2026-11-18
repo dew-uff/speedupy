@@ -5,3 +5,6 @@ examples/
 .venv/
 .pytest_cache/
 *.so
+.coverage*
+coverage.xml
+htmlcov/

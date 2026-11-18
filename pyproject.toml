@@ -53,3 +53,21 @@ markers = [
     "memcached: needs the Memcached server on localhost:11211 (opt-in, SPEEDUPY_TEST_SERVERS=1)",
     "native: needs a native hash library (libmeow.so, liba5hash.so or libmuseair.so)",
 ]
+
+[tool.coverage.run]
+# Report, never a gate: the floor is MIN_TESTS in ci.yml. The oracle starts
+# SpeeduPy as child processes, so subprocesses are measured too (each process
+# writes its own data file, combined afterwards).
+source = ["."]
+branch = true
+parallel = true
+patch = ["subprocess"]
+omit = [
+    ".venv/*",
+    "test/*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true

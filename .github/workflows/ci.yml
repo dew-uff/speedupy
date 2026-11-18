@@ -85,10 +85,13 @@ jobs:
         run: uv sync --locked
 
       # No server runs here: the server tests are deselected (see AGENTS.md).
+      # Coverage includes the processes the oracle starts ([tool.coverage.run]
+      # in pyproject.toml). It is a report, not a gate: the floor is MIN_TESTS.
       - name: Run tests
         run: |
           set -o pipefail
-          uv run --no-sync pytest | tee pytest.log
+          uv run --no-sync pytest --cov --cov-report=term --cov-report=xml \
+            --cov-report=html | tee pytest.log
 
       # The count in the job summary, and a failure when the count drops below
       # MIN_TESTS or the log has no summary line: a zero exit status does not
@@ -98,6 +101,16 @@ jobs:
         run: |
           bash .github/scripts/pytest-summary.sh pytest.log "$MIN_TESTS" \
             "ubuntu-latest, 3.10" "uv sync --locked && uv run --no-sync pytest"
+
+      - name: Upload the coverage report
+        if: ${{ !cancelled() && steps.sync.outcome == 'success' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage
+          path: |
+            coverage.xml
+            htmlcov/
+          if-no-files-found: ignore
 
   # The tests that need a server, against the disposable servers of
   # compose.yaml (AGENTS.md, "Running the tests with servers"). They erase data
