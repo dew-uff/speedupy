@@ -275,7 +275,7 @@ Task 2 fills the "Decision" column. A task that names a decision waits for it.
 | 14 | CI with servers | dev | Sonnet | medium | yes | 13, D5 | done (#76) |
 | 15 | Setup without servers | dev | Sonnet | medium | yes | 14, D2, D7 | done (#85) |
 | 16 | End-to-end oracle: the harness | dev | Opus | medium | yes | 15 | done (#92) |
-| 17 | End-to-end oracle: the option matrix | dev | Sonnet | medium | yes | 16 | pending |
+| 17 | End-to-end oracle: the option matrix | dev | Sonnet | medium | yes | 16 | done (#94) |
 | 18 | English, part 1: comments and messages | dev | Sonnet | low | yes | 11 | pending |
 | 19 | English, part 2: identifiers and file names | dev | Sonnet | medium | yes | 17, 18 | pending |
 | 20 | Coverage and the blind spots of the suite | dev | Sonnet | medium | yes | 17 | pending |

@@ -62,6 +62,9 @@ ALL_SERVERS = tuple(SERVERS)
 # server, even for a test that does not: ``setUp`` and ``tearDown`` run for each
 # one of them.
 MARKER_MAP = {
+    # One row per server storage and per Memcached architecture; it runs only in
+    # the server job, so every server is needed for the whole test.
+    "e2e/test_matrix_servers.py": ALL_SERVERS,
     # setUp connects to MySQL; tearDown flushes Redis, MongoDB and Memcached and
     # drops the MySQL database, for every test of the class. The folder and
     # SQLite tests live in test_environment_service_local.py, which touches no
