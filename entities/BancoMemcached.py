@@ -1,8 +1,14 @@
 import atexit
 from typing import Dict
 
-from pymemcache.client.base import Client
-from pymemcache.serde import pickle_serde
+try:
+    from pymemcache.client.base import Client
+    from pymemcache.serde import pickle_serde
+except ImportError as error:
+    raise ImportError(
+        "The memcached backend needs the pymemcache driver, which is not installed; "
+        'install it with: pip install "speedupy[memcached]"'
+    ) from error
 
 from SingletonMeta import SingletonMeta
 

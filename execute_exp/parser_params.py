@@ -1,6 +1,17 @@
 import argparse
 import sys
 
+STORAGE_OPTIONS = [
+    "sqlite",
+    "redis",
+    "mongo",
+    "gridfs",
+    "mongo-file",
+    "mongo-gridfs",
+    "file",
+    "mysql",
+]
+
 
 def help_msg() -> str:
     return (
@@ -117,16 +128,7 @@ def get_params():
         "memcached-wb",
     ]
     hashes = ["md5", "murmur", "xxhash", "meowhash", "museair", "a5hash"]
-    storage_options = [
-        "sqlite",
-        "redis",
-        "mongo",
-        "gridfs",
-        "mongo-file",
-        "mongo-gridfs",
-        "file",
-        "mysql",
-    ]
+    storage_options = STORAGE_OPTIONS
     serializer_options = ["pickle", "cloudpickle"]
 
     speedupy_arg_parser = argparse.ArgumentParser(usage=help_msg())

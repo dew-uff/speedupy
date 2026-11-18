@@ -1,8 +1,14 @@
 import atexit
 from typing import Dict, Optional
 
-from gridfs import GridFSBucket
-from pymongo import MongoClient
+try:
+    from gridfs import GridFSBucket
+    from pymongo import MongoClient
+except ImportError as error:
+    raise ImportError(
+        "The mongo backend needs the pymongo driver, which is not installed; "
+        'install it with: pip install "speedupy[mongo]"'
+    ) from error
 
 from SingletonMeta import SingletonMeta
 

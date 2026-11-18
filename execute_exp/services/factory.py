@@ -63,39 +63,52 @@ def _init_retrieval_strategy() -> AbstractRetrievalStrategy:
 
 
 def _init_storage() -> Storage:
-    from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
-    from execute_exp.services.storages.GridFSStorage import GridFSStorage
-    from execute_exp.services.storages.MongoStorage import MongoStorage
-    from execute_exp.services.storages.MongoWithFileSystemStorage import (
-        MongoWithFileSystemStorage,
-    )
-    from execute_exp.services.storages.MongoWithGridFSStorage import (
-        MongoWithGridFSStorage,
-    )
-    from execute_exp.services.storages.MySQLStorage import MySQLStorage
-    from execute_exp.services.storages.RedisStorage import RedisStorage
-    from execute_exp.services.storages.SQLiteStorage import SQLiteStorage
-
+    # Each storage module is imported only when its storage is selected, so a
+    # driver that is not installed matters only to the storage that needs it.
     serializer = get_serializer()
     if SpeeduPySettings().storage == ["sqlite"]:
+        from execute_exp.services.storages.SQLiteStorage import SQLiteStorage
+
         return SQLiteStorage(serializer)
     elif SpeeduPySettings().storage == ["redis"]:
+        from execute_exp.services.storages.RedisStorage import RedisStorage
+
         return RedisStorage(serializer)
     elif SpeeduPySettings().storage == ["mongo"]:
+        from execute_exp.services.storages.MongoStorage import MongoStorage
+
         return MongoStorage(serializer)
     elif SpeeduPySettings().storage == ["gridfs"]:
+        from execute_exp.services.storages.GridFSStorage import GridFSStorage
+
         return GridFSStorage(serializer)
     elif SpeeduPySettings().storage == ["mongo-file"]:
+        from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
+        from execute_exp.services.storages.MongoStorage import MongoStorage
+        from execute_exp.services.storages.MongoWithFileSystemStorage import (
+            MongoWithFileSystemStorage,
+        )
+
         return MongoWithFileSystemStorage(
             MongoStorage(serializer), FileSystemStorage(serializer)
         )
     elif SpeeduPySettings().storage == ["mongo-gridfs"]:
+        from execute_exp.services.storages.GridFSStorage import GridFSStorage
+        from execute_exp.services.storages.MongoStorage import MongoStorage
+        from execute_exp.services.storages.MongoWithGridFSStorage import (
+            MongoWithGridFSStorage,
+        )
+
         return MongoWithGridFSStorage(
             MongoStorage(serializer), GridFSStorage(serializer)
         )
     elif SpeeduPySettings().storage == ["file"]:
+        from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
+
         return FileSystemStorage(serializer)
     elif SpeeduPySettings().storage == ["mysql"]:
+        from execute_exp.services.storages.MySQLStorage import MySQLStorage
+
         return MySQLStorage(serializer)
 
 

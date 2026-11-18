@@ -1,7 +1,13 @@
 import atexit
 from typing import Dict
 
-import redis
+try:
+    import redis
+except ImportError as error:
+    raise ImportError(
+        "The redis backend needs the redis driver, which is not installed; "
+        'install it with: pip install "speedupy[redis]"'
+    ) from error
 
 from SingletonMeta import SingletonMeta
 

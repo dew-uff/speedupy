@@ -1,3 +1,4 @@
+import argparse
 import os
 import sys
 
@@ -8,6 +9,7 @@ sys.path.append(project_folder)
 # above set up: the script runs as `python setup_exp/setup.py`, where the
 # project root is not on the path.
 from constantes import Constantes  # noqa: E402
+from execute_exp.parser_params import STORAGE_OPTIONS  # noqa: E402
 from setup_exp.services.environment_service import init_env  # noqa: E402
 from setup_exp.services.experiment_service import (  # noqa: E402
     analyze_experiment_function_call_hierarchy,
@@ -20,14 +22,34 @@ from util import check_python_version, save_json_file  # noqa: E402
 
 
 def validate_main_script_specified():
-    if len(sys.argv) != 2:
+    if len(parse_args().main_script) != 1:
         raise Exception(
-            "Please specify only the main script of your experiment!\nCommand: python setup.py MAIN_SCRIPT.py"
+            "Please specify only the main script of your experiment!\nCommand: python setup.py [-s STORAGE] MAIN_SCRIPT.py"
         )
 
 
-def setup_experiment(main_script_path: str) -> None:
-    init_env()
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(
+        usage="python setup.py [-s STORAGE] MAIN_SCRIPT.py",
+        description="Prepare an experiment to run with SpeeduPy.",
+    )
+    parser.add_argument(
+        "main_script", nargs="*", help="the main script of the experiment"
+    )
+    parser.add_argument(
+        "-s",
+        "--storage",
+        choices=STORAGE_OPTIONS,
+        default="file",
+        help="the storage to prepare, one of the execution's: "
+        + ", ".join(STORAGE_OPTIONS)
+        + " (default: file)",
+    )
+    return parser.parse_args(sys.argv[1:] if argv is None else argv)
+
+
+def setup_experiment(main_script_path: str, storage: str = "file") -> None:
+    init_env(storage)
     experiment = create_experiment(main_script_path)
     exp_func_graph = analyze_experiment_function_call_hierarchy(experiment)
     functions2hashes = get_experiment_functions_hashes(exp_func_graph)
@@ -40,4 +62,5 @@ if __name__ == "__main__":
     check_python_version()
     validate_main_script_specified()
 
-    setup_experiment(sys.argv[1])
+    args = parse_args()
+    setup_experiment(args.main_script[0], args.storage)

@@ -96,24 +96,29 @@ The `test` job runs no server, so the server tests stay deselected there. The
 
 ## Safety
 
-**The setup and the suite erase data on localhost.** On its first run,
-`_create_databases` in `setup_exp/services/environment_service.py` does all of
-this, whatever storage the experiment uses:
+**The setup with a server storage and the server suite erase data on
+localhost.** On its first run in a directory, `_create_databases` in
+`setup_exp/services/environment_service.py` prepares only the storage chosen
+with `-s/--storage` (default `file`). The `file` and `sqlite` storages touch no
+server. The others do this:
 
-- Redis: `flushdb` on database 0 of `localhost:6379`;
-- MongoDB: drops the `speedupy` databases on `localhost:27017`;
-- Memcached: `flush_all` on `localhost:11211`;
-- MySQL: `DROP DATABASE IF EXISTS speedupy` on `127.0.0.1` as `root`.
+- `redis`: `flushdb` on database 0 of `localhost:6379`;
+- `mongo`, `gridfs`, `mongo-file` and `mongo-gridfs`: drops the `speedupy`
+  database on `localhost:27017` (they share it);
+- `mysql`: `DROP DATABASE IF EXISTS speedupy`, then creates it, on `127.0.0.1`
+  as `root`.
 
-The storage, memory-architecture and environment tests do the same.
+Setup never touches a server that was not selected, and never Memcached. The
+storage, memory-architecture and environment tests erase all four servers.
 
 `uv run pytest` is safe: it deselects every test that needs a server and runs in
 a scratch directory (see "Running the tests"). What is still unsafe:
 
-- Do not run `setup_exp/setup.py`, or `SPEEDUPY_TEST_SERVERS=1 uv run pytest`,
-  against servers on this machine that hold data that matters. Run them
-  against the disposable servers of `compose.yaml` (see "Running the tests
-  with servers").
+- Do not run `setup_exp/setup.py` with a server storage (`-s redis`, `mongo`,
+  `gridfs`, `mongo-file`, `mongo-gridfs` or `mysql`), or
+  `SPEEDUPY_TEST_SERVERS=1 uv run pytest`, against servers on this machine that
+  hold data that matters. Run them against the disposable servers of
+  `compose.yaml` (see "Running the tests with servers").
 - Do not bypass the harness with `python -m unittest`. It runs every server
   test, and a setup test writes and removes `__init__.py` in the current
   directory, which at the repository root is a tracked file.
@@ -212,9 +217,9 @@ directory, and writes nothing in the checkout (`.pytest_cache/` and
 
 Docker is needed only for this suite, the tests that need a server. Plain
 `uv run pytest` needs neither a server nor Docker, and SpeeduPy itself never
-needs Docker. Until Task 15 (issue #15), though, the first setup of an
-experiment reaches all four servers whatever the storage, so even an
-experiment that uses the `file` or `sqlite` storage fails there without them.
+needs Docker. Setup reaches a server only for the storage it is asked to
+prepare (`-s`, default `file`), so an experiment that uses `file` or `sqlite`
+needs none.
 
 From the repository root, two commands:
 
@@ -261,8 +266,9 @@ status table and the protocol to follow are in `RETROFIT.md`.
   work on one, read `RETROFIT.md` and follow "Protocol" there.
 - When you finish a retrofit task, tell the dev the next one without being
   asked: the task, the model, the effort, and whether to `/clear` first.
-- Do not run the test suite or `setup_exp/setup.py` before reading "Safety"
-  here: both erase data in the database servers on localhost.
+- Do not run the server suite (`SPEEDUPY_TEST_SERVERS=1`) or `setup_exp/setup.py`
+  with a server storage before reading "Safety" here: both erase data in the
+  database servers on localhost.
 - When a tool is missing on the machine (uv, Python, Docker, `gh`), do not
   replace it with a weaker one: follow "Tools on the dev's machine" above, which
   starts by asking the dev's go-ahead to install it.

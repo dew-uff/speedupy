@@ -73,7 +73,9 @@ This section guides you through setting up the required server environment and p
 
 ### 1. Starting Database Servers
 
-To initiate the necessary cache servers (MySQL, MongoDB, Redis, etc.), use the provided shell script:
+Skip this step if your experiment uses the `file` or `sqlite` storage: they need no server.
+
+If it uses a server storage (MySQL, MongoDB, Redis), start the server it needs. The provided shell script starts them all:
 
 ```bash
 # Starts all configured database servers
@@ -87,7 +89,14 @@ This step analyzes your code to create the necessary metadata (like function cal
 ```bash
 # Replace file_name.py with the name of your main experiment file
 $ python3.10 speedupy/setup_exp/setup.py file_name.py
+
+# To prepare a server storage, name it with -s/--storage (default: file)
+$ python3.10 speedupy/setup_exp/setup.py -s redis file_name.py
 ```
+
+`-s/--storage` takes the same names as the execution option of the same name: `sqlite`, `redis`, `mongo`, `gridfs`, `mongo-file`, `mongo-gridfs`, `file` and `mysql`. Setup prepares only that storage and never touches the servers of the others, so it needs no server unless you choose one. On the first setup of a directory, it empties the server storage you choose (Redis, MongoDB) or recreates its database (MySQL), so do not point it at a server that holds data you need.
+
+Run the experiment with the same storage you set up, passing `-s` to both commands. The local SQLite file that setup always creates holds the function-call provenance whatever the storage.
 
 ### 3. Adapting Your Scripts
 
