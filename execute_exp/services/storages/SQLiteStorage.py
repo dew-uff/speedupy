@@ -24,9 +24,6 @@ class SQLiteStorage(Storage):
                     **kwargs,
                     use_isolated_connection=use_isolated_connection,
                 )
-
-                if func.__qualname__ == "SQLiteStorage.save_cache_data":
-                    self.__local.db_connection.commit()
                 self.__local.db_connection.close_connection()
                 self.__local.db_connection = self.__local.previous_conn
             else:
@@ -113,7 +110,7 @@ class SQLiteStorage(Storage):
             )
         sql_stmt = sql_stmt[:-1]
         self.__local.db_connection.exec_without_output(sql_stmt, sql_params)
-
-    def __del__(self):
+        # Commit here, on the connection that wrote (the isolated one when it
+        # is used): nothing may wait for the instance to be finalized, which
+        # Python does not guarantee at interpreter exit (issue #86).
         self.__local.db_connection.commit()
-        self.__local.db_connection.close_connection()

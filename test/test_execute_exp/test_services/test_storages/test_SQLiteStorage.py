@@ -1,10 +1,13 @@
+import os
 import sqlite3
 import unittest
 from typing import Dict
 from unittest.mock import Mock
 
 from constantes import Constantes
+from entities.BancoSQLite import BancoSQLite
 from execute_exp.entitites.CacheData import CacheData
+from execute_exp.services.serializers.PickleSerializer import PickleSerializer
 from execute_exp.services.serializers.Serializer import Serializer
 from execute_exp.services.storages.SQLiteStorage import SQLiteStorage
 from execute_exp.services.storages.Storage import Storage
@@ -17,7 +20,9 @@ class TestSQLiteStorage(AbstractStorageTest, unittest.TestCase):
     def create_instance(self, serializer: Serializer) -> Storage:
         self.create_database()
         storage = SQLiteStorage(serializer)
-        storage._SQLiteStorage__local.db_connection.commit = Mock()  # Preventing DB connection to commit changes when SQLiteStorage instance is destroyed
+        # The tests of this class read through the storage's own connection, which
+        # sees uncommitted rows; TestSQLiteStorageCommits covers the commit.
+        storage._SQLiteStorage__local.db_connection.commit = Mock()
         self.storage_conn = storage._SQLiteStorage__local.db_connection.conexao
         return storage
 
@@ -57,3 +62,49 @@ class TestSQLiteStorage(AbstractStorageTest, unittest.TestCase):
         self.storage_conn.execute(sql_stmt, sql_params)
         if "commit" in kwargs and kwargs["commit"]:
             self.storage_conn.commit()
+
+
+class TestSQLiteStorageCommits(unittest.TestCase):
+    """Issue #86: what save_cache_data writes is committed when it returns.
+
+    The storage is built without the mocked commit of TestSQLiteStorage, and
+    the rows are read through a fresh connection to the file while the storage
+    is still alive, so nothing can rely on the instance being finalized.
+    """
+
+    def setUp(self):
+        os.system(f"rm -rf {Constantes().FOLDER_NAME}/")
+        os.makedirs(Constantes().FOLDER_NAME)
+        BancoSQLite().create_database()
+        self.serializer = PickleSerializer()
+        self.storage = SQLiteStorage(self.serializer)
+
+    def tearDown(self):
+        os.system(f"rm -rf {Constantes().FOLDER_NAME}/")
+
+    def read_rows_through_a_fresh_connection(self):
+        conn = sqlite3.connect(Constantes().BD_PATH)
+        try:
+            rows = conn.execute(
+                "SELECT func_call_hash, func_output, func_name FROM CACHE"
+            ).fetchall()
+        finally:
+            conn.close()
+        return {h: (self.serializer.loads(out), name) for h, out, name in rows}
+
+    def test_save_cache_data_is_visible_to_a_fresh_connection(self):
+        self.storage.save_cache_data(
+            {"hash1": CacheData("hash1", 10), "hash2": CacheData("hash2", [1, 2])}
+        )
+        self.assertDictEqual(
+            self.read_rows_through_a_fresh_connection(),
+            {"hash1": (10, None), "hash2": ([1, 2], None)},
+        )
+
+    def test_save_cache_data_with_func_name_is_visible_to_a_fresh_connection(self):
+        self.storage.save_cache_data(
+            {"hash1": CacheData("hash1", "out", func_name="f")}
+        )
+        self.assertDictEqual(
+            self.read_rows_through_a_fresh_connection(), {"hash1": ("out", "f")}
+        )
