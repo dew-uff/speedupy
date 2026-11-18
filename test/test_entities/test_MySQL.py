@@ -17,7 +17,7 @@ class TestExecuteManyWithoutOutput(unittest.TestCase):
 
         sql = "INSERT INTO test VALUES (%s, %s)"
 
-        # Cada entry_size = 4096 + 1000 bytes = 5096
+        # Each entry_size = 4096 + 1000 bytes = 5096
         value = b"x" * 1000
 
         arguments_list = [

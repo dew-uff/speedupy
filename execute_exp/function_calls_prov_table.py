@@ -79,8 +79,8 @@ class FunctionCallsProvTable:
             fc_prov.confidence_up_limit = None
             fc_prov.confidence_error = None
 
-    # TODO: VERIFICAR SE UM ÚNICO COMANDO SQL NÃO É MAIS EFICAZ
-    # TODO: VERIFICAR SE NÃO VALE A PENA SEPARAR DADOS NOVOS DE DADOS A ATUALIZAR
+    # TODO: CHECK WHETHER A SINGLE SQL STATEMENT IS MORE EFFICIENT
+    # TODO: CHECK WHETHER IT IS WORTH SEPARATING NEW DATA FROM DATA TO UPDATE
     def save_function_calls_prov_entries(self):
         for fc_prov in self._NEW_FUNCTION_CALLS_PROV:
             if fc_prov.id:

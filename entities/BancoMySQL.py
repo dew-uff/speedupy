@@ -23,7 +23,7 @@ class BancoMySQL:
                 # database does not exist!
                 pass
             else:
-                print(f"ERRO DE CONEXÃO COM MYSQL: {err}")
+                print(f"MYSQL CONNECTION ERROR: {err}")
                 self.conexao = None
                 self.cursor = None
 

@@ -6,7 +6,7 @@ from execute_exp.services.hashes.MeowHash import MeowHash
 
 class TestMeowHash(unittest.TestCase):
     def setUp(self):
-        # Mocks para simular a serialização de args e kwargs
+        # Mocks to simulate the serialization of args and kwargs
         self.serializer = Mock()
         self.serializer.to_canonical = Mock(side_effect=lambda x: x)
 
@@ -26,19 +26,21 @@ class TestMeowHash(unittest.TestCase):
         self.assertEqual(
             hash1,
             hash2,
-            "O mesmo input não gerou hashes idênticos (Falha na Estabilidade).",
+            "The same input did not produce identical hashes (stability failure).",
         )
         self.assertEqual(
-            len(hash1), 8, "O hash não tem o tamanho correto (8 caracteres hex)."
+            len(hash1),
+            8,
+            "The hash does not have the correct length (8 hex characters).",
         )
         self.assertTrue(
             all(c in "0123456789abcdef" for c in hash1),
-            "O hash contém caracteres não hexadecimais.",
+            "The hash contains non-hexadecimal characters.",
         )
 
     def test_hash_non_collision(self):
         """
-        Testa se inputs diferentes geram hashes diferentes (Não-colisão).
+        Tests that different inputs produce different hashes (no collision).
         """
         source1 = "def f(x): return x + 1"
         source2 = "def f(x): return x + 2"
@@ -54,17 +56,17 @@ class TestMeowHash(unittest.TestCase):
 
         # Test 1: Source change (hash1 vs hash2).
         self.assertNotEqual(
-            hash1, hash2, "Códigos fonte diferentes geraram o mesmo hash (Colisão)."
+            hash1, hash2, "Different source codes produced the same hash (collision)."
         )
 
         # Test 2: Arg change (hash1 vs hash3).
         self.assertNotEqual(
-            hash1, hash3, "Argumentos diferentes geraram o mesmo hash (Colisão)."
+            hash1, hash3, "Different arguments produced the same hash (collision)."
         )
 
         # Test 3: Mixed change (hash2 vs hash3).
         self.assertNotEqual(
-            hash2, hash3, "Diferentes inputs geraram o mesmo hash (Colisão)."
+            hash2, hash3, "Different inputs produced the same hash (collision)."
         )
 
 

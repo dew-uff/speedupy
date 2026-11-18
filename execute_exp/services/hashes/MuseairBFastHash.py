@@ -22,7 +22,7 @@ def _get_library():
 # --- Hash implementation ---
 class MuseairBFastHash(Hash):
     """
-    Implementação do MuseAir BFast (64-bit) via Rust (.so) usando ctypes.
+    Implementation of MuseAir BFast (64-bit) through Rust (.so), using ctypes.
     """
 
     def __init__(self, serializer, seed: int = 0):
@@ -31,7 +31,7 @@ class MuseairBFastHash(Hash):
 
     def _hash(self, data: bytes) -> str:
         if not isinstance(data, bytes):
-            raise TypeError("MuseAir requer 'bytes' como entrada.")
+            raise TypeError("MuseAir requires 'bytes' as input.")
 
         data_len = len(data)
 
