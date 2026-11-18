@@ -260,6 +260,35 @@ server job. When an option gains or loses a value, regenerate the table (greedy,
 default row first, known-defect pairs left out), review the diff, and keep
 `test_the_table_covers_every_valid_pair` green.
 
+## Blind spots of the suite
+
+What no test executes, from the coverage report and the `# TODO: TEST` notes.
+Each item has its issue: a change there is run by hand, and the pull request
+says so. Reproduce the report with `uv run pytest --cov` then `uv run coverage
+report` (the `test` job of CI uploads it as the `coverage` artifact). Coverage
+is a report, not a gate: the floor is `MIN_TESTS`.
+
+- **`function_calls_prov_table.py`**, 31% (#102).
+- **Setup of experiments with imported scripts:** `create_experiment`, imported
+  user modules and implicit `__init__.py` (#103). The oracle corpus has
+  single-script experiments only.
+- **Same-name nested functions** in `FunctionCalledDetectorService` (#104).
+- **Server storages and the Memcached architectures** show low in the report of
+  `test`; the `test-servers` job runs them. Not a blind spot of the suite.
+- **The native hashes** are skipped without the `.so` files (Task 25).
+
+### Experimental, outside the product's scope
+
+Work in progress of another thesis, not part of release 2.0. The oracle and the
+option matrix exercise only `manual` and `no-cache` on purpose. What to do with
+them in the release is the maintainers' decision (D8).
+
+- **`@maybe_deterministic` with the accurate and probabilistic execution modes**
+  (and the thread retrieval mode) never runs end to end. The first call raises
+  `KeyError` (#100).
+- **`_execute_func_collecting_metadata`** in `speedupy.py` passes unpacked
+  arguments to `_execute_func_measuring_time` and raises `TypeError` (#101).
+
 ## Running the tests with servers
 
 Docker is needed only for this suite, the tests that need a server. Plain
