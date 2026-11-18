@@ -1,9 +1,11 @@
 import os
+import socket
 import sys
 import unittest
 from unittest.mock import patch
 
 import setup_exp.setup as setup
+from execute_exp.parser_params import STORAGE_OPTIONS
 
 
 class TestSetup(unittest.TestCase):
@@ -29,3 +31,89 @@ class TestSetup(unittest.TestCase):
     def test_validate_main_script_specified_when_many_scripts_were_specified(self):
         sys.argv = ["setup.py", "script1.py", "script2.py"]
         self.assertRaises(Exception, setup.validate_main_script_specified)
+
+    def test_validate_main_script_specified_with_a_storage_and_one_script(self):
+        sys.argv = ["setup.py", "-s", "redis", "main_script.py"]
+        setup.validate_main_script_specified()
+
+    def test_validate_main_script_specified_with_a_storage_and_no_script(self):
+        sys.argv = ["setup.py", "-s", "redis"]
+        self.assertRaises(Exception, setup.validate_main_script_specified)
+
+    def test_parse_args_defaults_to_the_file_storage(self):
+        args = setup.parse_args(["main_script.py"])
+        self.assertEqual(args.storage, "file")
+        self.assertListEqual(args.main_script, ["main_script.py"])
+
+    def test_parse_args_accepts_every_storage_of_the_execution(self):
+        for storage in STORAGE_OPTIONS:
+            for flag in ("-s", "--storage"):
+                with self.subTest(storage=storage, flag=flag):
+                    args = setup.parse_args([flag, storage, "main_script.py"])
+                    self.assertEqual(args.storage, storage)
+                    self.assertListEqual(args.main_script, ["main_script.py"])
+
+    def test_parse_args_accepts_the_storage_after_the_script(self):
+        args = setup.parse_args(["main_script.py", "-s", "mysql"])
+        self.assertEqual(args.storage, "mysql")
+
+    def test_parse_args_rejects_an_unknown_storage(self):
+        with self.assertRaises(SystemExit) as raised:
+            setup.parse_args(["-s", "oracle", "main_script.py"])
+        self.assertEqual(raised.exception.code, 2)
+
+    def test_the_storage_names_are_the_executions(self):
+        self.assertListEqual(
+            sorted(STORAGE_OPTIONS),
+            sorted(
+                [
+                    "sqlite",
+                    "redis",
+                    "mongo",
+                    "gridfs",
+                    "mongo-file",
+                    "mongo-gridfs",
+                    "file",
+                    "mysql",
+                ]
+            ),
+        )
+
+
+class TestSetupWithoutServers(unittest.TestCase):
+    """Setting up an experiment reaches no server unless its storage is one."""
+
+    SCRIPT = "script_test_no_servers.py"
+
+    def setUp(self):
+        with open(self.SCRIPT, "w") as f:
+            f.write(
+                "def add(a, b):\n    return a + b\n\n\n"
+                "def main():\n    print(add(1, 2))\n\n\n"
+                'if __name__ == "__main__":\n    main()\n'
+            )
+        # Any attempt to open a connection fails: no server is reachable, and
+        # none is touched when one happens to be running.
+        patcher = patch.object(
+            socket.socket,
+            "connect",
+            side_effect=ConnectionRefusedError("no server in this test"),
+        )
+        self.connect = patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def tearDown(self):
+        for p in [".speedupy/", self.SCRIPT]:
+            os.system(f"rm -rf {p}")
+
+    def test_setup_experiment_with_the_default_storage_reaches_no_server(self):
+        setup.setup_experiment(self.SCRIPT)
+
+        self.connect.assert_not_called()
+        self.assertTrue(os.path.isdir(".speedupy/cache"))
+
+    def test_setup_experiment_with_the_sqlite_storage_reaches_no_server(self):
+        setup.setup_experiment(self.SCRIPT, "sqlite")
+
+        self.connect.assert_not_called()
+        self.assertTrue(os.path.isfile(".speedupy/speedupy.db"))

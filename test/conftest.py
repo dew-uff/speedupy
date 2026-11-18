@@ -63,8 +63,9 @@ ALL_SERVERS = tuple(SERVERS)
 # one of them.
 MARKER_MAP = {
     # setUp connects to MySQL; tearDown flushes Redis, MongoDB and Memcached and
-    # drops the MySQL database, for every test of the class, including the folder
-    # and SQLite ones. Task 15 splits that lifecycle.
+    # drops the MySQL database, for every test of the class. The folder and
+    # SQLite tests live in test_environment_service_local.py, which touches no
+    # server and has no entry here.
     "test_setup_exp/test_services/test_environment_service.py": ALL_SERVERS,
     # BancoMySQL() connects to MySQL in setUp, even though the cursor is mocked
     # right after.

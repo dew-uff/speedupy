@@ -1,4 +1,10 @@
-import mysql.connector
+try:
+    import mysql.connector
+except ImportError as error:
+    raise ImportError(
+        "The mysql backend needs the mysql-connector-python driver, which is not "
+        'installed; install it with: pip install "speedupy[mysql]"'
+    ) from error
 
 
 class BancoMySQL:

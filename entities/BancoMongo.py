@@ -1,7 +1,13 @@
 import atexit
 from typing import Dict, Optional
 
-from pymongo import MongoClient, UpdateOne
+try:
+    from pymongo import MongoClient, UpdateOne
+except ImportError as error:
+    raise ImportError(
+        "The mongo backend needs the pymongo driver, which is not installed; "
+        'install it with: pip install "speedupy[mongo]"'
+    ) from error
 
 from SingletonMeta import SingletonMeta
 

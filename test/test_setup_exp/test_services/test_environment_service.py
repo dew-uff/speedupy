@@ -12,15 +12,8 @@ from pymemcache.client.base import Client
 from pymemcache.serde import pickle_serde
 
 from entities.BancoSQLite import BancoSQLite
-from setup_exp.services.environment_service import (
-    _cache_folder_exists,
-    _create_cache_folder,
-    _create_databases,
-    _create_folder,
-    _env_exists,
-    _folder_exists,
-    init_env,
-)
+from execute_exp.parser_params import STORAGE_OPTIONS
+from setup_exp.services.environment_service import _create_databases
 
 
 class TestEnvironmentService(unittest.TestCase):
@@ -126,82 +119,78 @@ class TestEnvironmentService(unittest.TestCase):
         )
         self.assertSetEqual(set(resp), expeceted_result)
 
-    def test_cache_folder_exists_when_cache_folder_exists(self):
-        os.makedirs(self.CACHE_FOLDER_NAME)
-        self.assertTrue(_cache_folder_exists())
-
-    def test_cache_folder_exists_when_cache_folder_does_not_exist(self):
-        self.assertFalse(_cache_folder_exists())
-
-    def test_db_exists_when_db_exists(self):
-        os.mkdir(self.FOLDER_NAME)
-        Path(self.SQLITE_DB_FILENAME).touch()
-        self.assertTrue(BancoSQLite.database_exists())
-
-    def test_db_exists_when_db_does_not_exist(self):
-        self.assertFalse(BancoSQLite.database_exists())
-
-    def test_folder_exists_when_folder_exists(self):
-        os.mkdir(self.FOLDER_NAME)
-        self.assertTrue(_folder_exists())
-
-    def test_folder_exists_when_folder_does_not_exist(self):
-        self.assertFalse(_folder_exists())
-
-    def test_env_exists_when_env_exists(self):
-        os.makedirs(self.CACHE_FOLDER_NAME)
-        Path(self.SQLITE_DB_FILENAME).touch()
-        self.assertTrue(_env_exists())
-
-    def test_env_exists_when_env_partially_not_exist(self):
-        os.makedirs(self.CACHE_FOLDER_NAME)
-        self.assertFalse(_env_exists())
-
-    def test_env_exists_when_env_does_not_exist(self):
-        self.assertFalse(_env_exists())
-
-    def test_create_database_when_sqlite_database_does_not_exist(self):
-        os.mkdir(self.FOLDER_NAME)
+    def populate_all_servers(self):
         self.populate_redis_database()
         self.populate_mongo_database()
         self.populate_gridfs_database()
         self.populate_memcached_cache()
         self.populate_mysql_database()
 
+    def assert_only_emptied(self, storage, emptied):
+        """Fill every server, set up ``storage``, check what it emptied.
+
+        ``emptied`` names the servers the storage owns. Each of them must end
+        empty and every other one must still hold its 5 items: setup never
+        touches a server that was not selected.
+        """
+        os.mkdir(self.FOLDER_NAME)
+        self.populate_all_servers()
         self.assertFalse(os.path.exists(self.SQLITE_DB_FILENAME))
-        self.assertEqual(self.redis.dbsize(), 5)
-        self.assertEqual(self.mongo.count_documents({}), 5)
-        self.assertEqual(self.gridfs.files.count_documents({}), 5)
-        self.assertEqual(self.count_memcached_items(), 5)
-        self.mysql.execute("SELECT COUNT(*) FROM CACHE")
-        self.assertTupleEqual(self.mysql.fetchone(), (5,))
+        # The MySQL setup drops and recreates its database: release it first.
         self.mysql.close()
         self.mysql_client.close()
 
-        _create_databases()
+        _create_databases(storage)
 
         self.assert_sqlite_db_exists()
-        self.assertEqual(self.redis.dbsize(), 0)
-        self.assertEqual(self.mongo.count_documents({}), 0)
-        self.assertEqual(self.gridfs.files.count_documents({}), 0)
-        self.assertEqual(self.count_memcached_items(), 0)
         self.mysql_client = mysql.connector.connect(
             host="127.0.0.1", user="root", database="speedupy"
         )
         self.mysql = self.mysql_client.cursor()
         self.mysql.execute("SELECT COUNT(*) FROM CACHE")
-        self.assertTupleEqual(self.mysql.fetchone(), (0,))
+        held = {
+            "redis": self.redis.dbsize(),
+            "mongo": self.mongo.count_documents({}),
+            "gridfs": self.gridfs.files.count_documents({}),
+            "memcached": self.count_memcached_items(),
+            "mysql": self.mysql.fetchone()[0],
+        }
+        expected = {
+            server: 0 if server in emptied else 5
+            for server in ("redis", "mongo", "gridfs", "memcached", "mysql")
+        }
+        self.assertDictEqual(held, expected)
+
+    def test_create_databases_for_redis_empties_only_redis(self):
+        self.assert_only_emptied("redis", {"redis"})
+
+    # The four Mongo-backed storages share one MongoDB database (`speedupy`),
+    # so setting up any of them empties the collections of all of them.
+    MONGODB = {"mongo", "gridfs"}
+
+    def test_create_databases_for_mongo_empties_only_mongodb(self):
+        self.assert_only_emptied("mongo", self.MONGODB)
+
+    def test_create_databases_for_mongo_file_empties_only_mongodb(self):
+        self.assert_only_emptied("mongo-file", self.MONGODB)
+
+    def test_create_databases_for_gridfs_empties_only_mongodb(self):
+        self.assert_only_emptied("gridfs", self.MONGODB)
+
+    def test_create_databases_for_mongo_gridfs_empties_only_mongodb(self):
+        self.assert_only_emptied("mongo-gridfs", self.MONGODB)
+
+    def test_create_databases_for_mysql_empties_only_mysql(self):
+        self.assert_only_emptied("mysql", {"mysql"})
 
     def test_create_database_when_sqlite_database_exists(self):
         os.mkdir(self.FOLDER_NAME)
         Path(self.SQLITE_DB_FILENAME).touch()
-        self.populate_redis_database()
-        self.populate_mongo_database()
-        self.populate_gridfs_database()
-        self.populate_memcached_cache()
-        self.populate_mysql_database()
+        self.populate_all_servers()
 
-        _create_databases()
+        for storage in STORAGE_OPTIONS:
+            with self.subTest(storage=storage):
+                _create_databases(storage)
 
         self.assertEqual(self.redis.dbsize(), 5)
         self.assertEqual(self.mongo.count_documents({}), 5)
@@ -209,27 +198,6 @@ class TestEnvironmentService(unittest.TestCase):
         self.assertEqual(self.count_memcached_items(), 5)
         self.mysql.execute("SELECT COUNT(*) FROM CACHE")
         self.assertTupleEqual(self.mysql.fetchone(), (5,))
-
-    def test_create_cache_folder(self):
-        self.assertFalse(os.path.exists(self.CACHE_FOLDER_NAME))
-        _create_cache_folder()
-        self.assertTrue(os.path.exists(self.CACHE_FOLDER_NAME))
-
-    def test_create_folder(self):
-        self.assertFalse(os.path.exists(self.FOLDER_NAME))
-        _create_folder()
-        self.assertTrue(os.path.exists(self.FOLDER_NAME))
-
-    def test_init_env_when_env_does_not_exist(self):
-        init_env()
-        self.assertTrue(os.path.exists(self.CACHE_FOLDER_NAME))
-        self.assert_sqlite_db_exists()
-
-    def test_init_env_when_env_partially_exists(self):
-        os.mkdir(self.FOLDER_NAME)
-        init_env()
-        self.assertTrue(os.path.exists(self.CACHE_FOLDER_NAME))
-        self.assert_sqlite_db_exists()
 
 
 if __name__ == "__main__":
