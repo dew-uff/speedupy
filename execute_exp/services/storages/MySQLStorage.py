@@ -24,7 +24,7 @@ class MySQLStorage(Storage):
                 output = self._serializer.loads(output_blob)
                 cache_data[function_call_hash] = CacheData(function_call_hash, output)
             except Exception:
-                continue  # Ignora dados inválidos
+                continue  # Ignore invalid data
 
         return cache_data
 
@@ -43,7 +43,7 @@ class MySQLStorage(Storage):
                     function_call_hash, output, func_name
                 )
             except Exception:
-                continue  # Ignora dados inválidos
+                continue  # Ignore invalid data
 
         return cache_data
 

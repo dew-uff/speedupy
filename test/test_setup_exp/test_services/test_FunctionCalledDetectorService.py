@@ -387,7 +387,7 @@ class TestFunctionCalledDetectorService(unittest.TestCase):
         )
 
     """
-    #TODO CONTINUAR IMPLEMENTAÇÃO !!!!!!!!!
+    #TODO CONTINUE THE IMPLEMENTATION !!!!!!!!!
     def test_calling_user_defined_functions_implicitly_imported_with_ast_Import(self):
         os.makedirs('folder3/subfolder3')
         with open('script_test.py', 'wt') as f:

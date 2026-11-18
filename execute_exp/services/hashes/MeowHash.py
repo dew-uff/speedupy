@@ -15,30 +15,30 @@ def _get_library():
     return lib
 
 
-# --- Implementação da classe ---
+# --- Class implementation ---
 class MeowHash(Hash):
     """
-    Implementação real do MeowHash v0.5 via wrapper C++, usando ctypes.
+    Actual implementation of MeowHash v0.5 through a C++ wrapper, using ctypes.
     """
 
     def __init__(self, serializer, seed_ptr=None):
         super().__init__(serializer)
         self.seed = seed_ptr
 
-    # Sobrescreve o método _hash da classe pai.
+    # Overrides the _hash method of the parent class.
     def _hash(self, data: bytes) -> str:
         if not isinstance(data, bytes):
-            raise TypeError("MeowHash requer 'bytes' como entrada.")
+            raise TypeError("MeowHash requires 'bytes' as input.")
 
         data_len = len(data)
 
-        # Cria um bloco de memória C contíguo e copia os bytes serializados.
+        # Creates a contiguous C memory block and copies the serialized bytes into it.
         c_buffer = (ctypes.c_char * data_len).from_buffer_copy(data)
 
-        # Obtém o endereço de memória (ponteiro) do buffer C.
+        # Gets the memory address (pointer) of the C buffer.
         c_ptr = ctypes.addressof(c_buffer)
 
-        # Chamada ao Código C++:
+        # Call into the C++ code:
         lib = _get_library()
         if self.seed is None:
             self.seed = lib.GetMeowDefaultSeed()

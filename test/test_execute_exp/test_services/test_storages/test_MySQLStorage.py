@@ -48,7 +48,7 @@ class TestMySQLStorage(AbstractStorageTest, unittest.TestCase):
         self.assert_data_gotten_is_correct(data_gotten, expected_data)
 
     def manually_cache_a_record(self, func_hash, func_return, func_name=None, **kwargs):
-        """Insere um registro de teste diretamente no banco de dados MySQL."""
+        """Inserts a test record directly into the MySQL database."""
         if func_name:
             sql_stmt = "INSERT INTO CACHE(func_call_hash, func_output, func_name) VALUES (%s, %s, %s)"
             sql_params = (func_hash, self.serializer.dumps(func_return), func_name)

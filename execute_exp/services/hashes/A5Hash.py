@@ -21,10 +21,10 @@ def _get_library():
 # --- Hash implementation ---
 class A5Hash(Hash):
     """
-    Implementação do a5hash-128.64 via wrapper C usando ctypes.
+    Implementation of a5hash-128.64 through a C wrapper, using ctypes.
 
-    - Usa a versão 128-bit do algoritmo
-    - Retorna apenas os 64 bits inferiores (padrão SMHasher)
+    - Uses the 128-bit version of the algorithm
+    - Returns only the lower 64 bits (SMHasher standard)
     """
 
     def __init__(self, serializer, seed: int = 0):
@@ -33,7 +33,7 @@ class A5Hash(Hash):
 
     def _hash(self, data: bytes) -> str:
         if not isinstance(data, bytes):
-            raise TypeError("A5Hash requer 'bytes' como entrada.")
+            raise TypeError("A5Hash requires 'bytes' as input.")
 
         data_len = len(data)
 

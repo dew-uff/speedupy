@@ -18,7 +18,7 @@ class Storage:
     ) -> Dict[str, CacheData]:
         pass
 
-    # TODO: ADICIONAR fun_name=None nos métodos que chamam Storage
+    # TODO: ADD fun_name=None to the methods that call Storage
     def get_cached_data_of_a_function_call(
         self, func_call_hash: str, func_name=None, use_isolated_connection=False
     ) -> Optional[CacheData]:
