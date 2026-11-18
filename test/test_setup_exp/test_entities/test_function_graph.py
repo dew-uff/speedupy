@@ -24,8 +24,8 @@ class TestFunctionGraph(unittest.TestCase):
     def normalize_string(self, string):
         return string.replace("\n\n", "\n").replace("\t", "    ").replace('"', "'")
 
-    def getAST(self, nome_script: str) -> ast.Module:
-        with open(nome_script, "rt") as f:
+    def getAST(self, script_name: str) -> ast.Module:
+        with open(script_name, "rt") as f:
             fileAST = ast.parse(f.read())
         return fileAST
 

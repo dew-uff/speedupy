@@ -131,10 +131,10 @@ class TestSpeeduPy(unittest.TestCase):
         self,
     ):
         @deterministic
-        def func(lista: list, s: set = None, func_globals=None):
-            lista.pop()
+        def func(items: list, s: set = None, func_globals=None):
+            items.pop()
             s.remove("a")
-            return lista, s
+            return items, s
 
         def get_id_side_effect(*args):
             if args == (func.__qualname__, ([1, 2, 3],), {"s": {"a", "b", "c"}}):
@@ -152,13 +152,13 @@ class TestSpeeduPy(unittest.TestCase):
 
         self.dataAccess.create_cache_entry.side_effect = create_cache_entry_side_effect
 
-        lista = [1, 2, 3]
-        conjunto = {"a", "b", "c"}
+        items = [1, 2, 3]
+        a_set = {"a", "b", "c"}
 
-        func(lista, s=conjunto, func_globals=globals())
+        func(items, s=a_set, func_globals=globals())
 
-        self.assertListEqual(lista, [1, 2])
-        self.assertSetEqual(conjunto, {"b", "c"})
+        self.assertListEqual(items, [1, 2])
+        self.assertSetEqual(a_set, {"b", "c"})
         self.dataAccess.get_id.assert_called_once()
         self.dataAccess.get_cache_entry.assert_called_once_with(
             self.fc_hash, func.__qualname__

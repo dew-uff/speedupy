@@ -1,7 +1,7 @@
 import threading
 from typing import Dict, Optional
 
-from entities.BancoSQLite import BancoSQLite
+from entities.SQLiteDatabase import SQLiteDatabase
 from execute_exp.entitites.CacheData import CacheData
 from execute_exp.services.serializers.Serializer import Serializer
 from execute_exp.services.storages.Storage import Storage
@@ -11,13 +11,13 @@ class SQLiteStorage(Storage):
     def __init__(self, serializer: Serializer):
         super().__init__(serializer)
         self.__local = threading.local()
-        self.__local.db_connection = BancoSQLite()
+        self.__local.db_connection = SQLiteDatabase()
 
     def _set_db_connection(func):
         def wrapper(self, *args, use_isolated_connection=False, **kwargs):
             if use_isolated_connection:
                 self.__local.previous_conn = self.__local.db_connection
-                self.__local.db_connection = BancoSQLite()
+                self.__local.db_connection = SQLiteDatabase()
                 result = func(
                     self,
                     *args,

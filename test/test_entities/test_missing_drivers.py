@@ -12,13 +12,13 @@ from execute_exp.services import factory
 from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
 from setup_exp.services.environment_service import init_env
 
-# Banco module -> (extra of the pip install, import roots of its driver).
+# Database module -> (extra of the pip install, import roots of its driver).
 BACKENDS = {
-    "entities.BancoMySQL": ("mysql", ("mysql",)),
-    "entities.BancoMongo": ("mongo", ("pymongo", "gridfs")),
-    "entities.BancoGridFS": ("mongo", ("pymongo", "gridfs")),
-    "entities.BancoRedis": ("redis", ("redis",)),
-    "entities.BancoMemcached": ("memcached", ("pymemcache",)),
+    "entities.MySQLDatabase": ("mysql", ("mysql",)),
+    "entities.MongoDatabase": ("mongo", ("pymongo", "gridfs")),
+    "entities.GridFSDatabase": ("mongo", ("pymongo", "gridfs")),
+    "entities.RedisDatabase": ("redis", ("redis",)),
+    "entities.MemcachedDatabase": ("memcached", ("pymemcache",)),
 }
 ALL_DRIVER_ROOTS = ("mysql", "pymongo", "gridfs", "redis", "pymemcache")
 
@@ -97,7 +97,7 @@ class TestNoDriverNeededForTheDefaultInstall(unittest.TestCase):
     def setUp(self):
         os.system("rm -rf .speedupy")
         self.addCleanup(os.system, "rm -rf .speedupy")
-        # Hide the drivers, and drop the Banco modules that already imported
+        # Hide the drivers, and drop the Database modules that already imported
         # them, so that importing one of them again would fail.
         hiding = drivers_hidden(ALL_DRIVER_ROOTS, forget=list(BACKENDS))
         hiding.__enter__()

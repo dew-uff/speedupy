@@ -13,13 +13,13 @@ except ImportError as error:
 from SingletonMeta import SingletonMeta
 
 
-class BancoGridFS(metaclass=SingletonMeta):
+class GridFSDatabase(metaclass=SingletonMeta):
     DB_NAME = "speedupy"
     BUCKET_NAME = "CACHE_GRIDFS"
 
     @classmethod
     def database_exists(cls) -> bool:
-        return cls.DB_NAME in BancoGridFS().client.list_database_names()
+        return cls.DB_NAME in GridFSDatabase().client.list_database_names()
 
     def __init__(self):
         self.client = MongoClient("mongodb://localhost:27017/")

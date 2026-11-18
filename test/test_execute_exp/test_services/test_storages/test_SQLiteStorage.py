@@ -4,8 +4,8 @@ import unittest
 from typing import Dict
 from unittest.mock import Mock
 
-from constantes import Constantes
-from entities.BancoSQLite import BancoSQLite
+from constants import Constants
+from entities.SQLiteDatabase import SQLiteDatabase
 from execute_exp.entitites.CacheData import CacheData
 from execute_exp.services.serializers.PickleSerializer import PickleSerializer
 from execute_exp.services.serializers.Serializer import Serializer
@@ -23,7 +23,7 @@ class TestSQLiteStorage(AbstractStorageTest, unittest.TestCase):
         # The tests of this class read through the storage's own connection, which
         # sees uncommitted rows; TestSQLiteStorageCommits covers the commit.
         storage._SQLiteStorage__local.db_connection.commit = Mock()
-        self.storage_conn = storage._SQLiteStorage__local.db_connection.conexao
+        self.storage_conn = storage._SQLiteStorage__local.db_connection.connection
         return storage
 
     def create_database(self):
@@ -33,7 +33,7 @@ class TestSQLiteStorage(AbstractStorageTest, unittest.TestCase):
         func_output BLOB,\
         func_name TEXT\
         );"
-        self.conn = sqlite3.connect(Constantes().BD_PATH)
+        self.conn = sqlite3.connect(Constants().DB_PATH)
         self.conn.execute(stmt)
         self.conn.commit()
         self.conn.close()
@@ -73,17 +73,17 @@ class TestSQLiteStorageCommits(unittest.TestCase):
     """
 
     def setUp(self):
-        os.system(f"rm -rf {Constantes().FOLDER_NAME}/")
-        os.makedirs(Constantes().FOLDER_NAME)
-        BancoSQLite().create_database()
+        os.system(f"rm -rf {Constants().FOLDER_NAME}/")
+        os.makedirs(Constants().FOLDER_NAME)
+        SQLiteDatabase().create_database()
         self.serializer = PickleSerializer()
         self.storage = SQLiteStorage(self.serializer)
 
     def tearDown(self):
-        os.system(f"rm -rf {Constantes().FOLDER_NAME}/")
+        os.system(f"rm -rf {Constants().FOLDER_NAME}/")
 
     def read_rows_through_a_fresh_connection(self):
-        conn = sqlite3.connect(Constantes().BD_PATH)
+        conn = sqlite3.connect(Constants().DB_PATH)
         try:
             rows = conn.execute(
                 "SELECT func_call_hash, func_output, func_name FROM CACHE"

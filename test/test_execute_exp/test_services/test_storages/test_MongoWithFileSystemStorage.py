@@ -5,8 +5,8 @@ from typing import Dict
 
 import pymongo
 
-from constantes import Constantes
-from entities.BancoMongo import BancoMongo
+from constants import Constants
+from entities.MongoDatabase import MongoDatabase
 from execute_exp.entitites.CacheData import CacheData
 from execute_exp.services.serializers.Serializer import Serializer
 from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
@@ -23,23 +23,25 @@ from test_execute_exp.test_services.test_storages.AbstractStorageTest import (
 class TestMongoWithFileSytemStorage(AbstractStorageTest, unittest.TestCase):
     def create_instance(self, serializer: Serializer) -> Storage:
         self.mongo = pymongo.MongoClient("mongodb://localhost:27017/")
-        self.mongo_cache = self.mongo[BancoMongo.DB_NAME][BancoMongo.COLLECTION_NAME]
-        self.mongo.drop_database(BancoMongo.DB_NAME)
+        self.mongo_cache = self.mongo[MongoDatabase.DB_NAME][
+            MongoDatabase.COLLECTION_NAME
+        ]
+        self.mongo.drop_database(MongoDatabase.DB_NAME)
         mongo_storage = MongoStorage(serializer)
 
-        os.makedirs(Constantes().CACHE_FOLDER_NAME)
+        os.makedirs(Constants().CACHE_FOLDER_NAME)
         filesystem_storage = FileSystemStorage(serializer)
-        filesystem_storage.CACHE_FOLDER_NAME = Constantes().CACHE_FOLDER_NAME
+        filesystem_storage.CACHE_FOLDER_NAME = Constants().CACHE_FOLDER_NAME
 
         return MongoWithFileSystemStorage(mongo_storage, filesystem_storage)
 
     def assert_storage_is_empty(self):
         self.assertEqual(self.mongo_cache.count_documents({}), 0)
-        self.assertListEqual(os.listdir(Constantes().CACHE_FOLDER_NAME), [])
+        self.assertListEqual(os.listdir(Constants().CACHE_FOLDER_NAME), [])
 
     def assert_cached_data(self, expected_data: Dict[str, CacheData]):
         data_gotten = {}
-        fs_content = os.listdir(Constantes().CACHE_FOLDER_NAME)
+        fs_content = os.listdir(Constants().CACHE_FOLDER_NAME)
 
         if (
             len(expected_data) == 0
@@ -72,22 +74,22 @@ class TestMongoWithFileSytemStorage(AbstractStorageTest, unittest.TestCase):
 
         if len(fs_content) > 0:
             if os.path.isdir(
-                os.path.join(Constantes().CACHE_FOLDER_NAME, fs_content[0])
+                os.path.join(Constants().CACHE_FOLDER_NAME, fs_content[0])
             ):
                 for folder in fs_content:
                     files = os.listdir(
-                        os.path.join(Constantes().CACHE_FOLDER_NAME, folder)
+                        os.path.join(Constants().CACHE_FOLDER_NAME, folder)
                     )
                     for filename in files:
                         file_path = os.path.join(
-                            Constantes().CACHE_FOLDER_NAME, folder, filename
+                            Constants().CACHE_FOLDER_NAME, folder, filename
                         )
                         with open(file_path, "rb") as f:
                             output = self.serializer.load(f)
                         data_gotten[filename] = CacheData(filename, output, folder)
             else:
                 for filename in fs_content:
-                    file_path = os.path.join(Constantes().CACHE_FOLDER_NAME, filename)
+                    file_path = os.path.join(Constants().CACHE_FOLDER_NAME, filename)
                     with open(file_path, "rb") as f:
                         output = self.serializer.load(f)
                     data_gotten[filename] = CacheData(filename, output)
@@ -107,7 +109,7 @@ class TestMongoWithFileSytemStorage(AbstractStorageTest, unittest.TestCase):
                     {"_id": func_hash, "value": self.serializer.dumps(func_return)}
                 )
         except (pymongo.errors.DocumentTooLarge, pymongo.errors.OperationFailure):
-            folder_path = Constantes().CACHE_FOLDER_NAME
+            folder_path = Constants().CACHE_FOLDER_NAME
             if func_name:
                 folder_path = os.path.join(folder_path, func_name)
                 os.makedirs(folder_path, exist_ok=True)
@@ -123,7 +125,7 @@ class TestMongoWithFileSytemStorage(AbstractStorageTest, unittest.TestCase):
         self.manually_cache_a_record("func_call_hash2", (True, 2, 5))
         self.manually_cache_a_record("func_call_hash3", [{"key1": 10, "key_2": False}])
 
-        dicio = self.storage.get_all_cached_data()
+        cached_data = self.storage.get_all_cached_data()
 
         expected_data = {
             "func_call_hash1": CacheData("func_call_hash1", (big_str,)),
@@ -132,7 +134,7 @@ class TestMongoWithFileSytemStorage(AbstractStorageTest, unittest.TestCase):
                 "func_call_hash3", [{"key1": 10, "key_2": False}]
             ),
         }
-        self.assert_data_gotten_is_correct(dicio, expected_data)
+        self.assert_data_gotten_is_correct(cached_data, expected_data)
 
     def test_get_cached_data_of_a_function_when_cache_records_are_on_both_storages(
         self,
@@ -144,7 +146,7 @@ class TestMongoWithFileSytemStorage(AbstractStorageTest, unittest.TestCase):
         self.manually_cache_a_record("func_call_hash2", (1,), func_name="f1")
         self.manually_cache_a_record("func_call_hash3", [10, -4, False], func_name="f1")
 
-        dicio = self.storage.get_cached_data_of_a_function("f1")
+        cached_data = self.storage.get_cached_data_of_a_function("f1")
 
         expected_data = {
             "func_call_hash1": CacheData("func_call_hash1", (big_str,), func_name="f1"),
@@ -153,7 +155,7 @@ class TestMongoWithFileSytemStorage(AbstractStorageTest, unittest.TestCase):
                 "func_call_hash3", [10, -4, False], func_name="f1"
             ),
         }
-        self.assert_data_gotten_is_correct(dicio, expected_data)
+        self.assert_data_gotten_is_correct(cached_data, expected_data)
 
     def test_get_cached_data_of_a_function_call_when_cache_record_exists_on_filesystem_storage(
         self,

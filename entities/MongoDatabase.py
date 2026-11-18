@@ -12,13 +12,13 @@ except ImportError as error:
 from SingletonMeta import SingletonMeta
 
 
-class BancoMongo(metaclass=SingletonMeta):
+class MongoDatabase(metaclass=SingletonMeta):
     DB_NAME = "speedupy"
     COLLECTION_NAME = "CACHE"
 
     @classmethod
     def database_exists(cls) -> bool:
-        return cls.DB_NAME in BancoMongo().client.list_database_names()
+        return cls.DB_NAME in MongoDatabase().client.list_database_names()
 
     def __init__(self):
         self.client = MongoClient("mongodb://localhost:27017/")

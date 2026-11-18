@@ -61,12 +61,10 @@ class TestMemcachedWriteThroughMemArch(AbstractMemArchTest, unittest.TestCase):
         self.mem_arch._memcached.client.version()
 
     def test_create_cache_entry_writes_through(self):
-        self.mem_arch.create_cache_entry("hash123", "resultado")
+        self.mem_arch.create_cache_entry("hash123", "result")
         self.wait_for_memcached_persistency()
 
-        self.assertEqual(
-            self.memcached.get("hash123"), CacheData("hash123", "resultado")
-        )
+        self.assertEqual(self.memcached.get("hash123"), CacheData("hash123", "result"))
         self.retrieval_strategy.save_cache_data.assert_called_once()
 
     def test_save_new_cache_entries_does_nothing(self):

@@ -12,7 +12,7 @@ except ImportError as error:
 from SingletonMeta import SingletonMeta
 
 
-class BancoRedis(metaclass=SingletonMeta):
+class RedisDatabase(metaclass=SingletonMeta):
     MAX_PIPELINE_SIZE_MB = 1024
 
     def __init__(self):

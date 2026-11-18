@@ -8,8 +8,8 @@ from setup_exp.services.ASTSearcherService import ASTSearcherService
 
 
 class TestASTSearcherService(unittest.TestCase):
-    def getAST(self, nome_script: str) -> ast.Module:
-        with open(nome_script, "rt") as f:
+    def getAST(self, script_name: str) -> ast.Module:
+        with open(script_name, "rt") as f:
             fileAST = ast.parse(f.read())
         return fileAST
 

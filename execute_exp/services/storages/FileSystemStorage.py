@@ -1,14 +1,14 @@
 import os
 from typing import Dict, Optional
 
-from constantes import Constantes
+from constants import Constants
 from execute_exp.entitites.CacheData import CacheData
 from execute_exp.services.serializers.Serializer import Serializer
 from execute_exp.services.storages.Storage import Storage
 
 
 class FileSystemStorage(Storage):
-    CACHE_FOLDER_NAME = Constantes().CACHE_FOLDER_NAME
+    CACHE_FOLDER_NAME = Constants().CACHE_FOLDER_NAME
 
     def __init__(self, serializer: Serializer):
         super().__init__(serializer)

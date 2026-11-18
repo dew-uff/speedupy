@@ -1,6 +1,6 @@
 from typing import Dict, Optional
 
-from entities.BancoRedis import BancoRedis
+from entities.RedisDatabase import RedisDatabase
 from execute_exp.entitites.CacheData import CacheData
 from execute_exp.services.serializers.Serializer import Serializer
 from execute_exp.services.storages.Storage import Storage
@@ -9,7 +9,7 @@ from execute_exp.services.storages.Storage import Storage
 class RedisStorage(Storage):
     def __init__(self, serializer: Serializer):
         super().__init__(serializer)
-        self.redis = BancoRedis()
+        self.redis = RedisDatabase()
 
     def get_all_cached_data(
         self, use_isolated_connection=False
