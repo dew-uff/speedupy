@@ -213,6 +213,42 @@ directory, and writes nothing in the checkout (`.pytest_cache/` and
 - `uv run pytest --collect-only -q` touches no server, whatever the variable
   says. The count by what each test needs is in `RETROFIT.md`, "Baseline".
 
+## End-to-end oracle
+
+`test/e2e/test_oracle.py` holds the property that defines the tool: with the
+cache or without it, a script prints and returns the same. For each script of
+`test/e2e/corpus/` and each of the `sqlite` and `file` storages,
+`test/e2e/harness.py` builds an experiment directory in `tmp_path`, links the
+checkout there as `speedupy/`, runs setup, then runs the script three times:
+`--exec-mode no-cache`, then twice with `--exec-mode manual -mt 0 -s
+<storage>`, the last one with `--profile`.
+
+- **The same output** is stdout, stderr and the exit status, byte for byte,
+  each stream on its own (their interleaving is not compared). The only
+  masking is the Profiler block at the end of the third run's stdout. Every
+  call that reaches `@deterministic` in the third run must be a cache hit.
+- **`DEBUG` is removed** from the scripts' environment (it prints to stdout).
+  `PYTHONHASHSEED` is not fixed.
+
+To add a corpus script:
+
+1. Put a script in `test/e2e/corpus/`, with a `main()` called under `if
+   __name__ == "__main__":`. Its name does not contain `speedupy` or start
+   with `test_`.
+2. Mark its pure functions with `@deterministic` (`from speedupy.speedupy
+   import deterministic`); setup adds the rest. At least one call must reach a
+   `@deterministic` function.
+3. Its output must not change from one plain run to the next: no time, no
+   random numbers without a seed, no ids, no iteration over sets. When it
+   needs a server or a native library, it is not a corpus script of this
+   test: open an issue.
+4. `uv run pytest test/e2e` picks it up, two tests more: raise both
+   `MIN_TESTS` floors in `.github/workflows/ci.yml`.
+
+The harness runs in a few seconds per script. A corpus script that fails
+because of a defect of SpeeduPy is not added until the defect is fixed; it
+goes in the defect's issue.
+
 ## Running the tests with servers
 
 Docker is needed only for this suite, the tests that need a server. Plain
