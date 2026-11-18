@@ -1,4 +1,4 @@
-from constantes import Constantes
+from constants import Constants
 from execute_exp.entitites.FunctionCallProv import FunctionCallProv
 from execute_exp.entitites.Metadata import Metadata
 from execute_exp.function_calls_prov_table import FunctionCallsProvTable
@@ -21,7 +21,7 @@ class DataAccess(metaclass=SingletonMeta):
         self._hash = get_hash()
         self.__function_calls_prov_table = FunctionCallsProvTable(get_serializer())
         self._FUNCTIONS_2_HASHES = get_content_json_file(
-            Constantes().EXP_FUNCTIONS_FILENAME
+            Constants().EXP_FUNCTIONS_FILENAME
         )
 
         self._mem_arch.get_initial_cache_entries()

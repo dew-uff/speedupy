@@ -4,7 +4,7 @@ from typing import Dict
 import gridfs
 import pymongo
 
-from entities.BancoGridFS import BancoGridFS
+from entities.GridFSDatabase import GridFSDatabase
 from execute_exp.entitites.CacheData import CacheData
 from execute_exp.services.serializers.Serializer import Serializer
 from execute_exp.services.storages.GridFSStorage import GridFSStorage
@@ -17,15 +17,15 @@ from test_execute_exp.test_services.test_storages.AbstractStorageTest import (
 class TestGridFSStorage(AbstractStorageTest, unittest.TestCase):
     def create_instance(self, serializer: Serializer) -> Storage:
         self.mongo = pymongo.MongoClient("mongodb://localhost:27017/")
-        self.db = self.mongo[BancoGridFS.DB_NAME]
-        self.mongo.drop_database(BancoGridFS.DB_NAME)
-        self.fs = gridfs.GridFSBucket(self.db, bucket_name=BancoGridFS.BUCKET_NAME)
+        self.db = self.mongo[GridFSDatabase.DB_NAME]
+        self.mongo.drop_database(GridFSDatabase.DB_NAME)
+        self.fs = gridfs.GridFSBucket(self.db, bucket_name=GridFSDatabase.BUCKET_NAME)
 
         return GridFSStorage(serializer)
 
     def assert_storage_is_empty(self):
         self.assertEqual(
-            self.db[f"{BancoGridFS.BUCKET_NAME}.files"].count_documents({}), 0
+            self.db[f"{GridFSDatabase.BUCKET_NAME}.files"].count_documents({}), 0
         )
 
     def assert_cached_data(self, expected_data: Dict[str, CacheData]):

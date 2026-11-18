@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from entities.BancoSQLite import BancoSQLite
+from entities.SQLiteDatabase import SQLiteDatabase
 from setup_exp.services.environment_service import (
     _cache_folder_exists,
     _create_cache_folder,
@@ -38,8 +38,8 @@ class TestEnvironmentServiceWithoutServers(unittest.TestCase):
     def assert_sqlite_db_exists(self):
         self.assertTrue(os.path.exists(self.SQLITE_DB_FILENAME))
         expeceted_result = {("sqlite_sequence",), ("CACHE",), ("FUNCTION_CALLS_PROV",)}
-        BancoSQLite.nome_banco = self.SQLITE_DB_FILENAME
-        conexao_banco = BancoSQLite()
+        SQLiteDatabase.db_path = self.SQLITE_DB_FILENAME
+        conexao_banco = SQLiteDatabase()
         resp = conexao_banco.select(
             "SELECT tbl_name FROM sqlite_master WHERE type = 'table'"
         )
@@ -57,10 +57,10 @@ class TestEnvironmentServiceWithoutServers(unittest.TestCase):
     def test_db_exists_when_db_exists(self):
         os.mkdir(self.FOLDER_NAME)
         Path(self.SQLITE_DB_FILENAME).touch()
-        self.assertTrue(BancoSQLite.database_exists())
+        self.assertTrue(SQLiteDatabase.database_exists())
 
     def test_db_exists_when_db_does_not_exist(self):
-        self.assertFalse(BancoSQLite.database_exists())
+        self.assertFalse(SQLiteDatabase.database_exists())
 
     def test_folder_exists_when_folder_exists(self):
         os.mkdir(self.FOLDER_NAME)

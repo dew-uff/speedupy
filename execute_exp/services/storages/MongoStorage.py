@@ -1,6 +1,6 @@
 from typing import Dict, Optional
 
-from entities.BancoMongo import BancoMongo
+from entities.MongoDatabase import MongoDatabase
 from execute_exp.entitites.CacheData import CacheData
 from execute_exp.services.serializers.Serializer import Serializer
 from execute_exp.services.storages.Storage import Storage
@@ -9,7 +9,7 @@ from execute_exp.services.storages.Storage import Storage
 class MongoStorage(Storage):
     def __init__(self, serializer: Serializer):
         super().__init__(serializer)
-        self.mongo = BancoMongo()
+        self.mongo = MongoDatabase()
 
     def get_all_cached_data(
         self, use_isolated_connection=False

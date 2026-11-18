@@ -13,7 +13,7 @@ except ImportError as error:
 from SingletonMeta import SingletonMeta
 
 
-class BancoMemcached(metaclass=SingletonMeta):
+class MemcachedDatabase(metaclass=SingletonMeta):
     def __init__(self):
         self.client = Client(
             ("localhost", 11211),

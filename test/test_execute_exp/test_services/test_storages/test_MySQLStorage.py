@@ -1,7 +1,7 @@
 import unittest
 from typing import Dict
 
-from entities.BancoMySQL import BancoMySQL
+from entities.MySQLDatabase import MySQLDatabase
 from execute_exp.entitites.CacheData import CacheData
 from execute_exp.services.serializers.Serializer import Serializer
 from execute_exp.services.storages.MySQLStorage import MySQLStorage
@@ -13,32 +13,32 @@ from test_execute_exp.test_services.test_storages.AbstractStorageTest import (
 
 class TestMySQLStorage(AbstractStorageTest, unittest.TestCase):
     def setUp(self):
-        # BancoMySQL reads max_allowed_packet only when `USE speedupy` succeeds,
+        # MySQLDatabase reads max_allowed_packet only when `USE speedupy` succeeds,
         # so the database must exist before the instance the test uses is built.
         # Whether an earlier test dropped it must not matter.
-        bootstrap = BancoMySQL()
+        bootstrap = MySQLDatabase()
         bootstrap.create_database()
         bootstrap.close_connection()
-        self.banco = BancoMySQL()
-        self.banco.create_database()
+        self.database = MySQLDatabase()
+        self.database.create_database()
         super().setUp()
 
     def tearDown(self):
-        self.banco.close_connection()
+        self.database.close_connection()
         super().tearDown()
 
     def create_instance(self, serializer: Serializer) -> Storage:
         mysql = MySQLStorage(serializer)
-        mysql.db_connection = self.banco
+        mysql.db_connection = self.database
         return mysql
 
     def assert_storage_is_empty(self):
-        resp = self.banco.select("SELECT COUNT(*) FROM CACHE")
+        resp = self.database.select("SELECT COUNT(*) FROM CACHE")
         self.assertEqual(resp[0][0], 0)
 
     def assert_cached_data(self, expected_data: Dict[str, CacheData]):
         sql = "SELECT func_call_hash, func_output, func_name FROM CACHE"
-        resp = self.banco.select(sql)
+        resp = self.database.select(sql)
         data_gotten = {}
         for row in resp:
             fc_hash, fc_output, fc_name = row
@@ -56,4 +56,4 @@ class TestMySQLStorage(AbstractStorageTest, unittest.TestCase):
             sql_stmt = "INSERT INTO CACHE(func_call_hash, func_output) VALUES (%s, %s)"
             sql_params = (func_hash, self.serializer.dumps(func_return))
 
-        self.banco.cursor.execute(sql_stmt, sql_params)
+        self.database.cursor.execute(sql_stmt, sql_params)

@@ -10,7 +10,7 @@ What it does, and why:
    loads. ``speedupy.py`` parses ``sys.argv`` at import, so any pytest option
    (``-q``, ``-k``, ``-m``) would otherwise make argparse exit with status 2.
 2. The session runs in a fresh scratch directory. The paths in
-   ``constantes.py`` are relative, so ``.speedupy/`` and the scripts the tests
+   ``constants.py`` are relative, so ``.speedupy/`` and the scripts the tests
    write land there and never in the checkout.
 3. The markers come from ``MARKER_MAP`` below, so the test files stay
    untouched.
@@ -70,9 +70,9 @@ MARKER_MAP = {
     # SQLite tests live in test_environment_service_local.py, which touches no
     # server and has no entry here.
     "test_setup_exp/test_services/test_environment_service.py": ALL_SERVERS,
-    # BancoMySQL() connects to MySQL in setUp, even though the cursor is mocked
+    # MySQLDatabase() connects to MySQL in setUp, even though the cursor is mocked
     # right after.
-    "test_entities/test_MySQL.py": ("mysql",),
+    "test_entities/test_MySQLDatabase.py": ("mysql",),
     "test_execute_exp/test_services/test_storages/test_MySQLStorage.py": ("mysql",),
     "test_execute_exp/test_services/test_storages/test_RedisStorage.py": ("redis",),
     "test_execute_exp/test_services/test_storages/test_MongoStorage.py": ("mongo",),

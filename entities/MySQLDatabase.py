@@ -7,15 +7,15 @@ except ImportError as error:
     ) from error
 
 
-class BancoMySQL:
+class MySQLDatabase:
     database = "speedupy"
 
     def __init__(self):
-        self.conexao = None
+        self.connection = None
         self.cursor = None
         try:
-            self.conexao = mysql.connector.connect(host="127.0.0.1", user="root")
-            self.cursor = self.conexao.cursor()
+            self.connection = mysql.connector.connect(host="127.0.0.1", user="root")
+            self.cursor = self.connection.cursor()
             self.cursor.execute(f"USE {self.database}")
             self._get_max_packet_size()
         except mysql.connector.Error as err:
@@ -24,7 +24,7 @@ class BancoMySQL:
                 pass
             else:
                 print(f"MYSQL CONNECTION ERROR: {err}")
-                self.conexao = None
+                self.connection = None
                 self.cursor = None
 
     def _get_max_packet_size(self):
@@ -51,9 +51,9 @@ class BancoMySQL:
             self.cursor.execute(f"CREATE DATABASE {self.database}")
             self.cursor.execute(f"USE {self.database}")
             self.cursor.execute(create_cache_table_sql)
-            self.conexao.commit()
+            self.connection.commit()
         except mysql.connector.Error:
-            self.conexao.rollback()
+            self.connection.rollback()
 
     def select(self, sql, arguments=()):
         try:
@@ -87,12 +87,12 @@ class BancoMySQL:
             if current_batch:
                 self.cursor.executemany(sql, current_batch)
         except mysql.connector.Error:
-            self.conexao.rollback()
+            self.connection.rollback()
 
     def commit(self):
-        self.conexao.commit()
+        self.connection.commit()
 
     def close_connection(self):
-        if self.conexao and self.conexao.is_connected():
+        if self.connection and self.connection.is_connected():
             self.cursor.close()
-            self.conexao.close()
+            self.connection.close()

@@ -3,7 +3,7 @@ from typing import Dict
 
 import pymongo
 
-from entities.BancoMongo import BancoMongo
+from entities.MongoDatabase import MongoDatabase
 from execute_exp.entitites.CacheData import CacheData
 from execute_exp.services.serializers.Serializer import Serializer
 from execute_exp.services.storages.MongoStorage import MongoStorage
@@ -16,8 +16,8 @@ from test_execute_exp.test_services.test_storages.AbstractStorageTest import (
 class TestMongoStorage(AbstractStorageTest, unittest.TestCase):
     def create_instance(self, serializer: Serializer) -> Storage:
         self.mongo = pymongo.MongoClient("mongodb://localhost:27017/")
-        self.cache = self.mongo[BancoMongo.DB_NAME][BancoMongo.COLLECTION_NAME]
-        self.mongo.drop_database(BancoMongo.DB_NAME)
+        self.cache = self.mongo[MongoDatabase.DB_NAME][MongoDatabase.COLLECTION_NAME]
+        self.mongo.drop_database(MongoDatabase.DB_NAME)
 
         return MongoStorage(serializer)
 

@@ -12,10 +12,10 @@ results up in a storage.
 | :--- | :--- |
 | `setup_exp/` | Setup: reads the user's script, builds the function graph, injects the decorators. |
 | `execute_exp/` | Execution: parameters, settings, hashes, memory architectures, retrieval, serializers. |
-| `entities/` | The storage backends (`Banco*.py`): SQLite, MySQL, MongoDB, Redis, Memcached, GridFS. |
+| `entities/` | The storage backends (`*Database.py`): SQLite, MySQL, MongoDB, Redis, Memcached, GridFS. |
 | `speedupy.py` | The decorators and the entry point that the injected script imports. |
 | `test/` | The tests (unittest classes, run by pytest from Task 5 on). |
-| `logger/`, `util.py`, `constantes.py`, `SingletonMeta.py` | Shared helpers. |
+| `logger/`, `util.py`, `constants.py`, `SingletonMeta.py` | Shared helpers. |
 
 ## Working conventions
 
@@ -141,7 +141,7 @@ it by running.
   instead of `speedupy.py`. The conftest collects the root as a plain directory.
 - **The current directory:** tests write `.speedupy/`, `script_test*.py` and
   `__init__.py` in the current directory and remove them with `rm`. The paths
-  in `constantes.py` are relative, so changing directory is enough to move them.
+  in `constants.py` are relative, so changing directory is enough to move them.
   The conftest runs the session in a scratch directory.
 - **Singletons live as long as the process:** `SingletonMeta` keeps one instance
   per class. The autouse fixture `_restore_process_state` in `test/conftest.py`
@@ -149,7 +149,7 @@ it by running.
   `sys.version_info` and the current directory. It restores attributes by name,
   so an object mutated in place (a list inside a singleton) is not undone. A test
   that builds a singleton under a mock starts from no instance and says so, as
-  `test_BancoRedis.py` does.
+  `test_RedisDatabase.py` does.
 - **Native libraries:** `MeowHash.py`, `A5Hash.py` and `MuseairBFastHash.py`
   load `libmeow.so`, `liba5hash.so` and `libmuseair.so` on first use, through
   `load_native_library` in `execute_exp/services/hashes/native.py`; a missing

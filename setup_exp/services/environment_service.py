@@ -1,7 +1,7 @@
 import os
 
-from constantes import Constantes
-from entities.BancoSQLite import BancoSQLite
+from constants import Constants
+from entities.SQLiteDatabase import SQLiteDatabase
 from logger.log import debug
 
 
@@ -26,11 +26,11 @@ def _env_exists():
 
 
 def _folder_exists():
-    return os.path.exists(Constantes().FOLDER_NAME)
+    return os.path.exists(Constants().FOLDER_NAME)
 
 
 def _cache_folder_exists():
-    return os.path.exists(Constantes().CACHE_FOLDER_NAME)
+    return os.path.exists(Constants().CACHE_FOLDER_NAME)
 
 
 def _create_folder():
@@ -39,7 +39,7 @@ def _create_folder():
         debug(".speedupy folder already exists")
         return
 
-    os.makedirs(Constantes().FOLDER_NAME)
+    os.makedirs(Constants().FOLDER_NAME)
 
 
 def _create_cache_folder():
@@ -48,12 +48,12 @@ def _create_cache_folder():
         return
 
     debug("creating cache folder")
-    os.makedirs(Constantes().CACHE_FOLDER_NAME)
+    os.makedirs(Constants().CACHE_FOLDER_NAME)
 
 
 def _create_databases(storage: str = "file"):
     debug("creating database")
-    if BancoSQLite.database_exists():
+    if SQLiteDatabase.database_exists():
         debug("database already exists")
         return
 
@@ -75,29 +75,29 @@ def _initialize_storage(storage: str):
 def _flush_mongo_database():
     # The mongo, gridfs, mongo-file and mongo-gridfs storages share the one
     # MongoDB database, `speedupy`: dropping it empties the collections of all
-    # of them (BancoMongo and BancoGridFS drop the same database).
-    from entities.BancoMongo import BancoMongo
+    # of them (MongoDatabase and GridFSDatabase drop the same database).
+    from entities.MongoDatabase import MongoDatabase
 
-    conexao_banco = BancoMongo()
+    conexao_banco = MongoDatabase()
     conexao_banco.flush_database()
 
 
 def _flush_redis_database():
-    from entities.BancoRedis import BancoRedis
+    from entities.RedisDatabase import RedisDatabase
 
-    redis = BancoRedis()
+    redis = RedisDatabase()
     redis.flush_database()
 
 
 def _create_mysql_database():
-    from entities.BancoMySQL import BancoMySQL
+    from entities.MySQLDatabase import MySQLDatabase
 
-    conexao_banco = BancoMySQL()
+    conexao_banco = MySQLDatabase()
     conexao_banco.create_database()
     conexao_banco.close_connection()
 
 
 def _create_sqlite_database():
-    conexao_banco = BancoSQLite()
+    conexao_banco = SQLiteDatabase()
     conexao_banco.create_database()
     conexao_banco.close_connection()

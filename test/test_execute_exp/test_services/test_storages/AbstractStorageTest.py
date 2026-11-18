@@ -2,7 +2,7 @@ import os
 import random
 from typing import Dict
 
-from constantes import Constantes
+from constants import Constants
 from execute_exp.entitites.CacheData import CacheData
 from execute_exp.services.serializers.CloudpickleSerializer import CloudpickleSerializer
 from execute_exp.services.serializers.PickleSerializer import PickleSerializer
@@ -21,10 +21,10 @@ class AbstractStorageTest(object):
         self.drop_env()
 
     def drop_env(self):
-        os.system(f"rm -rf {Constantes().FOLDER_NAME}/")
+        os.system(f"rm -rf {Constants().FOLDER_NAME}/")
 
     def create_env(self):
-        os.makedirs(Constantes().FOLDER_NAME)
+        os.makedirs(Constants().FOLDER_NAME)
 
     def create_instance(self) -> Storage:
         pass
@@ -63,18 +63,18 @@ class AbstractStorageTest(object):
         )
 
     def test_get_all_cached_data_when_there_is_no_cache_record(self):
-        dicio = self.storage.get_all_cached_data()
-        self.assertDictEqual(dicio, {})
+        cached_data = self.storage.get_all_cached_data()
+        self.assertDictEqual(cached_data, {})
 
     def test_get_all_cached_data_when_there_is_one_cache_record(self):
         self.manually_cache_a_record("func_call_hash", (1, True, MyClass()))
 
-        dicio = self.storage.get_all_cached_data()
+        cached_data = self.storage.get_all_cached_data()
 
         expected_data = {
             "func_call_hash": CacheData("func_call_hash", (1, True, MyClass()))
         }
-        self.assert_data_gotten_is_correct(dicio, expected_data)
+        self.assert_data_gotten_is_correct(cached_data, expected_data)
 
     def test_get_all_cached_data_when_there_are_many_cache_records(self):
         self.manually_cache_a_record("func_call_hash1", (True, 2, 5))
@@ -82,7 +82,7 @@ class AbstractStorageTest(object):
         self.manually_cache_a_record("func_call_hash3", -123.213)
         self.manually_cache_a_record("func_call_hash4", [1, 2.213, "test"])
 
-        dicio = self.storage.get_all_cached_data()
+        cached_data = self.storage.get_all_cached_data()
 
         expected_data = {
             "func_call_hash1": CacheData("func_call_hash1", (True, 2, 5)),
@@ -92,23 +92,23 @@ class AbstractStorageTest(object):
             "func_call_hash3": CacheData("func_call_hash3", -123.213),
             "func_call_hash4": CacheData("func_call_hash4", [1, 2.213, "test"]),
         }
-        self.assert_data_gotten_is_correct(dicio, expected_data)
+        self.assert_data_gotten_is_correct(cached_data, expected_data)
 
     def test_get_all_cached_data_using_an_isolated_connection(self):
         self.manually_cache_a_record("func_call_hash1", -123.3, commit=True)
         self.manually_cache_a_record("func_call_hash2", True, commit=True)
 
-        dicio = self.storage.get_all_cached_data(use_isolated_connection=True)
+        cached_data = self.storage.get_all_cached_data(use_isolated_connection=True)
 
         expected_data = {
             "func_call_hash1": CacheData("func_call_hash1", -123.3),
             "func_call_hash2": CacheData("func_call_hash2", True),
         }
-        self.assert_data_gotten_is_correct(dicio, expected_data)
+        self.assert_data_gotten_is_correct(cached_data, expected_data)
 
     def test_get_cached_data_of_a_function_when_there_is_no_record(self):
-        dicio = self.storage.get_cached_data_of_a_function("f1")
-        self.assertDictEqual(dicio, {})
+        cached_data = self.storage.get_cached_data_of_a_function("f1")
+        self.assertDictEqual(cached_data, {})
 
     def test_get_cached_data_of_a_function_when_there_is_cached_records_only_for_other_functions(
         self,
@@ -119,8 +119,8 @@ class AbstractStorageTest(object):
         )
         self.manually_cache_a_record("func_call_hash3", -123.213, func_name="f3")
 
-        dicio = self.storage.get_cached_data_of_a_function("f1")
-        self.assertDictEqual(dicio, {})
+        cached_data = self.storage.get_cached_data_of_a_function("f1")
+        self.assertDictEqual(cached_data, {})
 
     def test_get_cached_data_of_a_function_when_there_is_a_cached_record_for_it_and_for_other_functions_too(
         self,
@@ -132,7 +132,7 @@ class AbstractStorageTest(object):
         )
         self.manually_cache_a_record("func_call_hash3", -123.213, func_name="f3")
 
-        dicio = self.storage.get_cached_data_of_a_function("f1")
+        cached_data = self.storage.get_cached_data_of_a_function("f1")
 
         expected_data = {
             "func_call_hash1": CacheData("func_call_hash1", 5000.00, func_name="f1"),
@@ -140,7 +140,7 @@ class AbstractStorageTest(object):
                 "func_call_hash11", (True, 2, 5), func_name="f1"
             ),
         }
-        self.assert_data_gotten_is_correct(dicio, expected_data)
+        self.assert_data_gotten_is_correct(cached_data, expected_data)
 
     def test_get_cached_data_of_a_function_when_there_are_many_cached_data_records_for_it(
         self,
@@ -150,7 +150,7 @@ class AbstractStorageTest(object):
         self.manually_cache_a_record("func_call_hash3", [10, -4, False], func_name="f1")
         self.manually_cache_a_record("func_call_hash4", -123.213, func_name="f3")
 
-        dicio = self.storage.get_cached_data_of_a_function("f1")
+        cached_data = self.storage.get_cached_data_of_a_function("f1")
 
         expected_data = {
             "func_call_hash1": CacheData("func_call_hash1", "testing", func_name="f1"),
@@ -159,7 +159,7 @@ class AbstractStorageTest(object):
                 "func_call_hash3", [10, -4, False], func_name="f1"
             ),
         }
-        self.assert_data_gotten_is_correct(dicio, expected_data)
+        self.assert_data_gotten_is_correct(cached_data, expected_data)
 
     def test_get_cached_data_of_a_function_using_an_isolated_connection(self):
         self.manually_cache_a_record(
@@ -173,7 +173,7 @@ class AbstractStorageTest(object):
             "func_call_hash4", {1, 5, 4}, func_name="f2", commit=True
         )
 
-        dicio = self.storage.get_cached_data_of_a_function(
+        cached_data = self.storage.get_cached_data_of_a_function(
             "f1", use_isolated_connection=True
         )
 
@@ -181,7 +181,7 @@ class AbstractStorageTest(object):
             "func_call_hash1": CacheData("func_call_hash1", "My Test", func_name="f1"),
             "func_call_hash2": CacheData("func_call_hash2", {1, 4, -2}, func_name="f1"),
         }
-        self.assert_data_gotten_is_correct(dicio, expected_data)
+        self.assert_data_gotten_is_correct(cached_data, expected_data)
 
     def test_get_cached_data_of_a_function_call_when_cache_record_doesnt_exist(self):
         cache_data = self.storage.get_cached_data_of_a_function_call("func_call_hash")

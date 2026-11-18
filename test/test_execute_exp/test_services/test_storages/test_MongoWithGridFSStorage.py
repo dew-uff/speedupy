@@ -5,8 +5,8 @@ from typing import Dict
 import gridfs
 import pymongo
 
-from entities.BancoGridFS import BancoGridFS
-from entities.BancoMongo import BancoMongo
+from entities.GridFSDatabase import GridFSDatabase
+from entities.MongoDatabase import MongoDatabase
 from execute_exp.entitites.CacheData import CacheData
 from execute_exp.services.serializers.Serializer import Serializer
 from execute_exp.services.storages.GridFSStorage import GridFSStorage
@@ -21,12 +21,14 @@ from test_execute_exp.test_services.test_storages.AbstractStorageTest import (
 class TestMongoWithGridFSStorage(AbstractStorageTest, unittest.TestCase):
     def create_instance(self, serializer: Serializer) -> Storage:
         self.mongo = pymongo.MongoClient("mongodb://localhost:27017/")
-        self.mongo_cache = self.mongo[BancoMongo.DB_NAME][BancoMongo.COLLECTION_NAME]
-        self.mongo.drop_database(BancoMongo.DB_NAME)
+        self.mongo_cache = self.mongo[MongoDatabase.DB_NAME][
+            MongoDatabase.COLLECTION_NAME
+        ]
+        self.mongo.drop_database(MongoDatabase.DB_NAME)
         mongo_storage = MongoStorage(serializer)
 
-        self.db = self.mongo[BancoGridFS.DB_NAME]
-        self.fs = gridfs.GridFSBucket(self.db, bucket_name=BancoGridFS.BUCKET_NAME)
+        self.db = self.mongo[GridFSDatabase.DB_NAME]
+        self.fs = gridfs.GridFSBucket(self.db, bucket_name=GridFSDatabase.BUCKET_NAME)
         gridfs_storage = GridFSStorage(serializer)
 
         return MongoWithGridFSStorage(mongo_storage, gridfs_storage)
@@ -34,7 +36,7 @@ class TestMongoWithGridFSStorage(AbstractStorageTest, unittest.TestCase):
     def assert_storage_is_empty(self):
         self.assertEqual(self.mongo_cache.count_documents({}), 0)
         self.assertEqual(
-            self.db[f"{BancoGridFS.BUCKET_NAME}.files"].count_documents({}), 0
+            self.db[f"{GridFSDatabase.BUCKET_NAME}.files"].count_documents({}), 0
         )
 
     def assert_cached_data(self, expected_data: Dict[str, CacheData]):
@@ -108,7 +110,7 @@ class TestMongoWithGridFSStorage(AbstractStorageTest, unittest.TestCase):
         self.manually_cache_a_record("func_call_hash2", (True, 2, 5))
         self.manually_cache_a_record("func_call_hash3", [{"key1": 10, "key_2": False}])
 
-        dicio = self.storage.get_all_cached_data()
+        cached_data = self.storage.get_all_cached_data()
 
         expected_data = {
             "func_call_hash1": CacheData("func_call_hash1", (big_str,)),
@@ -117,7 +119,7 @@ class TestMongoWithGridFSStorage(AbstractStorageTest, unittest.TestCase):
                 "func_call_hash3", [{"key1": 10, "key_2": False}]
             ),
         }
-        self.assert_data_gotten_is_correct(dicio, expected_data)
+        self.assert_data_gotten_is_correct(cached_data, expected_data)
 
     def test_get_cached_data_of_a_function_when_cache_records_are_on_both_storages(
         self,
@@ -129,7 +131,7 @@ class TestMongoWithGridFSStorage(AbstractStorageTest, unittest.TestCase):
         self.manually_cache_a_record("func_call_hash2", (1,), func_name="f1")
         self.manually_cache_a_record("func_call_hash3", [10, -4, False], func_name="f1")
 
-        dicio = self.storage.get_cached_data_of_a_function("f1")
+        cached_data = self.storage.get_cached_data_of_a_function("f1")
 
         expected_data = {
             "func_call_hash1": CacheData("func_call_hash1", (big_str,), func_name="f1"),
@@ -138,7 +140,7 @@ class TestMongoWithGridFSStorage(AbstractStorageTest, unittest.TestCase):
                 "func_call_hash3", [10, -4, False], func_name="f1"
             ),
         }
-        self.assert_data_gotten_is_correct(dicio, expected_data)
+        self.assert_data_gotten_is_correct(cached_data, expected_data)
 
     def test_get_cached_data_of_a_function_call_when_cache_record_exists_on_gridfs_storage(
         self,

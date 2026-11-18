@@ -1,6 +1,6 @@
 from typing import Dict, Optional
 
-from entities.BancoGridFS import BancoGridFS
+from entities.GridFSDatabase import GridFSDatabase
 from execute_exp.entitites.CacheData import CacheData
 from execute_exp.services.serializers.Serializer import Serializer
 from execute_exp.services.storages.Storage import Storage
@@ -9,7 +9,7 @@ from execute_exp.services.storages.Storage import Storage
 class GridFSStorage(Storage):
     def __init__(self, serializer: Serializer):
         super().__init__(serializer)
-        self.gridfs = BancoGridFS()
+        self.gridfs = GridFSDatabase()
 
     def get_all_cached_data(
         self, use_isolated_connection=False

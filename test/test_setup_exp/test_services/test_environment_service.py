@@ -11,7 +11,7 @@ import redis
 from pymemcache.client.base import Client
 from pymemcache.serde import pickle_serde
 
-from entities.BancoSQLite import BancoSQLite
+from entities.SQLiteDatabase import SQLiteDatabase
 from execute_exp.parser_params import STORAGE_OPTIONS
 from setup_exp.services.environment_service import _create_databases
 
@@ -112,8 +112,8 @@ class TestEnvironmentService(unittest.TestCase):
     def assert_sqlite_db_exists(self):
         self.assertTrue(os.path.exists(self.SQLITE_DB_FILENAME))
         expeceted_result = {("sqlite_sequence",), ("CACHE",), ("FUNCTION_CALLS_PROV",)}
-        BancoSQLite.nome_banco = self.SQLITE_DB_FILENAME
-        conexao_banco = BancoSQLite()
+        SQLiteDatabase.db_path = self.SQLITE_DB_FILENAME
+        conexao_banco = SQLiteDatabase()
         resp = conexao_banco.select(
             "SELECT tbl_name FROM sqlite_master WHERE type = 'table'"
         )

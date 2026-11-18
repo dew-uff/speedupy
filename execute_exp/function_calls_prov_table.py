@@ -1,6 +1,6 @@
 from typing import Dict, List
 
-from entities.BancoSQLite import BancoSQLite
+from entities.SQLiteDatabase import SQLiteDatabase
 from execute_exp.entitites.FunctionCallProv import FunctionCallProv
 from execute_exp.entitites.Metadata import Metadata
 from execute_exp.services.serializers.Serializer import Serializer
@@ -13,7 +13,7 @@ class FunctionCallsProvTable:
     def __init__(self, serializer: Serializer):
         self._FUNCTION_CALLS_PROV = {}
         self._NEW_FUNCTION_CALLS_PROV = {}
-        self._db_connection = BancoSQLite()
+        self._db_connection = SQLiteDatabase()
         self._serializer = serializer
 
     def get_initial_function_calls_prov_entries(self) -> None:

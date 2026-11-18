@@ -1,6 +1,6 @@
 from typing import Dict, Optional
 
-from entities.BancoMySQL import BancoMySQL
+from entities.MySQLDatabase import MySQLDatabase
 from execute_exp.entitites.CacheData import CacheData
 from execute_exp.services.serializers.Serializer import Serializer
 from execute_exp.services.storages.Storage import Storage
@@ -9,7 +9,7 @@ from execute_exp.services.storages.Storage import Storage
 class MySQLStorage(Storage):
     def __init__(self, serializer: Serializer):
         super().__init__(serializer)
-        self.db_connection = BancoMySQL()
+        self.db_connection = MySQLDatabase()
 
     def get_all_cached_data(
         self, use_isolated_connection=False

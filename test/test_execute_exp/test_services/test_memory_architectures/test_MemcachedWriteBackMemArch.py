@@ -84,17 +84,15 @@ class TestMemcachedWriteBackMemArch(AbstractMemArchTest, unittest.TestCase):
         )
 
     def test_create_cache_entry_writes_only_to_memcached(self):
-        self.mem_arch.create_cache_entry("hash123", "resultado")
+        self.mem_arch.create_cache_entry("hash123", "result")
 
         self.wait_for_memcached_persistency()
-        self.assertEqual(
-            self.memcached.get("hash123"), CacheData("hash123", "resultado")
-        )
+        self.assertEqual(self.memcached.get("hash123"), CacheData("hash123", "result"))
         self.retrieval_strategy.save_cache_data.assert_not_called()
         self.assertListEqual(self.mem_arch._new_cache_keys, ["hash123"])
 
     def test_save_new_cache_entries_persists_dirty_data(self):
-        non_persisted_data = {"hash123": CacheData("hash123", "resultado")}
+        non_persisted_data = {"hash123": CacheData("hash123", "result")}
         self.insert_data_on_cache_RAM(non_persisted_data, {})
 
         self.mem_arch.save_new_cache_entries()

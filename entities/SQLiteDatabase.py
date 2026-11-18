@@ -1,19 +1,19 @@
 import os
 import sqlite3
 
-from constantes import Constantes
+from constants import Constants
 
 
-class BancoSQLite:
-    nome_banco = Constantes().BD_PATH
+class SQLiteDatabase:
+    db_path = Constants().DB_PATH
 
     @classmethod
     def database_exists(cls):
-        return os.path.isfile(cls.nome_banco)
+        return os.path.isfile(cls.db_path)
 
     def __init__(self):
-        self.conexao = sqlite3.connect(self.nome_banco)
-        self.cursor = self.conexao.cursor()
+        self.connection = sqlite3.connect(self.db_path)
+        self.cursor = self.connection.cursor()
 
     def create_database(self):
         self._create_table_CACHE()
@@ -57,7 +57,7 @@ class BancoSQLite:
         return self.cursor.fetchall()
 
     def commit(self):
-        self.conexao.commit()
+        self.connection.commit()
 
     def close_connection(self):
-        self.conexao.close()
+        self.connection.close()

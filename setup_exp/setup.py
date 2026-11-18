@@ -8,7 +8,7 @@ sys.path.append(project_folder)
 # The imports below need the project folder on sys.path, which the two lines
 # above set up: the script runs as `python setup_exp/setup.py`, where the
 # project root is not on the path.
-from constantes import Constantes  # noqa: E402
+from constants import Constants  # noqa: E402
 from execute_exp.parser_params import STORAGE_OPTIONS  # noqa: E402
 from setup_exp.services.environment_service import init_env  # noqa: E402
 from setup_exp.services.experiment_service import (  # noqa: E402
@@ -55,7 +55,7 @@ def setup_experiment(main_script_path: str, storage: str = "file") -> None:
     functions2hashes = get_experiment_functions_hashes(exp_func_graph)
     decorate_experiment_functions(experiment)
     overwrite_decorated_experiment(experiment)
-    save_json_file(functions2hashes, Constantes().EXP_FUNCTIONS_FILENAME)
+    save_json_file(functions2hashes, Constants().EXP_FUNCTIONS_FILENAME)
 
 
 if __name__ == "__main__":

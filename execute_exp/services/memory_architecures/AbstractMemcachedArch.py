@@ -1,13 +1,13 @@
 import threading
 
-from entities.BancoMemcached import BancoMemcached
+from entities.MemcachedDatabase import MemcachedDatabase
 from execute_exp.services.memory_architecures.AbstractMemArch import AbstractMemArch
 
 
 class AbstractMemcachedArch(AbstractMemArch):
     def __init__(self, retrieval_strategy, use_threads: bool):
         super().__init__(retrieval_strategy, use_threads)
-        self._memcached = BancoMemcached()
+        self._memcached = MemcachedDatabase()
         self._thread = None  # Needed for unit testing!
 
     def get_initial_cache_entries(self) -> None:
