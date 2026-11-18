@@ -8,10 +8,12 @@ import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
 
-# Latin-1 and Latin Extended-A letters with diacritics (written as escapes so
-# this file stays ASCII). Typographic punctuation such as dashes, arrows and
+# Latin-1 and Latin Extended-A letters with diacritics (built from code points,
+# since ruff rewrites escapes into literals and this file must stay ASCII). Typographic punctuation such as dashes, arrows and
 # curly quotes is legitimate and not matched.
-ACCENTED = re.compile("[À-ÖØ-öø-ſ]")
+ACCENTED = re.compile(
+    "[%s-%s%s-%s%s-%s]" % tuple(chr(c) for c in (0xC0, 0xD6, 0xD8, 0xF6, 0xF8, 0x17F))
+)
 
 # path -> reason the accented letters are legitimate. Empty on purpose.
 ALLOWLIST: dict[str, str] = {}
