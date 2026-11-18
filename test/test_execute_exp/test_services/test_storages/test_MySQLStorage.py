@@ -13,6 +13,12 @@ from test_execute_exp.test_services.test_storages.AbstractStorageTest import (
 
 class TestMySQLStorage(AbstractStorageTest, unittest.TestCase):
     def setUp(self):
+        # BancoMySQL reads max_allowed_packet only when `USE speedupy` succeeds,
+        # so the database must exist before the instance the test uses is built.
+        # Whether an earlier test dropped it must not matter.
+        bootstrap = BancoMySQL()
+        bootstrap.create_database()
+        bootstrap.close_connection()
         self.banco = BancoMySQL()
         self.banco.create_database()
         super().setUp()
