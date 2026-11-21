@@ -227,12 +227,13 @@ it by running, and Task 1 moves the list to `AGENTS.md`.
 - **Singletons are never reset:** `SingletonMeta` keeps one instance per class
   for the life of the process. `test/test_entities/test_BancoRedis.py` builds
   `BancoRedis()` under a mocked client, which then stays in the singleton.
-- **Native libraries:** `MeowHash.py`, `A5Hash.py` and `MuseairBFastHash.py`
-  load `libmeow.so`, `liba5hash.so` and `libmuseair.so` at import. The files
-  are not versioned, no source is in the repository, and they export custom
-  symbols (`MeowHash_32`, `GetMeowDefaultSeed`, `a5hash_128_64`,
-  `museair_bfast_64`). D3 and Task 25 (issue #112) put the sources, the build
-  and the binaries of five platforms in `native/` (`docs/native-hashes.md`).
+- **Native libraries:** until Task 12, `MeowHash.py`, `A5Hash.py` and
+  `MuseairBFastHash.py` loaded `libmeow.so`, `liba5hash.so` and
+  `libmuseair.so` at import, from files that were not versioned and had no
+  source in the repository. Task 12 made the loading lazy; D3 and Task 25
+  (issue #112) put the sources, the build and the binaries of five platforms
+  in `native/`. `AGENTS.md` has the current trap; `native/README.md` is the
+  procedure to rebuild them.
 - **Running an experiment:** setup injects `sys.path.append(<cwd>)` and `from
   speedupy.speedupy import …` into the script, so the checkout must be
   reachable as `speedupy/` inside the experiment's directory. A script whose
