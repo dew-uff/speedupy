@@ -164,8 +164,12 @@ carries no stale assumption. Every task here is written that way.
   a task".
 - **Tests that need a server** are opt-in and run against disposable
   containers, never against servers that were already on the machine.
-- **Existing conventions stay:** `issue_<N>` branches, the `Issue(#N): `
-  prefix, `vX.Y.Z` tags.
+- **Existing conventions stay:** `issue_<N>` branches and the `Issue(#N): `
+  prefix.
+- **Tags are SemVer 2.0.0, with no `v`:** `X.Y.Z` (`1.7.0`), `+metadata` for a
+  variant of the same version (`1.0.1+time-measure`) and `-pre` for a
+  pre-release (`1.3.5-pre`). GitHub does not validate tag names on the
+  organization's plan, so this line is the rule.
 - **Documents say "the maintainer",** never a person's name.
 
 ## Safety
