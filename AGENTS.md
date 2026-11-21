@@ -14,6 +14,7 @@ results up in a storage.
 | `execute_exp/` | Execution: parameters, settings, hashes, memory architectures, retrieval, serializers. |
 | `entities/` | The storage backends (`*Database.py`): SQLite, MySQL, MongoDB, Redis, Memcached, GridFS. |
 | `speedupy.py` | The decorators and the entry point that the injected script imports. |
+| `native/` | The native hashes (a5hash, MeowHash, MuseAir): the versioned binaries of five platforms, their sources as submodules, the wrappers and the build (`native/README.md`). |
 | `test/` | The tests (unittest classes, run by pytest from Task 5 on). |
 | `logger/`, `util.py`, `constants.py`, `SingletonMeta.py` | Shared helpers. |
 
@@ -83,16 +84,20 @@ A change is done when all of these hold:
   `pyproject.toml`; `uv run ruff check --fix .` applies the safe fixes. There
   is no ignore left: a `# noqa` carries its reason on the line above.
 - The floor is raised in the pull request that adds tests: `MIN_TESTS` in the
-  `test` job (no server) and in the `test-servers` job (the whole suite) of
-  `.github/workflows/ci.yml` is the least number of tests (passed, skipped,
+  `test` job (no server), in the `test-servers` job (the whole suite) and, for
+  hash tests, in the `native-platforms` job of `.github/workflows/ci.yml` is
+  the least number of tests (passed, skipped,
   xfailed and xpassed) that job may report. It is lowered only with the reason
   written in the pull request.
 - CI is green at the tip of the branch. `ci-ok` is the one job that says so; it
-  fails when `checks`, `test` or `test-servers` failed or was cancelled. A job
+  fails when `checks`, `test`, `test-servers` or `native-platforms` failed or
+  was cancelled. A job
   added to the workflow joins the `needs` of `ci-ok`.
 
 The `test` job runs no server, so the server tests stay deselected there. The
-`test-servers` job starts the containers of `compose.yaml` and runs them.
+`test-servers` job starts the containers of `compose.yaml` and runs them. The
+`native-platforms` job runs the hash tests on Windows x64, macOS x86_64 and
+arm64, and Linux aarch64.
 
 ## Safety
 
@@ -151,14 +156,16 @@ it by running.
   that builds a singleton under a mock starts from no instance and says so, as
   `test_RedisDatabase.py` does.
 - **Native libraries:** `MeowHash.py`, `A5Hash.py` and `MuseairBFastHash.py`
-  load `libmeow.so`, `liba5hash.so` and `libmuseair.so` on first use, through
-  `load_native_library` in `execute_exp/services/hashes/native.py`; a missing
-  file raises an `ImportError` that names it, and only that hash fails. The
-  files are git-ignored (`*.so`), no source is in the repository, and they export custom symbols
-  (`MeowHash_32`, `GetMeowDefaultSeed`, `a5hash_128_64`, `museair_bfast_64`).
-  This is transitional: the sources and the build live in the
-  `speedupy-native` package (`docs/native-hashes.md`), and Task 25 of the
-  retrofit switches the three classes to it.
+  load their library on first use from `native/lib/<platform>/`, through
+  `load_native_library` in `execute_exp/services/hashes/native.py`. The
+  binaries are versioned for Linux x86_64 and aarch64, Windows x64 and macOS
+  x86_64 and arm64; MeowHash has none on arm64. A platform without the library
+  raises an `ImportError` that names the hash and the platform, and only that
+  hash fails. Never compile a binary on your machine and commit it: only the
+  workflow `native.yml` builds them, and `native/README.md` is the procedure.
+  The sources are submodules in `native/vendor/`, needed only to rebuild; a
+  plain clone leaves them empty and runs every hash. The design is
+  `docs/native-hashes.md`.
 - **Running an experiment:** setup injects `sys.path.append(<cwd>)` and `from
   speedupy.speedupy import …` into the script, so the checkout must be
   reachable as `speedupy/` inside the experiment's directory. A script whose
@@ -187,8 +194,7 @@ From the repository root, one command:
 uv run pytest
 ```
 
-It runs the tests that need no server (the native ones skip without the `.so` files), in a scratch
-directory, and writes nothing in the checkout (`.pytest_cache/` and
+It runs the tests that need no server, in a scratch directory, and writes nothing in the checkout (`.pytest_cache/` and
 `__pycache__/` are git-ignored). Pytest's own options work (`-q`, `-k`, `-m`):
 `test/conftest.py` trims `sys.argv` before any test module loads.
 
@@ -208,11 +214,14 @@ directory, and writes nothing in the checkout (`.pytest_cache/` and
   ones: a missing server is an error, never a skip. These tests erase data (see
   "Safety") and never run in parallel. Run them against the disposable
   servers: see "Running the tests with servers" below.
-- **Native tests** need the `.so` files and are skipped, with the missing file
-  in the reason (`-rs`), when they are absent. `SPEEDUPY_REQUIRE_NATIVE=1` makes
-  a missing file a failure. A test names its libraries in `NATIVE_MAP` in
-  `test/conftest.py`, or with `@pytest.mark.native("libmeow.so")`. Task 25
-  replaces the files with the `speedupy-native` package, and the skip with it.
+- **Native tests** run against the binaries of `native/lib/` for the running
+  platform. They are skipped, with the library and the platform in the reason
+  (`-rs`), only where that platform has no such library (MeowHash on arm64);
+  anywhere else a missing or wrong binary fails. A test names its libraries
+  (`a5hash`, `meow`, `museair`) in `NATIVE_MAP` in `test/conftest.py`, or with
+  `@pytest.mark.native("meow")`; an unknown name fails the test. The
+  `native-platforms` job of CI runs the hash tests on Windows, macOS and Linux
+  arm64; the rest of the suite runs on Linux x86_64 only.
 - `uv run pytest --collect-only -q` touches no server, whatever the variable
   says. The count by what each test needs is in `RETROFIT.md`, "Baseline".
 
@@ -278,7 +287,6 @@ is a report, not a gate: the floor is `MIN_TESTS`.
 - **Same-name nested functions** in `FunctionCalledDetectorService` (#104).
 - **Server storages and the Memcached architectures** show low in the report of
   `test`; the `test-servers` job runs them. Not a blind spot of the suite.
-- **The native hashes** are skipped without the `.so` files (Task 25).
 
 ### Experimental, outside the product's scope
 
