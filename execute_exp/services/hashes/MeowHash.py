@@ -3,11 +3,12 @@ import ctypes
 from execute_exp.services.hashes.Hash import Hash
 from execute_exp.services.hashes.native import load_native_library
 
-LIBRARY = "libmeow.so"
+LIBRARY = "meow"
+HASH_NAME = "meowhash"
 
 
 def _get_library():
-    lib = load_native_library(LIBRARY)
+    lib = load_native_library(LIBRARY, HASH_NAME)
     # Define the C function signatures (idempotent).
     lib.MeowHash_32.argtypes = [ctypes.c_void_p, ctypes.c_uint64, ctypes.c_void_p]
     lib.MeowHash_32.restype = ctypes.c_uint32

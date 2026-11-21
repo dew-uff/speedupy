@@ -53,7 +53,7 @@ markers = [
     "mongo: needs the MongoDB server on localhost:27017 (opt-in, SPEEDUPY_TEST_SERVERS=1)",
     "redis: needs the Redis server on localhost:6379 (opt-in, SPEEDUPY_TEST_SERVERS=1)",
     "memcached: needs the Memcached server on localhost:11211 (opt-in, SPEEDUPY_TEST_SERVERS=1)",
-    "native: needs a native hash library (libmeow.so, liba5hash.so or libmuseair.so)",
+    "native: needs a native hash library of native/lib/ (a5hash, meow or museair)",
 ]
 
 [tool.coverage.run]

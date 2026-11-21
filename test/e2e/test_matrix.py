@@ -27,10 +27,11 @@ STORAGES = ("sqlite", "file")
 SCRIPTS = ("kwargs_nested.py", "recursive.py", "std_streams.py")
 VALUES = (HASHES, MEM_ARCHS, STRATEGIES, EXEC_MODES, SERIALIZERS, STORAGES, SCRIPTS)
 
+# Hash -> its library in native/lib/ (the ``native`` marker of test/conftest.py).
 NATIVE_HASH_LIBRARIES = {
-    "meowhash": "libmeow.so",
-    "museair": "libmuseair.so",
-    "a5hash": "liba5hash.so",
+    "meowhash": "meow",
+    "museair": "museair",
+    "a5hash": "a5hash",
 }
 
 # Combinations that fail today, each with its issue. The pairs are left out of

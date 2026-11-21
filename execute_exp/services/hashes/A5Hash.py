@@ -3,11 +3,12 @@ import ctypes
 from execute_exp.services.hashes.Hash import Hash
 from execute_exp.services.hashes.native import load_native_library
 
-LIBRARY = "liba5hash.so"
+LIBRARY = "a5hash"
+HASH_NAME = "a5hash"
 
 
 def _get_library():
-    lib = load_native_library(LIBRARY)
+    lib = load_native_library(LIBRARY, HASH_NAME)
     # Define the C function signature (idempotent).
     lib.a5hash_128_64.argtypes = [
         ctypes.c_void_p,  # data pointer
