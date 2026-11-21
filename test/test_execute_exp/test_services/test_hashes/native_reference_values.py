@@ -1,11 +1,12 @@
 """Reference values of the three native hashes.
 
 Produced by the original liba5hash.so, libmeow.so and libmuseair.so, built on
-Linux x86_64 from the commits pinned in native/NOTICE, and published with the
-speedupy-native 0.1.0 package (claytonchagas/speedupy-native,
-tests/test_vectors.py). Every binary of native/lib/ must reproduce them on its
-own platform: the hash tests check them through the hash classes, and
-native/check.py checks them right after the build. Do not edit by hand.
+Linux x86_64 from the commits pinned in native/NOTICE, and published as the
+test vectors of the speedupy-native 0.1.0 package (tests/test_vectors.py).
+Every binary of native/lib/ must reproduce them on its own platform: the hash
+tests check them through the hash classes, and native/check.py checks them
+right after the build. They change only when a submodule moves
+(native/README.md, "Moving a submodule").
 
 Plain data, no import of SpeeduPy: native/check.py loads this file by path.
 """
