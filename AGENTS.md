@@ -156,6 +156,9 @@ it by running.
   file raises an `ImportError` that names it, and only that hash fails. The
   files are git-ignored (`*.so`), no source is in the repository, and they export custom symbols
   (`MeowHash_32`, `GetMeowDefaultSeed`, `a5hash_128_64`, `museair_bfast_64`).
+  This is transitional: the sources and the build live in the
+  `speedupy-native` package (`docs/native-hashes.md`), and Task 25 of the
+  retrofit switches the three classes to it.
 - **Running an experiment:** setup injects `sys.path.append(<cwd>)` and `from
   speedupy.speedupy import …` into the script, so the checkout must be
   reachable as `speedupy/` inside the experiment's directory. A script whose
@@ -208,8 +211,8 @@ directory, and writes nothing in the checkout (`.pytest_cache/` and
 - **Native tests** need the `.so` files and are skipped, with the missing file
   in the reason (`-rs`), when they are absent. `SPEEDUPY_REQUIRE_NATIVE=1` makes
   a missing file a failure. A test names its libraries in `NATIVE_MAP` in
-  `test/conftest.py`, or with `@pytest.mark.native("libmeow.so")`. The files
-  are built from Task 25 on.
+  `test/conftest.py`, or with `@pytest.mark.native("libmeow.so")`. Task 25
+  replaces the files with the `speedupy-native` package, and the skip with it.
 - `uv run pytest --collect-only -q` touches no server, whatever the variable
   says. The count by what each test needs is in `RETROFIT.md`, "Baseline".
 
