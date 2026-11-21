@@ -33,6 +33,8 @@ dev = [
 [tool.ruff]
 # The oldest Python the project supports (D6).
 target-version = "py310"
+# Third-party sources, as their authors wrote them (native/NOTICE).
+extend-exclude = ["native/vendor"]
 
 [tool.ruff.lint]
 # Blocking rules, as noWorkflow selects them. Line length is the formatter's.

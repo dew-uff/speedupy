@@ -1,0 +1,28 @@
+# MuseAir BFast for SpeeduPy's ctypes loader
+# (execute_exp/services/hashes/MuseairBFastHash.py).
+#
+# The original libmuseair.so was the MuseAir crate itself, built as a cdylib
+# from https://github.com/JoaoLopez/museair (commit 91e7304), which added one
+# extern "C" function to src/lib.rs. Here that function is src/lib.rs of this
+# small crate, and the algorithm is the original crate, unchanged, by path
+# (vendor/museair, submodule at commit 29e56ad, crate 0.4.0). Never update the
+# submodule to the tip: later versions are a different algorithm.
+[package]
+name = "speedupy-museair"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.83"
+license = "MIT"
+publish = false
+
+[lib]
+name = "museair_ffi"
+path = "src/lib.rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+museair = { path = "../vendor/museair" }
+
+# The profile the fork's `cargo build --release` used: Cargo's default release
+# profile (the MuseAir manifest defines none).
+[profile.release]

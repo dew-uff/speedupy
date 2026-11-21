@@ -1,0 +1,5 @@
+# The Rust release every binary of native/ is built with, so that a rebuild
+# uses the same compiler. 1.83 is the minimum the MuseAir crate declares.
+[toolchain]
+channel = "1.83.0"
+profile = "minimal"
