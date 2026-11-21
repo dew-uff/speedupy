@@ -103,7 +103,7 @@ Do not assume the machine has what a task needs: it probably does not.
 | Git and `gh` (GitHub CLI) | every task | the branch, the issue, the pull request |
 | uv, and the Python it manages | Task 3 | the environment and the suite |
 | Docker with Compose | Task 13 | the disposable servers |
-| What D3 names for the build | Task 25 | the native hash libraries |
+| Nothing beyond uv (D3) | Task 25 | the native hashes come as the `speedupy-native` wheel |
 
 1. **Check first.** Before the first change of a task, look for each tool it
    needs and its version: `gh --version`, `uv --version`, `uv python list
@@ -231,7 +231,9 @@ it by running, and Task 1 moves the list to `AGENTS.md`.
   load `libmeow.so`, `liba5hash.so` and `libmuseair.so` at import. The files
   are not versioned, no source is in the repository, and they export custom
   symbols (`MeowHash_32`, `GetMeowDefaultSeed`, `a5hash_128_64`,
-  `museair_bfast_64`).
+  `museair_bfast_64`). D3 moves the sources and the build to the
+  `speedupy-native` package (`docs/native-hashes.md`); Task 25 switches the
+  three classes to it.
 - **Running an experiment:** setup injects `sys.path.append(<cwd>)` and `from
   speedupy.speedupy import …` into the script, so the checkout must be
   reachable as `speedupy/` inside the experiment's directory. A script whose
@@ -249,7 +251,7 @@ Task 2 fills the "Decision" column. A task that names a decision waits for it.
 | :--- | :--- | :--- | :--- |
 | D1 | Open work before the format commit: PR #16 (`issue_15`) and the branch `btree-impl`. Integrate, close, or accept the rebase? | Task 9 | Close both, archived first as the tags `archive/issue_15` and `archive/btree-impl`. Task 15 reimplements the setup option on `main`, taking PR #16 as prior work; the B-tree storage is issue #34, for after the retrofit. |
 | D2 | Issue #15: how should setup behave when the servers are not running? PR #16 adds `--storage` to setup. | Task 15 | Adopt issue #15 as written: setup gets `-s/--storage` with the execution's storage names, default `file`. `init_env` initializes only the chosen storage, `_env_exists` no longer requires the SQLite file, and setup never touches a server that was not selected. The disabling of `FUNCTION_CALLS_PROV` that PR #16 also did is out of scope: issue #35. |
-| D3 | Where are the sources and the build commands of the three native hash libraries? | Task 25 | awaiting: the sources, the commits and the build commands of `liba5hash.so` and `libmuseair.so`, and the commit of `JoaoLopez/meow_hash` used for `libmeow.so`. The `.so` files are git-ignored and the repository has no sources or build commands for them. The maintainer asked the team whether the three native hashes (a5hash, MeowHash, MuseAir BFast) stay at all, since they are new, niche and unreviewed; the release used in the 2024 measurements (1.0.1+time-measure) had only md5, murmur and xxhash, with md5 as the default. The admin referred the question to `JoaoLopez`; the answer is expected on 2026-11-19. Task 25 waits for it. |
+| D3 | Where are the sources and the build commands of the three native hash libraries? | Task 25 | Decided by the maintainers on 2026-11-19. The six hashes (`md5`, `murmur`, `xxhash`, `a5hash`, `meowhash`, `museair`) stay, and all six come with `pip install speedupy` on Linux, Windows and macOS, with no compiler on the user's machine. The three native ones move to their own package, `speedupy-native`, in the organization's account: one PyO3 extension built by maturin from pinned commits of `JoaoLopez/a5hash` (`7ff7fa3`), `JoaoLopez/meow_hash` (`beeb71f`) and `JoaoLopez/museair` (branch `oficial`, `91e7304`), the two C sources compiled by `build.rs`, published on PyPI as abi3 wheels for Linux x86_64 and aarch64, Windows x64, macOS x86_64 and arm64. `speedupy` declares it as a plain dependency and stops loading `.so` files by name. Two limits are part of the decision: MeowHash is x86_64 with AES-NI only, since its official implementation has no ARM port, so on arm64 `-H meowhash` fails with a message that says so and the other five work; and the pinned commits are the ones used in the measurements, never bumped silently, because MuseAir changed its algorithm across versions. The design is `docs/native-hashes.md`; the package is issue #106; Task 25 is the consumer side. |
 | D4 | Which license, and which GitHub team or users go in `CODEOWNERS`? | Task 22 | License MIT, copyright Universidade Federal Fluminense (UFF), confirmed by the admin; `LICENSE` added in issue #68. `CODEOWNERS`: `claytonchagas` and `JoaoLopez` (`JoaoFelipe` is not an owner), confirmed on the team's thread on 2026-11-16. Task 22 adds `CODEOWNERS` with these two. |
 | D5 | For this private repository: how many Actions minutes may CI spend, and are code scanning and secret scanning available on the organization's plan? | Tasks 14, 23 | Answered 2026-11-16 by the admin: the repository is public, and GitHub detects the MIT license. Tasks 14 and 23 are unblocked. |
 | D6 | Which Python versions are supported? | Task 24 | 3.10 to 3.11: every pin installs from wheels there. 3.9 is dropped, the README says 3.10+. 3.12 and 3.13 need a newer `mmh3` pin (no wheel for 4.0.1): issue #36, outside the retrofit. `check_python_version()` is aligned in Task 24. |
@@ -283,7 +285,7 @@ Task 2 fills the "Decision" column. A task that names a decision waits for it.
 | 22 | Contribution documents | dev | Sonnet | low | yes | 14, D4 | pending |
 | 23 | Dependency and security checks | dev | Sonnet | medium | yes | 6, D5 | pending |
 | 24 | Python versions | dev | Sonnet | medium | yes | 14, 23, D6 | pending |
-| 25 | Native libraries, part 2: build from source | dev | Sonnet | medium | yes | 14, D3 | pending |
+| 25 | Native libraries, part 2: the `speedupy-native` package | dev | Sonnet | medium | yes | 14, D3, #106 | pending |
 | 26 | Repository skills | dev | Sonnet | medium | yes | 19, 22 | pending |
 | 27 | Close the retrofit | dev | Sonnet | low | yes | all | pending |
 
@@ -925,20 +927,49 @@ Sonnet · medium · clear first: yes · depends on: 14, 23, D6
 
 **Done when.** The matrix is green and the three places agree.
 
-### Task 25 — Native libraries, part 2: build from source
+### Task 25 — Native libraries, part 2: the `speedupy-native` package
 
-Sonnet · medium · clear first: yes · depends on: 14, D3
+Sonnet · medium · clear first: yes · depends on: 14, D3, and a release of
+`speedupy-native` on PyPI (issue #106) · production change
 
-**Goal.** The native hashes are built and tested in CI.
+**Goal.** The three native hashes install with `pip install speedupy` on Linux,
+Windows and macOS, with no `.so` file in the checkout, and their tests run in
+CI.
+
+**Why.** D3 keeps the six hashes in the default install. The sources, the build
+and the wheels live in the `speedupy-native` package, described in
+`docs/native-hashes.md`. This task is the consumer side; it starts when that
+package is installable from PyPI.
 
 **Steps.**
-1. A script that builds the three libraries from pinned commits of the sources
-   D3 names, on Linux x86_64.
-2. CI builds them and sets `SPEEDUPY_REQUIRE_NATIVE=1`.
-3. Tests that pin known hash values; none does today.
-4. The `Dockerfile` builds them; `CONTRIBUTING.md` documents the script.
+1. Before any change, record the reference values: with the current `.so`
+   files on Linux x86_64, hash a fixed set of inputs with each of the three
+   classes and write the results into the tests of
+   `test/test_execute_exp/test_services/test_hashes/`. These values are the
+   proof that the wheel computes the same hashes as the libraries the
+   measurements used; the package's own tests carry the same vectors.
+2. Add `speedupy-native` to the dependencies (`pyproject.toml`,
+   `requirements.txt`, `uv.lock`), pinned to the release whose commits
+   `docs/native-hashes.md` lists.
+3. `MeowHash.py`, `A5Hash.py` and `MuseairBFastHash.py` call the package's
+   functions (`a5hash_128_64`, `museair_bfast_64`, `meowhash_32`) instead of
+   `ctypes`; `native.py` goes, and `*.so` leaves `.gitignore`. On a platform
+   without MeowHash (`speedupy_native.HAS_MEOWHASH` is false) `-H meowhash`
+   raises an `ImportError` that names the platform and the five hashes that
+   work; test it with the flag patched.
+4. The `native` marker, `NATIVE_MAP` and `SPEEDUPY_REQUIRE_NATIVE` go: these
+   tests always run. The `Dockerfile` stops expecting `.so` files.
+5. CI: the `test` job runs them; a `native-platforms` job runs
+   `test/test_execute_exp/test_services/test_hashes` on `windows-latest` and
+   `macos-latest` (the rest of the suite on those systems stays out of the
+   retrofit) and joins the `needs` of `ci-ok`.
+6. `AGENTS.md`: rewrite the "Native libraries" trap and the "Native tests"
+   bullet; the README's hash row is Task 21's.
 
-**Done when.** The native tests run in CI and do not skip; the floor is raised.
+**Done when.** `uv run pytest` runs the three native test modules with no
+`.so` in the checkout and no skip; the reference values of step 1 pass
+unchanged; the three jobs are green; the floor is raised; `git grep -n '\.so'`
+finds nothing in the code.
 
 ### Task 26 — Repository skills
 
@@ -981,4 +1012,5 @@ Each becomes an issue when a task meets it:
 - renaming the misspelled packages;
 - host, port and database names configurable through the environment;
 - a release procedure;
-- macOS and Windows.
+- macOS and Windows for the whole suite (Task 25 covers the native hashes
+  there, nothing else).
