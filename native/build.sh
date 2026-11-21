@@ -22,11 +22,11 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 out="$here/lib/$platform"
 
 case "$platform" in
-  linux-x86_64)  shared=(-shared -fPIC -Wl,--as-needed); ext=so;    meow=yes ;;
-  linux-aarch64) shared=(-shared -fPIC -Wl,--as-needed); ext=so;    meow=no ;;
-  macos-x86_64)  shared=(-dynamiclib);                   ext=dylib; meow=yes
+  linux-x86_64)  shared=(-shared -fPIC -Wl,--as-needed);     ext=so;    meow=yes ;;
+  linux-aarch64) shared=(-shared -fPIC -Wl,--as-needed);     ext=so;    meow=no ;;
+  macos-x86_64)  shared=(-dynamiclib -Wl,-dead_strip_dylibs); ext=dylib; meow=yes
                  export MACOSX_DEPLOYMENT_TARGET=10.12 ;;
-  macos-arm64)   shared=(-dynamiclib);                   ext=dylib; meow=no
+  macos-arm64)   shared=(-dynamiclib -Wl,-dead_strip_dylibs); ext=dylib; meow=no
                  export MACOSX_DEPLOYMENT_TARGET=11.0 ;;
   *) echo "unknown platform: $platform" >&2; exit 2 ;;
 esac
@@ -66,6 +66,15 @@ fi
 echo "== MuseAir"
 (cd "$here/museair" && cargo build --release --locked)
 cp "$here/museair/target/release/libmuseair_ffi.$ext" "$out/libmuseair.$ext"
+
+# A macOS library records its own path as its install name; the build path
+# would end up in the binary. ctypes loads by full path, so a relative name
+# is enough.
+if [ "$ext" = dylib ]; then
+  for lib in "$out"/*; do
+    install_name_tool -id "@rpath/$(basename "$lib")" "$lib"
+  done
+fi
 
 echo "== built"
 ls -l "$out"
