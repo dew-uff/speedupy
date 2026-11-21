@@ -64,7 +64,7 @@ jobs:
     # pull request that adds tests; lower it only with the reason written in
     # the pull request.
     env:
-      MIN_TESTS: 383
+      MIN_TESTS: 496
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -121,7 +121,7 @@ jobs:
     # run, servers included. Raise it in the pull request that adds tests; lower
     # it only with the reason written in the pull request.
     env:
-      MIN_TESTS: 578
+      MIN_TESTS: 691
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -168,16 +168,58 @@ jobs:
           path: compose.log
           if-no-files-found: ignore
 
+  # The native hashes on the platforms the other jobs do not run: the hash
+  # tests against the binaries of native/lib/ (issue #112). The rest of the
+  # suite runs on Linux x86_64 only. On arm64, MeowHash has no binary and its
+  # tests are skipped, so the count is the same on every platform.
+  native-platforms:
+    # min-tests: floor for passed + skipped + xfailed + xpassed. Raise it in the
+    # pull request that adds hash tests; lower it only with the reason written
+    # in the pull request.
+    env:
+      MIN_TESTS: 133
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [windows-2025, macos-15-intel, macos-15, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install uv and Python 3.10
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          python-version: "3.10"
+          enable-cache: true
+
+      - name: Install dependencies
+        id: sync
+        run: uv sync --locked
+
+      - name: Run the hash tests
+        run: |
+          set -o pipefail
+          uv run --no-sync pytest test/test_execute_exp/test_services/test_hashes \
+            test/test_execute_exp/test_services/test_native_loading.py | tee pytest.log
+
+      - name: Record the test count
+        if: ${{ !cancelled() && steps.sync.outcome == 'success' }}
+        run: |
+          bash .github/scripts/pytest-summary.sh pytest.log "$MIN_TESTS" \
+            "${{ matrix.runner }}, 3.10, native hashes" \
+            "uv run pytest test/test_execute_exp/test_services/test_hashes test/test_execute_exp/test_services/test_native_loading.py"
+
   # The one check that the ruleset of `main` requires (Task 7). It fails when
   # any job failed or was cancelled, so adding a job to `needs` is all it takes
   # to make that job blocking.
   ci-ok:
     if: always()
-    needs: [checks, test, test-servers]
+    needs: [checks, test, test-servers, native-platforms]
     runs-on: ubuntu-latest
     steps:
       - name: All required jobs passed
         if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
         run: |
-          echo "::error::checks=${{ needs.checks.result }} test=${{ needs.test.result }} test-servers=${{ needs.test-servers.result }}"
+          echo "::error::checks=${{ needs.checks.result }} test=${{ needs.test.result }} test-servers=${{ needs.test-servers.result }} native-platforms=${{ needs.native-platforms.result }}"
           exit 1
