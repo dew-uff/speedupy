@@ -285,7 +285,7 @@ Task 2 fills the "Decision" column. A task that names a decision waits for it.
 | 22 | Contribution documents | dev | Sonnet | low | yes | 14, D4 | pending |
 | 23 | Dependency and security checks | dev | Sonnet | medium | yes | 6, D5 | pending |
 | 24 | Python versions | dev | Sonnet | medium | yes | 14, 23, D6 | pending |
-| 25 | Native libraries, part 2: the binaries in the repository | dev | Opus | high | yes | 14, D3 | done (#112) |
+| 25 | Native libraries, part 2: the binaries in the repository | dev | Opus | high | yes | 14, D3 | done (#115) |
 | 26 | Repository skills | dev | Sonnet | medium | yes | 19, 22 | pending |
 | 27 | Publish on PyPI | dev | Opus | high | yes | 21, 23, 24, 25, D7 | pending |
 | 28 | Close the retrofit | dev | Sonnet | low | yes | all | pending |
@@ -931,7 +931,7 @@ Sonnet · medium · clear first: yes · depends on: 14, 23, D6
 ### Task 25 — Native libraries, part 2: the binaries in the repository
 
 Opus · high · clear first: yes · depends on: 14, D3 · production change ·
-done in issue #112
+done in #115 (issue #112)
 
 **Goal.** The three native hashes run on Linux, Windows and macOS from a plain
 clone, with no compiler, and their tests run in CI on the five platforms.
