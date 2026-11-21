@@ -8,6 +8,15 @@ binaries are here, the platforms, the validation, the packaging) is
 
 ## When to rebuild
 
+"Update the native libraries" can mean two different things; know which one
+before starting:
+
+- **Rebuild at the same commits** (a wrapper, a build file, a new platform, a
+  newer toolchain): the hash values do not change. "Procedure" below.
+- **Move a submodule to another commit:** the hash values change, and every
+  cache written before stops matching. Only the maintainers decide it, in an
+  issue, before any work. "Procedure" below, then "Moving a submodule".
+
 - A wrapper changed (`src/`, `museair/src/lib.rs`).
 - A build file changed (`build.sh`, `build.ps1`, `museair/Cargo.toml`,
   `museair/Cargo.lock`, `museair/rust-toolchain.toml`).
@@ -83,9 +92,40 @@ no compiler.
 8. **Pull request** as usual. Say why the binaries were rebuilt; when a
    submodule moved, give the old and the new value of one reference input.
 
-When a submodule moves, the reference values change too: regenerate them from
-the old and the new binaries side by side, and explain each change in the pull
-request. They are never edited to make a failing build pass.
+## Moving a submodule
+
+The new commit changes the values, so the workflow's check fails on every
+platform and uploads no binary. That failure is how the new values are
+obtained:
+
+1. Move the submodule (`cd native/vendor/<name> && git checkout <commit>`,
+   then `git add native/vendor/<name>`), update its commit in `NOTICE` and in
+   `docs/native-hashes.md`, and push.
+2. In the failed run, each platform job prints `MISMATCH` lines and then the
+   tables of the values computed there, in the format of
+   `test/test_execute_exp/test_services/test_hashes/native_reference_values.py`
+   (`gh run view <run-id> --log-failed`).
+3. Check that the five platforms print the same tables (MeowHash only on the
+   three x86_64 ones), and that only the moved hash changed. A platform that
+   disagrees is a defect of the build, not a new value: stop there.
+4. Replace the changed table in `native_reference_values.py` with the printed
+   one, keep the docstring's account of where the values come from up to
+   date, and push. The run is now green: continue at step 5 of "Procedure".
+5. In the pull request, give the old and the new value of one input, and say
+   that caches written with the old commit no longer hit.
+
+The reference values change only this way, after a decision to move a
+submodule. They are never edited to make a failing build pass.
+
+## For an agent
+
+- Ask the dev which of the two cases of "When to rebuild" is meant, unless the
+  request says it; moving a submodule needs the maintainers' decision in an
+  issue first.
+- The workflow runs only on a pushed commit, and `AGENTS.md` leaves commits
+  and pushes to the dev: ask before the first push of the branch.
+- Never fix a failing check by editing the reference values or by committing
+  binaries built on this machine.
 
 ## Building locally, to try a change
 

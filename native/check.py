@@ -6,6 +6,9 @@ Loads every library of native/lib/<platform>/ through ctypes, with the
 signatures the hash classes use, and compares each result with
 test/test_execute_exp/test_services/test_hashes/native_reference_values.py.
 Also checks that the folder holds exactly the libraries of that platform.
+On a mismatch it prints every value computed here in the format of
+native_reference_values.py, for the deliberate move of a submodule
+(native/README.md, "Moving a submodule").
 The workflow .github/workflows/native.yml runs it on each platform right after
 the build; it needs only the standard library, so it runs before SpeeduPy's
 dependencies are installed.
@@ -102,10 +105,13 @@ def main(platform):
 
     ref = _load_reference()
     total = failures = 0
+    computed = {}
     for base, check in checks.items():
         lib = ctypes.CDLL(str(folder / f"{prefix}{base}.{ext}"))
         for hash_name, name, seed, got, expected in check(lib, ref):
             total += 1
+            key = name if seed is None else (name, seed)
+            computed.setdefault(hash_name, {})[key] = got
             if got != expected:
                 failures += 1
                 print(
@@ -113,7 +119,21 @@ def main(platform):
                     f"got {got:#x}, expected {expected:#x}"
                 )
     print(f"{platform}: {total - failures} of {total} reference values match")
+    if failures:
+        _print_tables(platform, computed)
     return 1 if failures else 0
+
+
+def _print_tables(platform, computed):
+    print(f"\nValues computed on {platform}, as in native_reference_values.py:")
+    widths = {"a5hash": 16, "museair": 16, "meowhash": 8}
+    for hash_name, values in computed.items():
+        print(f"\n{hash_name.upper()} = {{")
+        for key, value in values.items():
+            # The layout ruff gives the file: double quotes, upper-case digits.
+            name = f'("{key[0]}", {key[1]})' if isinstance(key, tuple) else f'"{key}"'
+            print(f"    {name}: 0x{value:0{widths[hash_name]}X},")
+        print("}")
 
 
 if __name__ == "__main__":

@@ -162,7 +162,10 @@ it by running.
   x86_64 and arm64; MeowHash has none on arm64. A platform without the library
   raises an `ImportError` that names the hash and the platform, and only that
   hash fails. Never compile a binary on your machine and commit it: only the
-  workflow `native.yml` builds them, and `native/README.md` is the procedure.
+  workflow `native.yml` builds them, and `native/README.md` is the procedure,
+  with a section for agents. A request to "update the native libraries" is
+  ambiguous: ask whether it means rebuilding at the same commits or moving a
+  submodule, which changes every hash value and is the maintainers' decision.
   The sources are submodules in `native/vendor/`, needed only to rebuild; a
   plain clone leaves them empty and runs every hash. The design is
   `docs/native-hashes.md`.
