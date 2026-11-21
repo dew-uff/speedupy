@@ -249,12 +249,17 @@ def pytest_runtest_setup(item):
     # it imports nothing that builds SpeeduPySettings.
     from execute_exp.services.hashes import native
 
-    missing = [
-        name
-        for marker in item.iter_markers("native")
-        for name in marker.args
-        if not native.is_available(name)
-    ]
+    names = [name for marker in item.iter_markers("native") for name in marker.args]
+    known = {lib for libs in native.PLATFORM_LIBRARIES.values() for lib in libs}
+    unknown = sorted(set(names) - known)
+    if unknown:
+        # A misspelt name would skip the test everywhere, silently.
+        pytest.fail(
+            f"unknown native library {', '.join(unknown)}: use one of "
+            f"{', '.join(sorted(known))}",
+            pytrace=False,
+        )
+    missing = [name for name in names if not native.is_available(name)]
     if missing:
         pytest.skip(
             f"native/lib/ has no {', '.join(missing)} for {native.platform_name()}"
