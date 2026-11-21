@@ -24,7 +24,7 @@ STRATEGIES = ("lazy", "function", "eager")
 EXEC_MODES = ("sequential", "thread")
 SERIALIZERS = ("pickle", "cloudpickle")
 STORAGES = ("sqlite", "file")
-SCRIPTS = ("kwargs_nested.py", "recursive.py", "std_streams.py")
+SCRIPTS = ("kwargs_nested.py", "pandas_args.py", "recursive.py", "std_streams.py")
 VALUES = (HASHES, MEM_ARCHS, STRATEGIES, EXEC_MODES, SERIALIZERS, STORAGES, SCRIPTS)
 
 NATIVE_HASH_LIBRARIES = {
@@ -70,7 +70,8 @@ def _is_known_defect_pair(row):
     )
 
 
-# Row 1 is the default of every option. Rows 2-25 complete the pairs.
+# Row 1 is the default of every option. Rows 2-31 complete the pairs (rows
+# 26-31 add pandas_args.py, #110; the 25 before them are unchanged).
 PAIRWISE = (
     (
         "xxhash",
@@ -185,6 +186,28 @@ PAIRWISE = (
         "kwargs_nested.py",
     ),
     ("a5hash", "2-dict", "lazy", "sequential", "pickle", "sqlite", "kwargs_nested.py"),
+    ("md5", "0-dict", "lazy", "sequential", "pickle", "sqlite", "pandas_args.py"),
+    (
+        "murmur",
+        "1-dict",
+        "function",
+        "thread",
+        "cloudpickle",
+        "file",
+        "pandas_args.py",
+    ),
+    ("xxhash", "2-dict", "eager", "sequential", "pickle", "sqlite", "pandas_args.py"),
+    (
+        "meowhash",
+        "2-dict-fast",
+        "lazy",
+        "sequential",
+        "pickle",
+        "sqlite",
+        "pandas_args.py",
+    ),
+    ("museair", "0-dict", "lazy", "sequential", "pickle", "sqlite", "pandas_args.py"),
+    ("a5hash", "0-dict", "lazy", "sequential", "pickle", "sqlite", "pandas_args.py"),
 )
 
 
