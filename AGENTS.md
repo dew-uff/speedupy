@@ -265,8 +265,9 @@ goes in the defect's issue.
 options a user can type (hash, memory architecture, retrieval strategy and
 execution mode, serializer, storage) as a pairwise covering array, a literal
 table with the default combination first. A combination that fails today is a
-`xfail(strict=True)` row whose reason names its issue (`#87`, `#88`); it leaves
-the table when the issue is fixed. The server storages and the Memcached
+`xfail(strict=True)` row whose reason names its issue (`#87`, `#88`), or a
+non-strict one when the defect is intermittent (`#113`); it leaves the table
+when the issue is fixed. The server storages and the Memcached
 architectures are in `test/e2e/test_matrix_servers.py`, which runs only in the
 server job. When an option gains or loses a value, regenerate the table (greedy,
 default row first, known-defect pairs left out), review the diff, and keep

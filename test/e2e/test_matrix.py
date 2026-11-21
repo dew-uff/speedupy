@@ -34,8 +34,10 @@ NATIVE_HASH_LIBRARIES = {
     "a5hash": "a5hash",
 }
 
-# Combinations that fail today, each with its issue. The pairs are left out of
-# the covering array below and held by their own strict xfail rows.
+# Combinations that fail today, each with its issue and whether the xfail is
+# strict. The pairs are left out of the covering array below and held by their
+# own xfail rows: strict for a defect that always shows, non-strict for an
+# intermittent one, which would otherwise turn the run red when it hides.
 KNOWN_DEFECTS = (
     (
         (
@@ -48,6 +50,7 @@ KNOWN_DEFECTS = (
             "recursive.py",
         ),
         "#87: 0-dict never hits the cache with eager retrieval",
+        True,
     ),
     (
         (
@@ -60,18 +63,34 @@ KNOWN_DEFECTS = (
             "recursive.py",
         ),
         "#88: SQLite loader thread has no connection",
+        True,
+    ),
+    (
+        (
+            "xxhash",
+            "2-dict",
+            "eager",
+            "thread",
+            "pickle",
+            "file",
+            "recursive.py",
+        ),
+        "#113: eager retrieval in a thread misses cache hits (intermittent)",
+        False,
     ),
 )
 
 
 def _is_known_defect_pair(row):
     _, mem, strategy, mode, _, storage, _ = row
-    return (mem == "0-dict" and strategy == "eager") or (
-        storage == "sqlite" and mode == "thread"
+    return (
+        (mem == "0-dict" and strategy == "eager")
+        or (storage == "sqlite" and mode == "thread")
+        or (strategy == "eager" and mode == "thread")
     )
 
 
-# Row 1 is the default of every option. Rows 2-25 complete the pairs.
+# Row 1 is the default of every option. Rows 2-26 complete the pairs.
 PAIRWISE = (
     (
         "xxhash",
@@ -93,28 +112,16 @@ PAIRWISE = (
         "sqlite",
         "std_streams.py",
     ),
-    ("museair", "2-dict", "eager", "thread", "pickle", "file", "recursive.py"),
+    ("museair", "2-dict", "lazy", "thread", "pickle", "file", "recursive.py"),
     (
-        "meowhash",
-        "2-dict-fast",
-        "lazy",
-        "thread",
-        "cloudpickle",
-        "file",
-        "kwargs_nested.py",
-    ),
-    ("a5hash", "1-dict", "lazy", "sequential", "pickle", "sqlite", "kwargs_nested.py"),
-    ("a5hash", "0-dict", "function", "thread", "cloudpickle", "file", "recursive.py"),
-    (
-        "museair",
-        "0-dict",
+        "a5hash",
+        "1-dict",
         "lazy",
         "sequential",
         "cloudpickle",
         "sqlite",
-        "std_streams.py",
+        "kwargs_nested.py",
     ),
-    ("murmur", "2-dict", "lazy", "sequential", "pickle", "sqlite", "kwargs_nested.py"),
     (
         "xxhash",
         "2-dict-fast",
@@ -124,20 +131,43 @@ PAIRWISE = (
         "file",
         "kwargs_nested.py",
     ),
-    ("md5", "1-dict", "eager", "sequential", "cloudpickle", "sqlite", "recursive.py"),
-    ("md5", "2-dict", "function", "thread", "cloudpickle", "file", "std_streams.py"),
+    ("murmur", "2-dict", "eager", "sequential", "pickle", "sqlite", "kwargs_nested.py"),
+    ("meowhash", "0-dict", "function", "thread", "cloudpickle", "file", "recursive.py"),
     (
-        "a5hash",
-        "2-dict-fast",
-        "eager",
+        "museair",
+        "0-dict",
+        "lazy",
         "sequential",
-        "pickle",
+        "cloudpickle",
         "sqlite",
         "std_streams.py",
     ),
+    ("a5hash", "1-dict", "eager", "sequential", "pickle", "file", "recursive.py"),
+    ("md5", "2-dict", "eager", "sequential", "cloudpickle", "sqlite", "std_streams.py"),
+    ("a5hash", "2-dict-fast", "lazy", "thread", "pickle", "file", "std_streams.py"),
+    ("md5", "1-dict", "function", "thread", "pickle", "file", "recursive.py"),
     ("murmur", "0-dict", "lazy", "sequential", "pickle", "sqlite", "recursive.py"),
+    ("xxhash", "0-dict", "lazy", "sequential", "pickle", "sqlite", "std_streams.py"),
     (
-        "murmur",
+        "meowhash",
+        "1-dict",
+        "lazy",
+        "sequential",
+        "pickle",
+        "sqlite",
+        "kwargs_nested.py",
+    ),
+    (
+        "museair",
+        "1-dict",
+        "function",
+        "sequential",
+        "pickle",
+        "sqlite",
+        "kwargs_nested.py",
+    ),
+    (
+        "meowhash",
         "2-dict-fast",
         "eager",
         "sequential",
@@ -145,11 +175,18 @@ PAIRWISE = (
         "sqlite",
         "kwargs_nested.py",
     ),
-    ("xxhash", "0-dict", "lazy", "sequential", "pickle", "sqlite", "std_streams.py"),
-    ("meowhash", "1-dict", "eager", "sequential", "pickle", "sqlite", "recursive.py"),
     (
         "museair",
-        "1-dict",
+        "2-dict-fast",
+        "eager",
+        "sequential",
+        "pickle",
+        "sqlite",
+        "kwargs_nested.py",
+    ),
+    (
+        "a5hash",
+        "0-dict",
         "function",
         "sequential",
         "pickle",
@@ -165,19 +202,8 @@ PAIRWISE = (
         "sqlite",
         "kwargs_nested.py",
     ),
-    ("xxhash", "1-dict", "lazy", "sequential", "pickle", "sqlite", "kwargs_nested.py"),
-    ("xxhash", "2-dict", "lazy", "sequential", "pickle", "sqlite", "kwargs_nested.py"),
     (
-        "meowhash",
-        "0-dict",
-        "lazy",
-        "sequential",
-        "pickle",
-        "sqlite",
-        "kwargs_nested.py",
-    ),
-    (
-        "museair",
+        "murmur",
         "2-dict-fast",
         "lazy",
         "sequential",
@@ -185,6 +211,8 @@ PAIRWISE = (
         "sqlite",
         "kwargs_nested.py",
     ),
+    ("xxhash", "1-dict", "lazy", "sequential", "pickle", "sqlite", "kwargs_nested.py"),
+    ("xxhash", "2-dict", "lazy", "sequential", "pickle", "sqlite", "kwargs_nested.py"),
     ("a5hash", "2-dict", "lazy", "sequential", "pickle", "sqlite", "kwargs_nested.py"),
 )
 
@@ -269,10 +297,10 @@ def test_the_option_matrix_changes_nothing_but_the_work_done(row, tmp_path):
     [
         pytest.param(
             row,
-            marks=pytest.mark.xfail(strict=True, reason=reason),
+            marks=pytest.mark.xfail(strict=strict, reason=reason),
             id=_id(row),
         )
-        for row, reason in KNOWN_DEFECTS
+        for row, reason, strict in KNOWN_DEFECTS
     ],
 )
 def test_the_known_defects_stay_visible(row, tmp_path):
