@@ -6,8 +6,7 @@ from speedupy.speedupy import deterministic
 
 @deterministic
 def column_totals(frame):
-    totals = frame.sum()
-    return {name: int(total) for name, total in totals.items()}
+    return {name: int(frame[name].sum()) for name in frame.columns}
 
 
 @deterministic
