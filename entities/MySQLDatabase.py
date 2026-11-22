@@ -7,6 +7,9 @@ except ImportError as error:
     ) from error
 
 
+from entities.server_errors import server_unreachable
+
+
 class MySQLDatabase:
     database = "speedupy"
 
@@ -14,7 +17,9 @@ class MySQLDatabase:
         self.connection = None
         self.cursor = None
         try:
-            self.connection = mysql.connector.connect(host="127.0.0.1", user="root")
+            self.connection = mysql.connector.connect(
+                host="127.0.0.1", user="root", connection_timeout=2
+            )
             self.cursor = self.connection.cursor()
             self.cursor.execute(f"USE {self.database}")
             self._get_max_packet_size()
@@ -23,9 +28,18 @@ class MySQLDatabase:
                 # database does not exist!
                 pass
             else:
-                print(f"MYSQL CONNECTION ERROR: {err}")
                 self.connection = None
                 self.cursor = None
+                # The driver's text is kept: a refused login is not an
+                # unreachable server, and the message must not hide that.
+                raise server_unreachable(
+                    "mysql",
+                    "MySQL",
+                    "127.0.0.1:3306",
+                    "https://dev.mysql.com/doc/refman/en/installing.html",
+                    "mysql",
+                    detail=str(err),
+                ) from err
 
     def _get_max_packet_size(self):
         self.cursor.execute("SHOW VARIABLES LIKE 'max_allowed_packet'")
