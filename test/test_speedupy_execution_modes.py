@@ -1,8 +1,9 @@
 import importlib
 import inspect
+import io
 import random
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import speedupy
 from execute_exp.services.DataAccess import DataAccess
@@ -53,6 +54,51 @@ class TestSpeeduPyExecMode(unittest.TestCase):
         SpeeduPySettings().exec_mode = ["manual"]
         importlib.reload(speedupy)
         self.assertEqual(my_func, speedupy.maybe_deterministic(my_func))
+
+    def reload_in(self, exec_mode):
+        SpeeduPySettings().exec_mode = [exec_mode]
+        stderr = io.StringIO()
+        with patch("sys.stderr", stderr):
+            importlib.reload(speedupy)
+        return stderr
+
+    def test_maybe_deterministic_warns_once_on_stderr_when_applied_in_the_identity_modes(
+        self,
+    ):
+        for exec_mode in ("manual", "no-cache"):
+            with self.subTest(exec_mode=exec_mode):
+                self.reload_in(exec_mode)
+                stderr = io.StringIO()
+
+                with patch("sys.stderr", stderr):
+                    first = speedupy.maybe_deterministic(my_func)
+                    second = speedupy.maybe_deterministic(my_func)
+
+                self.assertIs(first, my_func)
+                self.assertIs(second, my_func)
+                lines = stderr.getvalue().splitlines()
+                self.assertEqual(len(lines), 1)
+                self.assertIn(
+                    f"@maybe_deterministic is ignored in {exec_mode}", lines[0]
+                )
+                self.assertIn("--exec-mode", lines[0])
+
+    def test_maybe_deterministic_is_silent_when_it_is_never_applied(self):
+        for exec_mode in ("manual", "no-cache"):
+            with self.subTest(exec_mode=exec_mode):
+                stderr = self.reload_in(exec_mode)
+                with patch("sys.stderr", stderr):
+                    speedupy.deterministic(my_func)
+                    speedupy.initialize_speedupy(my_func)
+
+                self.assertEqual(stderr.getvalue(), "")
+
+    def test_maybe_deterministic_does_not_warn_in_an_experimental_mode(self):
+        stderr = self.reload_in("accurate")
+        with patch("sys.stderr", stderr):
+            speedupy.maybe_deterministic(my_func)
+
+        self.assertEqual(stderr.getvalue(), "")
 
     def test_initialize_speedupy_using_cache_exec_modes_with_and_without_time_measure_and_profile(
         self,

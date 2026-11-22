@@ -12,18 +12,31 @@ STORAGE_OPTIONS = [
     "mysql",
 ]
 
+STABLE_EXEC_MODES = ["no-cache", "manual"]
+# Research in progress (decision D8): they need @maybe_deterministic, which setup
+# injects only when it is run with the same --exec-mode.
+EXPERIMENTAL_EXEC_MODES = ["accurate", "probabilistic-counting", "probabilistic-error"]
+EXEC_MODES = STABLE_EXEC_MODES + EXPERIMENTAL_EXEC_MODES
+
+EXPERIMENTAL_DESCRIPTION = (
+    "Research in progress, not recommended: they may return results that differ "
+    "from the uncached run. They apply only to the execution modes accurate, "
+    "probabilistic-counting and probabilistic-error, and need setup run with the "
+    "same --exec-mode. See docs/experimental.md."
+)
+
 
 def help_msg() -> str:
     return (
         tool_options_msg()
         + exec_mode_msg()
-        + revalidation_msg()
         + hashes_msg()
         + storage_msg()
         + serializer_msg()
         + memory_architecture_msg()
         + retrieval_strategies_msg()
         + retrieval_exec_modes_msg()
+        + experimental_msg()
     )
 
 
@@ -44,14 +57,16 @@ def tool_options_msg():
 def exec_mode_msg():
     return "\nExecution Mode - Defines how SpeeduPy will execute:\n\
     =>no-cache               : SpeeduPy will cache no functions\n\
-    =>manual                 : SpeeduPy only caches the functions annotated by the user with @deterministic\n\
+    =>manual                 : SpeeduPy only caches the functions annotated by the user with @deterministic (default)\n"
+
+
+def experimental_msg():
+    return "\nExperimental (beta). Research in progress, not recommended: results may differ from the uncached run. See docs/experimental.md.\n\
+\nExperimental execution modes (--exec-mode):\n\
     =>accurate               : SpeeduPy looks for statistically pure functions and only caches function calls that always returned the same output\n\
     =>probabilistic-counting : SpeeduPy looks for statistically pure functions and caches function calls whose most produced output occurred at least a minimum percentage of times defined by the user. The output that appeared most times will always be returned.\n\
-    =>probabilistic-error    : SpeeduPy looks for statistically pure functions and caches function calls that introduce errors up to a user-specified limit\n"
-
-
-def revalidation_msg():
-    return "\nRevalidation options:\n\
+    =>probabilistic-error    : SpeeduPy looks for statistically pure functions and caches function calls that introduce errors up to a user-specified limit\n\
+\nRevalidation options (--revalidation):\n\
     =>none       : SpeeduPy will never reexecute a function it classified as statistically pure\n\
     =>fixed      : SpeeduPy will reexecute a function it classified as statistically pure always after a fixed number of cached function calls\n\
     =>adaptative : SpeeduPy will reexecute a function it classified as statistically pure. The number of cached function calls before the revalidation occurs varies according to the historical behaviour of the function.\n"
@@ -109,13 +124,7 @@ def retrieval_exec_modes_msg():
 
 
 def get_params():
-    exec_modes = [
-        "no-cache",
-        "manual",
-        "accurate",
-        "probabilistic-counting",
-        "probabilistic-error",
-    ]
+    exec_modes = EXEC_MODES
     revalidations = ["none", "fixed", "adaptative"]
     retrieval_strategies = ["lazy", "function", "eager"]
     retrieval_exec_modes = ["sequential", "thread"]
@@ -147,10 +156,18 @@ def get_params():
         metavar="",
         nargs=1,
         default=["manual"],
-        help="defines how SpeeduPy will execute",
+        help="defines how SpeeduPy will execute: "
+        + ", ".join(STABLE_EXEC_MODES)
+        + " (default: manual). The modes "
+        + ", ".join(EXPERIMENTAL_EXEC_MODES)
+        + " are experimental (beta), see docs/experimental.md",
     )
 
-    speedupy_arg_parser.add_argument(
+    experimental_group = speedupy_arg_parser.add_argument_group(
+        "Experimental options (beta)", EXPERIMENTAL_DESCRIPTION
+    )
+
+    experimental_group.add_argument(
         "--revalidation",
         choices=revalidations,
         metavar="",
@@ -159,7 +176,7 @@ def get_params():
         help="defines if Speedupy should reexecute a function sometimes to validate that the function continues to be safe to cache. There are three possible variations for this algorithm, depending on the execution mode selected.",
     )
 
-    speedupy_arg_parser.add_argument(
+    experimental_group.add_argument(
         "--max-num-exec-til-revalidation",
         default=10,
         metavar="",
@@ -168,7 +185,7 @@ def get_params():
         help="defines the maximum number of times a function can be cached before a revalidation occurs.",
     )
 
-    speedupy_arg_parser.add_argument(
+    experimental_group.add_argument(
         "--reduction-factor",
         default=0.3,
         metavar="",
@@ -177,16 +194,16 @@ def get_params():
         help="defines the factor used to update the next number of cached functions before the next revalidation occurs.",
     )
 
-    speedupy_arg_parser.add_argument(
+    experimental_group.add_argument(
         "--min-num-exec",
         default=20,
         metavar="",
         type=int,
         nargs=1,
-        help="defines them minimum number of times SpeeduPy's must execute a function call before trying to cache it",
+        help="defines the minimum number of times SpeeduPy must execute a function call before trying to cache it",
     )
 
-    speedupy_arg_parser.add_argument(
+    experimental_group.add_argument(
         "--min-mode-occurrence",
         default=0.8,
         metavar="",
@@ -194,7 +211,7 @@ def get_params():
         help='used when "exec-mode=probabilistic-counting" is set. Defines the minimum frequency of appearances (in percentage) that the statistical mode must have for a function to be accelerated. The value informed must be between 0 and 1.',
     )
 
-    speedupy_arg_parser.add_argument(
+    experimental_group.add_argument(
         "--confidence-level",
         default=0.95,
         metavar="",
@@ -202,7 +219,7 @@ def get_params():
         help='used when "exec-mode=probabilistic-error" is set. Defines the confidence level used to estimate the margim of error and confidence interval of a function. The value informed must be between 0 and 1.',
     )
 
-    speedupy_arg_parser.add_argument(
+    experimental_group.add_argument(
         "--max-error-per-function",
         default=None,
         metavar="",
