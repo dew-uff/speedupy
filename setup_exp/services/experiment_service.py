@@ -68,8 +68,15 @@ def get_experiment_functions_hashes(experiment_function_graph:FunctionGraph) -> 
         functions2hashes[vertice.qualname] = hash
     return functions2hashes
 
-def decorate_experiment_functions(experiment:Experiment) -> None:
+EXPERIMENTAL_EXEC_MODES = ('accurate', 'probabilistic-counting', 'probabilistic-error')
+
+def decorate_experiment_functions(experiment:Experiment, exec_mode:str='manual') -> None:
+    """Prepares the main function in every mode. Only the experimental modes
+    mark the other functions with @maybe_deterministic: in manual and no-cache
+    the decorator would be ignored, so it is not written."""
     _prepare_experiment_main_function_for_execution(experiment)
+    if exec_mode not in EXPERIMENTAL_EXEC_MODES:
+        return
     for script in experiment.scripts.values():
         script_decorated = decorate_script_functions(script)
         if script_decorated:
