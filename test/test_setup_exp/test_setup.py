@@ -1,3 +1,4 @@
+import ast
 import json
 import os
 import socket
@@ -200,6 +201,22 @@ class TestSetupWithoutServers(unittest.TestCase):
 
         self.assertNotIn("maybe_deterministic", self.rewritten_script())
         self.assertTrue(os.path.isfile(".speedupy/functions_speedupy.json"))
+
+    def test_setup_experiment_with_a_call_on_a_subscript(self):
+        with open(self.SCRIPT, "w") as f:
+            f.write(
+                "from speedupy.speedupy import deterministic\n\n\n"
+                "@deterministic\ndef total(table, key):\n    return table[key].sum()\n\n\n"
+                'def main():\n    print(total({"a": [1, 2, 3]}, "a"))\n\n\n'
+                'if __name__ == "__main__":\n    main()\n'
+            )
+
+        setup.setup_experiment(self.SCRIPT)
+
+        code = self.rewritten_script()
+        ast.parse(code)
+        self.assertIn("@deterministic\ndef total", code)
+        self.assertIn("@initialize_speedupy\ndef main", code)
 
     def test_setup_experiment_records_its_exec_mode(self):
         for exec_mode in EXEC_MODES:
