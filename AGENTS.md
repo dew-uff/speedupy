@@ -283,8 +283,23 @@ is a report, not a gate: the floor is `MIN_TESTS`.
 ### Experimental, outside the product's scope
 
 Work in progress of another thesis, not part of release 2.0. The oracle and the
-option matrix exercise only `manual` and `no-cache` on purpose. What to do with
-them in the release is the maintainers' decision (D8).
+option matrix exercise only `manual` and `no-cache` on purpose. D8 is decided:
+the feature stays in the product, off by default, and leaves no trace in the
+user's scripts unless it is turned on. The switch is `--exec-mode`, in setup as
+in execution (`docs/experimental.md`):
+
+- **Setup** injects `@maybe_deterministic` only with `--exec-mode accurate`,
+  `probabilistic-counting` or `probabilistic-error` (default `manual`). Every
+  other step of setup is the same in every mode. It records the mode in
+  `.speedupy/setup_mode.json`.
+- **Execution** in an experimental mode over a `manual` or `no-cache` setup stops
+  with a message (`execute_exp/services/setup_mode.py`); in `manual` and
+  `no-cache` the guard reads no file, and `maybe_deterministic` is the identity
+  and warns once on stderr.
+- **`--help`** lists the seven options of the feature under "Experimental
+  options (beta)". The mode names live in `execute_exp/parser_params.py`
+  (`STABLE_EXEC_MODES`, `EXPERIMENTAL_EXEC_MODES`): one source for setup and
+  execution.
 
 - **`@maybe_deterministic` with the accurate and probabilistic execution modes**
   (and the thread retrieval mode) never runs end to end. The first call raises

@@ -11,3 +11,5 @@ class Constants(metaclass=SingletonMeta):
         self.EXP_FUNCTIONS_FILENAME = os.path.join(
             self.FOLDER_NAME, "functions_speedupy.json"
         )
+        # The execution mode setup ran in; execution reads it (issue #118).
+        self.EXP_SETUP_MODE_FILENAME = os.path.join(self.FOLDER_NAME, "setup_mode.json")
