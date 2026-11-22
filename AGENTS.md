@@ -22,8 +22,12 @@ results up in a storage.
 - **Everything versioned is in English:** code, comments, documents, issues,
   pull requests, commit messages. The conversation with the agent may be in
   Portuguese. Documents say "the maintainer", never a person's name.
-- **Existing conventions stay:** `issue_<N>` branches, the `Issue(#N): ` commit
-  prefix, `vX.Y.Z` tags.
+- **Existing conventions stay:** `issue_<N>` branches and the `Issue(#N): `
+  commit prefix.
+- **Tags are SemVer 2.0.0, with no `v`:** `X.Y.Z` (`1.7.0`), `+metadata` for a
+  variant of the same version (`1.0.1+time-measure`) and `-pre` for a
+  pre-release (`1.3.5-pre`). GitHub does not validate tag names on the
+  organization's plan, so this line is the rule.
 - **One task, one issue, one branch, one pull request.** The branch is
   `issue_<number>`, from an up-to-date `main`. Create the issue only after
   asking the dev.
