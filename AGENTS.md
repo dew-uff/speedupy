@@ -322,13 +322,16 @@ needs none.
 From the repository root, two commands:
 
 ```bash
-docker compose up -d --wait
+docker compose --profile all up -d --wait
 SPEEDUPY_TEST_SERVERS=1 uv run pytest
 ```
 
 `compose.yaml` starts MySQL, MongoDB, Redis and Memcached, in the versions of
 the `Dockerfile`, with nothing persisted; `--wait` returns when their health
-checks pass. `docker compose down -v` removes them and leaves nothing behind.
+checks pass. `docker compose --profile all down -v` removes them and leaves
+nothing behind. Each service has a profile of its own (`mysql`, `mongo`,
+`redis`, `memcached`), so a single server starts with `docker compose --profile
+redis up -d --wait`; a plain `docker compose up` starts none.
 
 - **A server already on the machine is protected.** The ports are the default
   ones, bound to the loopback only, and compose refuses to start when one is
