@@ -64,7 +64,7 @@ jobs:
     # pull request that adds tests; lower it only with the reason written in
     # the pull request.
     env:
-      MIN_TESTS: 463
+      MIN_TESTS: 473
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -121,7 +121,7 @@ jobs:
     # run, servers included. Raise it in the pull request that adds tests; lower
     # it only with the reason written in the pull request.
     env:
-      MIN_TESTS: 658
+      MIN_TESTS: 668
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

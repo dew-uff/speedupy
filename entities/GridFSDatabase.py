@@ -4,12 +4,14 @@ from typing import Dict, Optional
 try:
     from gridfs import GridFSBucket
     from pymongo import MongoClient
+    from pymongo.errors import PyMongoError
 except ImportError as error:
     raise ImportError(
         "The mongo backend needs the pymongo driver, which is not installed; "
         'install it with: pip install "speedupy[mongo]"'
     ) from error
 
+from entities.server_errors import server_unreachable
 from SingletonMeta import SingletonMeta
 
 
@@ -22,7 +24,22 @@ class GridFSDatabase(metaclass=SingletonMeta):
         return cls.DB_NAME in GridFSDatabase().client.list_database_names()
 
     def __init__(self):
-        self.client = MongoClient("mongodb://localhost:27017/")
+        self.client = MongoClient(
+            "mongodb://localhost:27017/", serverSelectionTimeoutMS=2000
+        )
+        # Probe once, here, so a missing server fails with a clear message
+        # before any cache operation. The read and write paths are untouched.
+        try:
+            self.client.admin.command("ping")
+        except PyMongoError as error:
+            self.client.close()
+            raise server_unreachable(
+                "gridfs",
+                "MongoDB",
+                "localhost:27017",
+                "https://www.mongodb.com/docs/manual/installation/",
+                "mongo",
+            ) from error
         self.db = self.client[self.DB_NAME]
         self.fs = GridFSBucket(self.db, bucket_name=self.BUCKET_NAME)
         atexit.register(self.cleanup)

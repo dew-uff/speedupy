@@ -9,6 +9,7 @@ except ImportError as error:
         'install it with: pip install "speedupy[redis]"'
     ) from error
 
+from entities.server_errors import server_unreachable
 from SingletonMeta import SingletonMeta
 
 
@@ -16,7 +17,21 @@ class RedisDatabase(metaclass=SingletonMeta):
     MAX_PIPELINE_SIZE_MB = 1024
 
     def __init__(self):
-        self.client = redis.Redis(host="localhost", port=6379, db=0)
+        self.client = redis.Redis(
+            host="localhost", port=6379, db=0, socket_connect_timeout=2
+        )
+        # Probe once, here, so a missing server fails with a clear message
+        # before any cache operation. The read and write paths are untouched.
+        try:
+            self.client.ping()
+        except redis.exceptions.RedisError as error:
+            raise server_unreachable(
+                "redis",
+                "Redis",
+                "localhost:6379",
+                "https://redis.io/docs/latest/operate/oss_and_stack/install/",
+                "redis",
+            ) from error
         atexit.register(self.cleanup)
 
     def flush_database(self):

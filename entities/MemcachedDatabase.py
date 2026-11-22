@@ -3,6 +3,7 @@ from typing import Dict
 
 try:
     from pymemcache.client.base import Client
+    from pymemcache.exceptions import MemcacheError
     from pymemcache.serde import pickle_serde
 except ImportError as error:
     raise ImportError(
@@ -10,6 +11,7 @@ except ImportError as error:
         'install it with: pip install "speedupy[memcached]"'
     ) from error
 
+from entities.server_errors import server_unreachable
 from SingletonMeta import SingletonMeta
 
 
@@ -19,7 +21,21 @@ class MemcachedDatabase(metaclass=SingletonMeta):
             ("localhost", 11211),
             serializer=pickle_serde.serialize,
             deserializer=pickle_serde.deserialize,
+            connect_timeout=2,
         )
+        # Probe once, here, so a missing server fails with a clear message
+        # before any cache operation. The read and write paths are untouched.
+        try:
+            self.client.version()
+        except (OSError, MemcacheError) as error:
+            self.client.close()
+            raise server_unreachable(
+                "memcached",
+                "Memcached",
+                "localhost:11211",
+                "https://memcached.org/downloads",
+                "memcached",
+            ) from error
         atexit.register(self.close_connection)
 
     def get(self, key):
