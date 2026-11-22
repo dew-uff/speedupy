@@ -672,7 +672,7 @@ wrong assignment hides a defect.
    `--proto-max-bulk-len`, MySQL `--max_allowed_packet`, Memcached `-m` and
    `-I`), MySQL `root` without a password, the default ports bound to
    `127.0.0.1`, and health checks.
-2. `docker compose up -d --wait`, then `SPEEDUPY_TEST_SERVERS=1 uv run pytest`.
+2. `docker compose --profile all up -d --wait`, then `SPEEDUPY_TEST_SERVERS=1 uv run pytest`.
 3. For each failure: a defect of the test is fixed here; a defect of the
    product becomes an issue, and the test is marked `xfail(strict=True)` with
    the issue number; a defect of the environment is fixed in `compose.yaml`.
@@ -681,7 +681,7 @@ wrong assignment hides a defect.
    already on the machine, and that these tests never run in parallel.
 
 **Done when.** The full run ends with no failure and no error, each `xfail`
-listed with its issue; `docker compose down -v` leaves nothing behind; the
+listed with its issue; `docker compose --profile all down -v` leaves nothing behind; the
 counts per marker are in the pull request.
 
 ### Task 14 — CI with servers
@@ -691,7 +691,7 @@ Sonnet · medium · clear first: yes · depends on: 13, D5
 **Goal.** The server tests block a merge too.
 
 **Steps.**
-1. Job `test-servers`: `docker compose up -d --wait`, `SPEEDUPY_TEST_SERVERS=1
+1. Job `test-servers`: `docker compose --profile all up -d --wait`, `SPEEDUPY_TEST_SERVERS=1
    uv run pytest`, its own `min-tests`, the compose logs uploaded on failure.
 2. Add it to the `needs` of `ci-ok`.
 3. D5 sets no limit on minutes (the repository is public): run it on every
