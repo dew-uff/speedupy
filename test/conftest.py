@@ -18,10 +18,13 @@ What it does, and why:
    With it set, every server is probed once at the start and the session aborts
    naming the unreachable ones: a missing server is an error, never a skip.
    The probe is skipped under ``--collect-only``, which touches no server.
-5. A test marked ``native`` needs the ``.so`` files it names (``NATIVE_MAP``
-   below, or ``@pytest.mark.native("libmeow.so")`` on the test). It is skipped,
-   with the missing file in the reason, when one is absent, and fails when
-   ``SPEEDUPY_REQUIRE_NATIVE=1``.
+5. A test marked ``native`` needs the native libraries it names (``NATIVE_MAP``
+   below, or ``@pytest.mark.native("meow")`` on the test): "a5hash", "meow" or
+   "museair", the libraries of ``native/lib/``. It is skipped, with the library
+   and the platform in the reason, only where ``native/lib/`` has no such
+   library for the running platform (MeowHash on arm64, any of them outside
+   the five platforms). Where it has one, the test runs: a missing or broken
+   file is a failure.
 6. The process state a test may leave behind is restored after every test, so
    that no test depends on another and the order can be random (Task 8): the
    instances of the ``SingletonMeta`` classes and their attributes,
@@ -46,7 +49,6 @@ sys.argv = sys.argv[:1]
 
 TEST_DIR = Path(__file__).resolve().parent
 ENV_SERVERS = "SPEEDUPY_TEST_SERVERS"
-ENV_REQUIRE_NATIVE = "SPEEDUPY_REQUIRE_NATIVE"
 
 # The hosts and ports are the ones the code under test uses.
 SERVERS = {
@@ -91,16 +93,12 @@ MARKER_MAP = {
     ),
 }
 
-HASHES_DIR = TEST_DIR.parent / "execute_exp" / "services" / "hashes"
-
-# Path relative to ``test/`` -> the native libraries (files in ``HASHES_DIR``)
-# the tests below it need. Same keys as ``MARKER_MAP``.
+# Path relative to ``test/`` -> the native libraries (of ``native/lib/``) the
+# tests below it need. Same keys as ``MARKER_MAP``.
 NATIVE_MAP = {
-    "test_execute_exp/test_services/test_hashes/test_A5Hash.py": ("liba5hash.so",),
-    "test_execute_exp/test_services/test_hashes/test_MeowHash.py": ("libmeow.so",),
-    "test_execute_exp/test_services/test_hashes/test_MuseairBFastHash.py": (
-        "libmuseair.so",
-    ),
+    "test_execute_exp/test_services/test_hashes/test_A5Hash.py": ("a5hash",),
+    "test_execute_exp/test_services/test_hashes/test_MeowHash.py": ("meow",),
+    "test_execute_exp/test_services/test_hashes/test_MuseairBFastHash.py": ("museair",),
 }
 
 _original_cwd = os.getcwd()
@@ -247,15 +245,22 @@ def pytest_terminal_summary(terminalreporter):
 
 
 def pytest_runtest_setup(item):
-    missing = [
-        name
-        for marker in item.iter_markers("native")
-        for name in marker.args
-        if not (HASHES_DIR / name).exists()
-    ]
-    if not missing:
-        return
-    reason = f"native library not built: {', '.join(missing)}"
-    if os.environ.get(ENV_REQUIRE_NATIVE) == "1":
-        pytest.fail(f"{reason} ({ENV_REQUIRE_NATIVE}=1)", pytrace=False)
-    pytest.skip(reason)
+    # Imported here: the module must not load before sys.argv is trimmed, and
+    # it imports nothing that builds SpeeduPySettings.
+    from execute_exp.services.hashes import native
+
+    names = [name for marker in item.iter_markers("native") for name in marker.args]
+    known = {lib for libs in native.PLATFORM_LIBRARIES.values() for lib in libs}
+    unknown = sorted(set(names) - known)
+    if unknown:
+        # A misspelt name would skip the test everywhere, silently.
+        pytest.fail(
+            f"unknown native library {', '.join(unknown)}: use one of "
+            f"{', '.join(sorted(known))}",
+            pytrace=False,
+        )
+    missing = [name for name in names if not native.is_available(name)]
+    if missing:
+        pytest.skip(
+            f"native/lib/ has no {', '.join(missing)} for {native.platform_name()}"
+        )

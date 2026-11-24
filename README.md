@@ -64,6 +64,10 @@ $ pip install -r requirements.txt
 #    (e.g., MySQL 8.0, Redis 7.2, MongoDB 7.0)
 ```
 
+### Native Hashes
+
+The native hashes (`a5hash`, `meowhash`, `museair`) come prebuilt in `native/lib/` for Linux x86_64 and aarch64, Windows x64, and macOS x86_64 and arm64, so a plain clone runs them with no compiler. MeowHash exists for x86_64 only; on any other platform the other hashes still work. To rebuild the binaries (a changed wrapper, source commit or platform), follow [`native/README.md`](native/README.md); the design is [`docs/native-hashes.md`](docs/native-hashes.md).
+
 
 ---
 

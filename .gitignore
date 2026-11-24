@@ -8,3 +8,7 @@ examples/
 .coverage*
 coverage.xml
 htmlcov/
+# The native binaries are versioned (native/README.md); the build leftovers are not.
+!native/lib/**/*.so
+native/build/
+native/museair/target/

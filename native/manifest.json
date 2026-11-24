@@ -1,0 +1,150 @@
+{
+  "built_by": "https://github.com/dew-uff/speedupy/actions/runs/44936440206",
+  "built_from": "63644ddf9332f2b44d0284c2115a22acb811641e",
+  "sources": {
+    "a5hash": {
+      "repository": "https://github.com/avaneev/a5hash.git",
+      "commit": "10492dbe8c34ae043ccbab3fe4b16a2a26eebbc6",
+      "submodule": "native/vendor/a5hash",
+      "wrapper": "native/src/a5hash_wrapper.c",
+      "wrapper_blob": "96304ad99c351244da33da79d24ff5b94589a290"
+    },
+    "meowhash": {
+      "repository": "https://github.com/cmuratori/meow_hash.git",
+      "commit": "b080caa7e51576fe3151c8976110df7966fa6a38",
+      "submodule": "native/vendor/meow_hash",
+      "wrapper": "native/src/meow_wrapper.cpp",
+      "wrapper_blob": "a24334d841a1c6828041c5a05c16b09e71b409c9"
+    },
+    "museair": {
+      "repository": "https://github.com/eternal-io/museair.git",
+      "commit": "29e56adbc737412d7b6cecfaec73e68e5566a107",
+      "submodule": "native/vendor/museair",
+      "wrapper": "native/museair/src/lib.rs",
+      "wrapper_blob": "f9bf8f9627cf110ea9c17b008a6bee0298ab1bda"
+    }
+  },
+  "platforms": {
+    "linux-aarch64": {
+      "platform_tag": "manylinux_2_28_aarch64",
+      "toolchain": [
+        "cc (GCC) 14.2.1 20250110 (Red Hat 14.2.1-11)",
+        "c++ (GCC) 14.2.1 20250110 (Red Hat 14.2.1-11)",
+        "rustc 1.83.0 (90b35a623 2024-11-26)",
+        "cargo 1.83.0 (5ffbef321 2024-10-29)",
+        "image: quay.io/pypa/manylinux_2_28_aarch64"
+      ],
+      "binaries": {
+        "liba5hash.so": {
+          "hash": "a5hash",
+          "bytes": 200760,
+          "sha256": "f77737eb0a26421de3e6f09af64ef81ad0dc58d0e0851a10c0e4a5ba479fda17"
+        },
+        "libmuseair.so": {
+          "hash": "museair",
+          "bytes": 490960,
+          "sha256": "929997e0d12995ee18b16f26378c579484ad57af2a004ec91a1dd636ac48205b"
+        }
+      }
+    },
+    "linux-x86_64": {
+      "platform_tag": "manylinux_2_28_x86_64",
+      "toolchain": [
+        "cc (GCC) 14.2.1 20250110 (Red Hat 14.2.1-11)",
+        "c++ (GCC) 14.2.1 20250110 (Red Hat 14.2.1-11)",
+        "rustc 1.83.0 (90b35a623 2024-11-26)",
+        "cargo 1.83.0 (5ffbef321 2024-10-29)",
+        "image: quay.io/pypa/manylinux_2_28_x86_64"
+      ],
+      "binaries": {
+        "liba5hash.so": {
+          "hash": "a5hash",
+          "bytes": 15464,
+          "sha256": "d05a361afb205152f94be82e3c1bf2913778879637bf22d35c3764dff8b09a68"
+        },
+        "libmeow.so": {
+          "hash": "meowhash",
+          "bytes": 15888,
+          "sha256": "59bcbc8982b379f2911d8f6cb64a3eb5b28ac3236a6e96bb1184359baddf735e"
+        },
+        "libmuseair.so": {
+          "hash": "museair",
+          "bytes": 392784,
+          "sha256": "9d68f42da4313d0040e1c367f0ffc4d8e700aeedddf606643e1c6ee7b7ec8d24"
+        }
+      }
+    },
+    "macos-arm64": {
+      "platform_tag": "macosx_11_0_arm64",
+      "toolchain": [
+        "Apple clang version 17.0.0 (clang-1700.0.13.5)",
+        "Apple clang version 17.0.0 (clang-1700.0.13.5)",
+        "rustc 1.83.0 (90b35a623 2024-11-26)",
+        "cargo 1.83.0 (5ffbef321 2024-10-29)"
+      ],
+      "binaries": {
+        "liba5hash.dylib": {
+          "hash": "a5hash",
+          "bytes": 16816,
+          "sha256": "b119ca907a75a41e856272220035267b9f802b213c50269e60ce2e5ff5fd5644"
+        },
+        "libmuseair.dylib": {
+          "hash": "museair",
+          "bytes": 357504,
+          "sha256": "fc00eb321560e9f6499d9fb0984673b021fedc309406cd8fdb53d574869789c0"
+        }
+      }
+    },
+    "macos-x86_64": {
+      "platform_tag": "macosx_10_12_x86_64",
+      "toolchain": [
+        "Apple clang version 17.0.0 (clang-1700.0.13.5)",
+        "Apple clang version 17.0.0 (clang-1700.0.13.5)",
+        "rustc 1.83.0 (90b35a623 2024-11-26)",
+        "cargo 1.83.0 (5ffbef321 2024-10-29)"
+      ],
+      "binaries": {
+        "liba5hash.dylib": {
+          "hash": "a5hash",
+          "bytes": 4232,
+          "sha256": "f7c90f8f468f487c9c6ed65ab4801a8374b4d1f5e7685ffc48865746481eae32"
+        },
+        "libmeow.dylib": {
+          "hash": "meowhash",
+          "bytes": 8472,
+          "sha256": "8b5bf33c4190476634c031276ac803e6af9d19d78436c5a9af9b04bc58f340de"
+        },
+        "libmuseair.dylib": {
+          "hash": "museair",
+          "bytes": 342184,
+          "sha256": "b1cd01ddc8b4d3f7f31f83ede4a61c58eacd2550c8eb536c9557f308caa23691"
+        }
+      }
+    },
+    "windows-amd64": {
+      "platform_tag": "win_amd64",
+      "toolchain": [
+        "Microsoft (R) C/C++ Optimizing Compiler Version 19.52.37029 for x64",
+        "rustc 1.83.0 (90b35a623 2024-11-26)",
+        "cargo 1.83.0 (5ffbef321 2024-10-29)"
+      ],
+      "binaries": {
+        "a5hash.dll": {
+          "hash": "a5hash",
+          "bytes": 105472,
+          "sha256": "20f26a081947813e36e65eaa442e05a1e22661b27c7f7b22135bd1be5edbed9f"
+        },
+        "meow.dll": {
+          "hash": "meowhash",
+          "bytes": 106496,
+          "sha256": "f1ac58ade680f3df033febf6bb8fbcb49b2307967931d476311735948fcc172c"
+        },
+        "museair.dll": {
+          "hash": "museair",
+          "bytes": 116736,
+          "sha256": "8df68a83984906cf548fe5aa9f6e076e598ce611243a82a203e025346d2be5e6"
+        }
+      }
+    }
+  }
+}

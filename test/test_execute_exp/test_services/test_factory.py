@@ -89,11 +89,9 @@ HASHES = [
     ("md5", MD5Hash),
     ("murmur", MurmurHash),
     ("xxhash", XXHashHash),
-    pytest.param("meowhash", MeowHash, marks=pytest.mark.native("libmeow.so")),
-    pytest.param(
-        "museair", MuseairBFastHash, marks=pytest.mark.native("libmuseair.so")
-    ),
-    pytest.param("a5hash", A5Hash, marks=pytest.mark.native("liba5hash.so")),
+    pytest.param("meowhash", MeowHash, marks=pytest.mark.native("meow")),
+    pytest.param("museair", MuseairBFastHash, marks=pytest.mark.native("museair")),
+    pytest.param("a5hash", A5Hash, marks=pytest.mark.native("a5hash")),
 ]
 EXEC_MODES = [
     ("no-cache", None),

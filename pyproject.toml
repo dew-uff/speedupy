@@ -34,6 +34,8 @@ dev = [
 [tool.ruff]
 # The oldest Python the project supports (D6).
 target-version = "py310"
+# Third-party sources, as their authors wrote them (native/NOTICE).
+extend-exclude = ["native/vendor"]
 
 [tool.ruff.lint]
 # Blocking rules, as noWorkflow selects them. Line length is the formatter's.
@@ -52,7 +54,7 @@ markers = [
     "mongo: needs the MongoDB server on localhost:27017 (opt-in, SPEEDUPY_TEST_SERVERS=1)",
     "redis: needs the Redis server on localhost:6379 (opt-in, SPEEDUPY_TEST_SERVERS=1)",
     "memcached: needs the Memcached server on localhost:11211 (opt-in, SPEEDUPY_TEST_SERVERS=1)",
-    "native: needs a native hash library (libmeow.so, liba5hash.so or libmuseair.so)",
+    "native: needs a native hash library of native/lib/ (a5hash, meow or museair)",
 ]
 
 [tool.coverage.run]

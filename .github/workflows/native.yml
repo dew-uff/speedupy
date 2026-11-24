@@ -1,0 +1,209 @@
+name: Native hashes
+
+# Builds the native hash libraries (a5hash, MeowHash, MuseAir) of the five
+# platforms, checks each one against the reference values on its own system,
+# and uploads them with their manifest as the `native-binaries` artifact.
+# Nothing is committed here: whoever rebuilds the binaries downloads the
+# artifact and commits it (native/README.md).
+#
+# - On `main`, only by hand (workflow_dispatch): a release carries the
+#   binaries committed before it, never ones built after it.
+# - On any other branch, a push that changes the sources or the build runs it
+#   too, as a check that they still compile and match the reference values.
+on:
+  workflow_dispatch:
+  push:
+    branches: ["**", "!main"]
+    paths:
+      - ".gitmodules"
+      - "native/vendor/**"
+      - "native/src/**"
+      - "native/museair/**"
+      - "native/build.sh"
+      - "native/build.ps1"
+      - "native/check.py"
+      - "native/manifest.py"
+      - "test/test_execute_exp/test_services/test_hashes/native_reference_values.py"
+      - ".github/workflows/native.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  UV_MANAGED_PYTHON: "1"
+
+jobs:
+  # Linux: built inside a manylinux_2_28 container, so the libraries load on
+  # any Linux with glibc 2.28 or newer; checked on the runner itself. The
+  # container is started with `docker run` rather than as a job container,
+  # because the actions need a newer glibc than the image has.
+  linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-x86_64
+            runner: ubuntu-24.04
+            image: quay.io/pypa/manylinux_2_28_x86_64
+          - platform: linux-aarch64
+            runner: ubuntu-24.04-arm
+            image: quay.io/pypa/manylinux_2_28_aarch64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Checkout code with the submodules
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: true
+
+      - name: Build in ${{ matrix.image }}
+        run: |
+          docker run --rm -v "$PWD:/work" -w /work \
+            -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" \
+            "${{ matrix.image }}" bash -euo pipefail -c '
+              curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain none
+              . "$HOME/.cargo/env"
+              native/build.sh "${{ matrix.platform }}"
+              echo "image: ${{ matrix.image }}" >> "native/build/${{ matrix.platform }}.txt"
+              chown -R "$HOST_UID:$HOST_GID" native/lib native/build native/museair/target
+            '
+
+      - name: Install uv and Python 3.10
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          python-version: "3.10"
+
+      - name: Check against the reference values
+        run: uv run --no-project python native/check.py "${{ matrix.platform }}"
+
+      - name: Upload the binaries
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: native-${{ matrix.platform }}
+          path: |
+            native/lib/${{ matrix.platform }}/
+            native/build/${{ matrix.platform }}.txt
+          if-no-files-found: error
+
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-x86_64
+            runner: macos-15-intel
+          - platform: macos-arm64
+            runner: macos-15
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Checkout code with the submodules
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: true
+
+      - name: Build
+        run: native/build.sh "${{ matrix.platform }}"
+
+      - name: Install uv and Python 3.10
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          python-version: "3.10"
+
+      - name: Check against the reference values
+        run: uv run --no-project python native/check.py "${{ matrix.platform }}"
+
+      - name: Upload the binaries
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: native-${{ matrix.platform }}
+          path: |
+            native/lib/${{ matrix.platform }}/
+            native/build/${{ matrix.platform }}.txt
+          if-no-files-found: error
+
+  windows:
+    runs-on: windows-2025
+    steps:
+      - name: Checkout code with the submodules
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: true
+
+      # Puts cl.exe (x64) on the PATH, as a Developer PowerShell does.
+      - name: Build
+        shell: pwsh
+        run: |
+          $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          Import-Module (Join-Path $vs "Common7\Tools\Microsoft.VisualStudio.DevShell.dll")
+          Enter-VsDevShell -VsInstallPath $vs -SkipAutomaticLocation -DevCmdArguments "-arch=x64 -host_arch=x64"
+          ./native/build.ps1
+
+      - name: Install uv and Python 3.10
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          python-version: "3.10"
+
+      - name: Check against the reference values
+        shell: bash
+        run: uv run --no-project python native/check.py windows-amd64
+
+      - name: Upload the binaries
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: native-windows-amd64
+          path: |
+            native/lib/windows-amd64/
+            native/build/windows-amd64.txt
+          if-no-files-found: error
+
+  # Gathers the five platforms and writes native/manifest.json. The artifact
+  # `native-binaries` holds native/lib/ and native/manifest.json, laid out as
+  # in the repository.
+  manifest:
+    needs: [linux, macos, windows]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code with the submodules
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: true
+
+      - name: Download the binaries of every platform
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: native-*
+          path: downloaded
+
+      # Each artifact keeps the paths below the common root of its files:
+      # downloaded/native-<platform>/{lib/<platform>/..., build/<platform>.txt}.
+      - name: Lay the binaries out as in the repository
+        run: |
+          mkdir -p native/lib native/build
+          for dir in downloaded/native-*; do
+            cp -R "$dir"/lib/* native/lib/
+            cp "$dir"/build/*.txt native/build/
+          done
+          find native/lib -type f | sort
+
+      - name: Install uv and Python 3.10
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          python-version: "3.10"
+
+      - name: Write the manifest
+        run: |
+          uv run --no-project python native/manifest.py \
+            "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            native/build
+
+      - name: Upload the binaries and the manifest
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: native-binaries
+          path: |
+            native/lib/
+            native/manifest.json
+          if-no-files-found: error
