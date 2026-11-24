@@ -11,7 +11,8 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
-# No job writes to the repository.
+# No job writes to the repository: `coverage` alone gets a write permission, to
+# upload its report.
 permissions:
   contents: read
 
@@ -209,6 +210,57 @@ jobs:
           bash .github/scripts/pytest-summary.sh pytest.log "$MIN_TESTS" \
             "${{ matrix.runner }}, 3.10, native hashes" \
             "uv run pytest test/test_execute_exp/test_services/test_hashes test/test_execute_exp/test_services/test_native_loading.py"
+
+  # Sends the report of `test` to the code quality view of GitHub, which shows
+  # it in the pull request, and to qlty.sh, which draws the coverage badge of the
+  # README. A report, not a gate: no threshold, and not in the `needs` of
+  # `ci-ok`. A job of its own, so QLTY_COVERAGE_TOKEN and the only write
+  # permission of the workflow are in no job that runs the project's code. A pull
+  # request from a fork gets neither and is skipped; `!cancelled()` and the
+  # result check skip the job after a red `test`.
+  coverage:
+    if: ${{ !cancelled() && needs.test.result == 'success' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    needs: test
+    runs-on: ubuntu-latest
+    # pull-requests: on a push, the code quality upload looks up the pull request
+    # of the branch.
+    permissions:
+      contents: read
+      code-quality: write
+      pull-requests: read
+    steps:
+      # qlty reads the commit from git and refuses to upload without a
+      # repository.
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download the coverage report
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: coverage
+
+      # fail-on-error and skip-errors: a failed upload (an outage, or the secret
+      # missing) does not turn the job red. Only the log of each step proves that
+      # its upload happened.
+      - name: Upload the coverage to GitHub code quality
+        uses: actions/upload-code-coverage@2b21a77928be8d5168c2b9581a67f2adbebacc52 # v1.4.4
+        with:
+          file: coverage.xml
+          language: Python
+          label: code-coverage/pytest-cov
+          fail-on-error: false
+
+      # Dependabot's runs get no Actions secret, so there is no token.
+      - name: Upload the coverage to qlty.sh
+        if: ${{ github.actor != 'dependabot[bot]' }}
+        uses: qltysh/qlty-action/coverage@a46e29cfd54065ae8a2c6b1fd3446aed1b1a4257 # v2.8.0
+        with:
+          token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+          files: coverage.xml
+          format: cobertura
+          skip-errors: true
 
   # The one check that the ruleset of `main` requires (Task 7). It fails when
   # any job failed or was cancelled, so adding a job to `needs` is all it takes

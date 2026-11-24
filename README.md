@@ -1,6 +1,9 @@
 # SpeeduPy
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![CI](https://github.com/dew-uff/speedupy/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/dew-uff/speedupy/actions/workflows/ci.yml?query=branch%3Amain)
+[![Code coverage](https://qlty.sh/gh/dew-uff/projects/speedupy/coverage.svg)](https://qlty.sh/gh/dew-uff/projects/speedupy)
+[![Python versions](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fdew-uff%2Fspeedupy%2Fmain%2Fpyproject.toml)](https://github.com/dew-uff/speedupy/blob/main/pyproject.toml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/dew-uff/speedupy/blob/main/LICENSE)
 
 SpeeduPy is a performance optimization tool developed in Python. It utilizes an advanced **memoization** and **persistent caching** approach applied to pure functions, drastically accelerating the execution time of scientific and computation-intensive scripts.
 
