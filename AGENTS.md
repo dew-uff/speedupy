@@ -96,7 +96,8 @@ A change is done when all of these hold:
 - CI is green at the tip of the branch. `ci-ok` is the one job that says so; it
   fails when `checks`, `test`, `test-servers` or `native-platforms` failed or
   was cancelled. A job
-  added to the workflow joins the `needs` of `ci-ok`.
+  added to the workflow joins the `needs` of `ci-ok`. The exception is
+  `coverage`, which is a report (see "Blind spots of the suite").
 
 The `test` job runs no server, so the server tests stay deselected there. The
 `test-servers` job starts the containers of `compose.yaml` and runs them. The
@@ -286,7 +287,10 @@ What no test executes, from the coverage report and the `# TODO: TEST` notes.
 Each item has its issue: a change there is run by hand, and the pull request
 says so. Reproduce the report with `uv run pytest --cov` then `uv run coverage
 report` (the `test` job of CI uploads it as the `coverage` artifact). Coverage
-is a report, not a gate: the floor is `MIN_TESTS`.
+is a report, not a gate: the floor is `MIN_TESTS`. The `coverage` job sends the
+same report to GitHub code quality, which shows it in the pull request, and to
+qlty.sh, which draws the badge of the README, so neither counts what only the
+`test-servers` job runs. A failed upload leaves that job green: read its log.
 
 - **`function_calls_prov_table.py`**, 31% (#102).
 - **Setup of experiments with imported scripts:** `create_experiment`, imported
