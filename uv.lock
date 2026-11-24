@@ -434,15 +434,14 @@ wheels = [
 
 [[package]]
 name = "redis"
-version = "4.3.6"
+version = "4.4.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "async-timeout" },
-    { name = "packaging" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f2/52/2a4b3ceffe59483cdea5e653aaa40ebd7a90241612c40212dfc10fde9215/redis-4.3.6.tar.gz", hash = "sha256:7a462714dcbf7b1ad1acd81f2862b653cc8535cdfc879e28bf4947140797f948", size = 4577771, upload-time = "2023-03-22T16:24:20.179Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ff/af/f791fa76162d1e7655a34bca58876b43388209912c6a771756fc0c8f96da/redis-4.4.4.tar.gz", hash = "sha256:68226f7ede928db8302f29ab088a157f41061fa946b7ae865452b6d7838bbffb", size = 4549578, upload-time = "2023-03-29T13:56:54.795Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d6/f6/19237b28c632935c7359bddf703395ba13bbd134fc5e2eb297c4c120398c/redis-4.3.6-py3-none-any.whl", hash = "sha256:1ea4018b8b5d8a13837f0f1c418959c90bfde0a605cb689e8070cff368a3b177", size = 248834, upload-time = "2023-03-22T16:24:16.398Z" },
+    { url = "https://files.pythonhosted.org/packages/5c/68/da435219cd46d416bf5b59d66dbe36ae4aaf05b91b7be6e8241a87d4c9b1/redis-4.4.4-py3-none-any.whl", hash = "sha256:da92a39fec86438d3f1e2a1db33c312985806954fe860120b582a8430e231d8f", size = 238045, upload-time = "2023-03-29T13:56:53.197Z" },
 ]
 
 [[package]]
@@ -536,7 +535,7 @@ requires-dist = [
     { name = "numpy", specifier = "==1.26.4" },
     { name = "pymemcache", specifier = "==4.0.0" },
     { name = "pymongo", specifier = "==4.13.0" },
-    { name = "redis", specifier = "==4.3.6" },
+    { name = "redis", specifier = "==4.4.4" },
     { name = "scipy", specifier = "==1.12.0" },
     { name = "xxhash", specifier = "==3.4.1" },
 ]
