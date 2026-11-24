@@ -67,6 +67,12 @@ class ScriptFunctionCallHierarchyAnalyzer(ast.NodeVisitor, PubSub):
             while isinstance(current_node, ast.Attribute):
                 function_called_name_parts.append(current_node.attr)
                 current_node = current_node.value
+            if not isinstance(current_node, ast.Name):
+                # The receiver is a subscript, a call, a literal...: the call
+                # cannot be a function of the experiment. Calls nested in the
+                # receiver are still visited.
+                self.generic_visit(node)
+                return
             function_called_name_parts.append(current_node.id)
 
             function_called_name_parts.reverse()

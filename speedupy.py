@@ -14,6 +14,7 @@ from execute_exp.entitites.Metadata import Metadata
 from execute_exp.services.DataAccess import DataAccess
 from execute_exp.services.factory import get_hash, init_exec_mode, init_revalidation
 from execute_exp.services.Profiler import Profiler
+from execute_exp.services.setup_mode import check_setup_mode
 from execute_exp.SpeeduPySettings import SpeeduPySettings
 from logger.log import debug
 from SingletonMeta import SingletonMeta
@@ -22,6 +23,7 @@ from util import check_python_version
 
 class SpeeduPy(metaclass=SingletonMeta):
     def __init__(self):
+        check_setup_mode(SpeeduPySettings().exec_mode[0])
         self.exec_mode = init_exec_mode()
         self.revalidation = init_revalidation(self.exec_mode)
         self.hash = get_hash()
@@ -198,6 +200,26 @@ def _FunctionCallProv_has_enough_data_to_classify_func_call(
     return fc_prov.total_num_exec >= SpeeduPy().exec_mode.min_num_exec
 
 
+_ignored_annotation_warned = False
+
+
+def _identity_maybe_deterministic(f):
+    """@maybe_deterministic in manual and no-cache: the annotation is ignored.
+
+    The warning goes to stderr, once per process, and only when the decorator is
+    actually applied: a script that never uses it prints nothing extra.
+    """
+    global _ignored_annotation_warned
+    if not _ignored_annotation_warned:
+        _ignored_annotation_warned = True
+        sys.stderr.write(
+            "SpeeduPy: @maybe_deterministic is ignored in "
+            f"{SpeeduPySettings().exec_mode[0]} mode; the experimental modes "
+            "need setup run with the same --exec-mode (see docs/experimental.md).\n"
+        )
+    return f
+
+
 check_python_version()
 
 if SpeeduPySettings().exec_mode == ["no-cache"]:
@@ -211,10 +233,7 @@ if SpeeduPySettings().exec_mode == ["no-cache"]:
     def deterministic(f):
         return f
 
-    def maybe_deterministic(f):
-        return f
+    maybe_deterministic = _identity_maybe_deterministic
 
 elif SpeeduPySettings().exec_mode == ["manual"]:
-
-    def maybe_deterministic(f):
-        return f
+    maybe_deterministic = _identity_maybe_deterministic

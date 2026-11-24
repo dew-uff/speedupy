@@ -1,16 +1,21 @@
 # Disposable servers for the tests that need one (see AGENTS.md, "Running the
 # tests with servers"). The versions are the Dockerfile's, the settings those of
 # speedupy_dev_env.sh. Nothing is persisted: every directory the images declare
-# as a volume is a tmpfs, so `docker compose down -v` leaves nothing behind.
+# as a volume is a tmpfs, so `docker compose --profile all down -v` leaves nothing behind.
 # Each port is bound to the loopback only, and compose refuses to start when
 # one is taken, so a server already on this machine is never reached.
 # The code reaches MySQL as 127.0.0.1 and the others as localhost, which may
 # resolve to ::1 first; pymemcache tries only that first address. So the
 # localhost services are bound to [::1] too.
+#
+# Every service has a profile of its own and belongs to `all`:
+# `docker compose --profile redis up -d --wait` starts one server,
+# `--profile all` starts the four, and a plain `docker compose up` starts none.
 
 services:
   mysql:
     image: mysql:9.0.1
+    profiles: ["mysql", "all"]
     command: ["--max_allowed_packet=1024M"]
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
@@ -31,6 +36,7 @@ services:
 
   mongo:
     image: mongo:6.0.16
+    profiles: ["mongo", "all"]
     # The container's default soft limit is 1024, and the suite opens more
     # connections than that: mongod then panics with "Too many open files".
     # 64000 is what MongoDB recommends and what its packaged service sets.
@@ -52,6 +58,7 @@ services:
 
   redis:
     image: redis:7.4.0
+    profiles: ["redis", "all"]
     command: ["redis-server", "--proto-max-bulk-len", "1gb", "--save", "", "--appendonly", "no"]
     ports:
       - "127.0.0.1:6379:6379"
@@ -67,6 +74,7 @@ services:
   memcached:
     # The Dockerfile installs Debian bookworm's memcached, version 1.6.18.
     image: memcached:1.6.18
+    profiles: ["memcached", "all"]
     command: ["memcached", "-m", "4096", "-I", "1024m"]
     ports:
       - "127.0.0.1:11211:11211"

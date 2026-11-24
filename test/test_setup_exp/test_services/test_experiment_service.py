@@ -3,6 +3,12 @@ import os
 import unittest
 import unittest.mock
 
+from execute_exp.parser_params import EXPERIMENTAL_EXEC_MODES
+from setup_exp.services.experiment_service import (
+    create_experiment,
+    decorate_experiment_functions,
+)
+
 
 class TestExperimentService(unittest.TestCase):
     def tearDown(self):
@@ -27,6 +33,80 @@ class TestExperimentService(unittest.TestCase):
 
     def normalize_string(self, string):
         return string.replace("\n\n", "\n").replace("\t", "    ").replace('"', "'")
+
+    def write_experiment(self):
+        with open("script_test_2.py", "w") as f:
+            f.write("def helper(x):\n    return x + 1\n")
+        with open("script_test.py", "w") as f:
+            f.write(
+                "import script_test_2\n\n\n"
+                "def add(a, b):\n    return a + b\n\n\n"
+                "def main():\n    print(add(1, 2), script_test_2.helper(1))\n"
+            )
+        return create_experiment("script_test.py")
+
+    def unparse(self, experiment, script_name):
+        return ast.unparse(experiment.scripts[script_name].AST)
+
+    def test_decorate_experiment_functions_in_experimental_modes_injects_maybe_deterministic(
+        self,
+    ):
+        for exec_mode in EXPERIMENTAL_EXEC_MODES:
+            with self.subTest(exec_mode=exec_mode):
+                experiment = self.write_experiment()
+
+                decorate_experiment_functions(experiment, exec_mode=exec_mode)
+
+                main_code = self.unparse(experiment, "script_test.py")
+                self.assertIn("@maybe_deterministic\ndef add", main_code)
+                # decorate_function skips a function that already carries a
+                # SpeeduPy decorator: `main` gets @initialize_speedupy only.
+                self.assertIn("@initialize_speedupy\ndef main", main_code)
+                self.assertNotIn(
+                    "@initialize_speedupy\n@maybe_deterministic", main_code
+                )
+                self.assertIn(
+                    "from speedupy.speedupy import maybe_deterministic", main_code
+                )
+                self.assertIn(
+                    "@maybe_deterministic\ndef helper",
+                    self.unparse(experiment, "script_test_2.py"),
+                )
+
+    def test_decorate_experiment_functions_in_manual_mode_injects_only_initialize_speedupy(
+        self,
+    ):
+        experiment = self.write_experiment()
+
+        decorate_experiment_functions(experiment, exec_mode="manual")
+
+        main_code = self.unparse(experiment, "script_test.py")
+        self.assertNotIn("maybe_deterministic", main_code)
+        self.assertIn("@initialize_speedupy\ndef main", main_code)
+        self.assertIn("from speedupy.speedupy import initialize_speedupy", main_code)
+
+    def test_decorate_experiment_functions_in_no_cache_mode_injects_only_initialize_speedupy(
+        self,
+    ):
+        experiment = self.write_experiment()
+
+        decorate_experiment_functions(experiment, exec_mode="no-cache")
+
+        main_code = self.unparse(experiment, "script_test.py")
+        self.assertNotIn("maybe_deterministic", main_code)
+        self.assertIn("@initialize_speedupy\ndef main", main_code)
+
+    def test_decorate_experiment_functions_without_maybe_deterministic_leaves_other_scripts_untouched(
+        self,
+    ):
+        experiment = self.write_experiment()
+
+        decorate_experiment_functions(experiment, exec_mode="manual")
+
+        self.assertEqual(
+            self.unparse(experiment, "script_test_2.py"),
+            "def helper(x):\n    return x + 1",
+        )
 
 
 if __name__ == "__main__":

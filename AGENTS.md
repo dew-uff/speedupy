@@ -23,8 +23,12 @@ results up in a storage.
 - **Everything versioned is in English:** code, comments, documents, issues,
   pull requests, commit messages. The conversation with the agent may be in
   Portuguese. Documents say "the maintainer", never a person's name.
-- **Existing conventions stay:** `issue_<N>` branches, the `Issue(#N): ` commit
-  prefix, `vX.Y.Z` tags.
+- **Existing conventions stay:** `issue_<N>` branches and the `Issue(#N): `
+  commit prefix.
+- **Tags are SemVer 2.0.0, with no `v`:** `X.Y.Z` (`1.7.0`), `+metadata` for a
+  variant of the same version (`1.0.1+time-measure`) and `-pre` for a
+  pre-release (`1.3.5-pre`). GitHub does not validate tag names on the
+  organization's plan, so this line is the rule.
 - **One task, one issue, one branch, one pull request.** The branch is
   `issue_<number>`, from an up-to-date `main`. Create the issue only after
   asking the dev.
@@ -295,8 +299,23 @@ is a report, not a gate: the floor is `MIN_TESTS`.
 ### Experimental, outside the product's scope
 
 Work in progress of another thesis, not part of release 2.0. The oracle and the
-option matrix exercise only `manual` and `no-cache` on purpose. What to do with
-them in the release is the maintainers' decision (D8).
+option matrix exercise only `manual` and `no-cache` on purpose. D8 is decided:
+the feature stays in the product, off by default, and leaves no trace in the
+user's scripts unless it is turned on. The switch is `--exec-mode`, in setup as
+in execution (`docs/experimental.md`):
+
+- **Setup** injects `@maybe_deterministic` only with `--exec-mode accurate`,
+  `probabilistic-counting` or `probabilistic-error` (default `manual`). Every
+  other step of setup is the same in every mode. It records the mode in
+  `.speedupy/setup_mode.json`.
+- **Execution** in an experimental mode over a `manual` or `no-cache` setup stops
+  with a message (`execute_exp/services/setup_mode.py`); in `manual` and
+  `no-cache` the guard reads no file, and `maybe_deterministic` is the identity
+  and warns once on stderr.
+- **`--help`** lists the seven options of the feature under "Experimental
+  options (beta)". The mode names live in `execute_exp/parser_params.py`
+  (`STABLE_EXEC_MODES`, `EXPERIMENTAL_EXEC_MODES`): one source for setup and
+  execution.
 
 - **`@maybe_deterministic` with the accurate and probabilistic execution modes**
   (and the thread retrieval mode) never runs end to end. The first call raises
@@ -315,13 +334,16 @@ needs none.
 From the repository root, two commands:
 
 ```bash
-docker compose up -d --wait
+docker compose --profile all up -d --wait
 SPEEDUPY_TEST_SERVERS=1 uv run pytest
 ```
 
 `compose.yaml` starts MySQL, MongoDB, Redis and Memcached, in the versions of
 the `Dockerfile`, with nothing persisted; `--wait` returns when their health
-checks pass. `docker compose down -v` removes them and leaves nothing behind.
+checks pass. `docker compose --profile all down -v` removes them and leaves
+nothing behind. Each service has a profile of its own (`mysql`, `mongo`,
+`redis`, `memcached`), so a single server starts with `docker compose --profile
+redis up -d --wait`; a plain `docker compose up` starts none.
 
 - **A server already on the machine is protected.** The ports are the default
   ones, bound to the loopback only, and compose refuses to start when one is

@@ -161,8 +161,10 @@ PyPI is the last task of the retrofit plan. When it is published:
 - MeowHash is unavailable on arm64 (see "Platforms"); the other five hashes
   work there. A paper that reports MeowHash numbers says they were measured on
   x86_64.
-- MeowHash also needs AES-NI on x86_64; every x86_64 processor from 2010 on
-  has it. SpeeduPy does not check the CPU, as the original `.so` did not.
+- MeowHash also needs AES-NI on x86_64, which most x86_64 processors since
+  about 2010 have but not all (some Atom and Pentium parts, some virtual
+  machines); SpeeduPy does not check the CPU yet, as the original `.so` did
+  not, and a runtime check is a follow-up issue.
 - MeowHash 0.5 was reclassified by its author after a published cryptanalysis:
   it is not for message authentication nor for hash tables exposed to
   collision attacks. A memoization cache in a non-adversarial setting is

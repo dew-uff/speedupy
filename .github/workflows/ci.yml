@@ -64,7 +64,7 @@ jobs:
     # pull request that adds tests; lower it only with the reason written in
     # the pull request.
     env:
-      MIN_TESTS: 498
+      MIN_TESTS: 581
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -121,7 +121,7 @@ jobs:
     # run, servers included. Raise it in the pull request that adds tests; lower
     # it only with the reason written in the pull request.
     env:
-      MIN_TESTS: 693
+      MIN_TESTS: 776
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -140,7 +140,7 @@ jobs:
       # --wait returns when the health checks of the four servers pass.
       - name: Start the servers
         id: servers
-        run: docker compose up -d --wait
+        run: docker compose --profile all up -d --wait
 
       # SPEEDUPY_TEST_SERVERS=1 probes the four servers first and aborts naming
       # the unreachable ones: a missing server is an error, never a skip.
@@ -154,11 +154,11 @@ jobs:
         run: |
           bash .github/scripts/pytest-summary.sh pytest.log "$MIN_TESTS" \
             "ubuntu-latest, 3.10, servers" \
-            "docker compose up -d --wait && SPEEDUPY_TEST_SERVERS=1 uv run pytest"
+            "docker compose --profile all up -d --wait && SPEEDUPY_TEST_SERVERS=1 uv run pytest"
 
       - name: Server logs
         if: ${{ failure() && steps.servers.outcome != 'skipped' }}
-        run: docker compose logs --no-color > compose.log
+        run: docker compose --profile all logs --no-color > compose.log
 
       - name: Upload the server logs
         if: ${{ failure() && steps.servers.outcome != 'skipped' }}

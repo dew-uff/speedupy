@@ -2,6 +2,7 @@ import hashlib
 import os
 from typing import Dict, List, Set
 
+from execute_exp.parser_params import EXPERIMENTAL_EXEC_MODES
 from setup_exp.entities.Experiment import Experiment
 from setup_exp.entities.FunctionGraph import FunctionGraph
 from setup_exp.entities.Script import Script
@@ -106,8 +107,12 @@ def get_experiment_functions_hashes(
     return functions2hashes
 
 
-def decorate_experiment_functions(experiment: Experiment) -> None:
+def decorate_experiment_functions(experiment: Experiment, exec_mode: str) -> None:
+    """Prepare `main` in every mode; mark functions @maybe_deterministic only in
+    the experimental execution modes (decision D8, issue #118)."""
     _prepare_experiment_main_function_for_execution(experiment)
+    if exec_mode not in EXPERIMENTAL_EXEC_MODES:
+        return
     for script in experiment.scripts.values():
         script_decorated = decorate_script_functions(script)
         if script_decorated:
