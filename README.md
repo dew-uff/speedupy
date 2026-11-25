@@ -152,19 +152,8 @@ $ ./speedupy_dev_env.sh stop all
 
 ## Running Tests
 
-To execute the unit tests that need no database server, from the repository root
-(requires [uv](https://docs.astral.sh/uv/)):
-
-```bash
-$ uv run pytest
-```
-
-The tests that need MySQL, MongoDB, Redis or Memcached are not run by default,
-because they erase data on those servers. To run them too, with the four servers
-up on their default ports (**this erases their data**):
-
-```bash
-$ SPEEDUPY_TEST_SERVERS=1 uv run pytest
-```
+How to set up the development environment and run the tests, with or without
+database servers, is in [`CONTRIBUTING.md`](CONTRIBUTING.md#running-locally).
+The tests that need a server erase its data, and are not run by default.
 
 ---
