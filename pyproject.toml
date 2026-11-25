@@ -24,7 +24,7 @@ package = false
 
 [dependency-groups]
 dev = [
-    "pandas>=2.2,<2.3",
+    "pandas>=2.2,<2.4",
     "pytest",
     "pytest-cov",
     "pytest-randomly",
