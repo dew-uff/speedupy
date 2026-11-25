@@ -286,7 +286,7 @@ Task 2 fills the "Decision" column. A task that names a decision waits for it.
 | 19 | English, part 2: identifiers and file names | dev | Sonnet | medium | yes | 17, 18 | done (#98) |
 | 20 | Coverage and the blind spots of the suite | dev | Sonnet | medium | yes | 17 | done (#105) |
 | 21 | README held to the tool | dev | Sonnet | medium | yes | 15 | pending |
-| 22 | Contribution documents | dev | Sonnet | low | yes | 14, D4 | pending |
+| 22 | Contribution documents | dev | Sonnet | low | yes | 14, D4 | done (#142) |
 | 23 | Dependency and security checks | dev | Sonnet | medium | yes | 6, D5 | pending |
 | 24 | Python versions | dev | Sonnet | medium | yes | 14, 23, D6 | pending |
 | 25 | Native libraries, part 2: the binaries in the repository | dev | Opus | high | yes | 14, D3 | done (#115) |

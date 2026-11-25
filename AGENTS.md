@@ -23,25 +23,19 @@ results up in a storage.
 - **Everything versioned is in English:** code, comments, documents, issues,
   pull requests, commit messages. The conversation with the agent may be in
   Portuguese. Documents say "the maintainer", never a person's name.
-- **Existing conventions stay:** `issue_<N>` branches and the `Issue(#N): `
-  commit prefix.
+- **The contribution cycle** (the issue before the code, branches, commit
+  messages, what a pull request needs, the environment) is in
+  [`CONTRIBUTING.md`](CONTRIBUTING.md): follow it. Create an issue only after
+  asking the dev.
 - **Tags are SemVer 2.0.0, with no `v`:** `X.Y.Z` (`1.7.0`), `+metadata` for a
   variant of the same version (`1.0.1+time-measure`) and `-pre` for a
   pre-release (`1.3.5-pre`). GitHub does not validate tag names on the
   organization's plan, so this line is the rule.
-- **One task, one issue, one branch, one pull request.** The branch is
-  `issue_<number>`, from an up-to-date `main`. Create the issue only after
-  asking the dev.
-- **Do what the task says and nothing more.** A defect, a missing test or a
-  better design found on the way goes to a new issue, mentioned in the pull
-  request.
+- **Do what the task says and nothing more.** What else you find goes to a new
+  issue ("Branching model" in `CONTRIBUTING.md`).
 - **Do not commit on your own.** Leave the change in the working tree and show
   the diff and the result of each check. Commit, push and the pull request are
   the dev's, or yours when the dev says so.
-- **A change to production code** (anything outside `test/`, the documents and
-  the tooling) comes with a test that fails before it and passes after it, and
-  does not change the command line. When a task needs a product decision, the
-  maintainer agrees on the solution in the issue before any code.
 - **Three failed attempts at the same goal: stop, explain, recommend.** Say what
   was tried, why each attempt failed and what to change (another model, a
   higher effort). When the cause is not the model (a missing tool, the sandbox,
@@ -78,21 +72,22 @@ Do not assume the machine has what a task needs.
    local containers, a check left unrun. If the dev declines, stop, say what
    cannot be delivered and write that in the issue.
 
+## Testing rules
+
+The rules are in the "Tests" section of [`CONTRIBUTING.md`](CONTRIBUTING.md#tests):
+
+- Write the tests of a region's scenarios before changing it.
+- Start every bug fix with the test that reproduces the bug.
+- When the tests of a region are in doubt, mutate the production code and check
+  that they fail.
+
 ## Definition of done
 
 A change is done when all of these hold:
 
-- `uv run pytest` is green (see "Running the tests").
-- `uv run ruff format --check .` is clean. `uv run ruff format .` fixes it.
-- `uv run ruff check .` is clean. The rules are `[tool.ruff.lint]` in
-  `pyproject.toml`; `uv run ruff check --fix .` applies the safe fixes. There
-  is no ignore left: a `# noqa` carries its reason on the line above.
-- The floor is raised in the pull request that adds tests: `MIN_TESTS` in the
-  `test` job (no server), in the `test-servers` job (the whole suite) and, for
-  hash tests, in the `native-platforms` job of `.github/workflows/ci.yml` is
-  the least number of tests (passed, skipped,
-  xfailed and xpassed) that job may report. It is lowered only with the reason
-  written in the pull request.
+- The tests, the format, the lint and the `MIN_TESTS` floors are as "What a
+  pull request needs" and "Running locally" in `CONTRIBUTING.md` say. The lint
+  rules are `[tool.ruff.lint]` in `pyproject.toml`, with no ignore left.
 - CI is green at the tip of the branch. `ci-ok` is the one job that says so; it
   fails when `checks`, `test`, `test-servers` or `native-platforms` failed or
   was cancelled. A job
@@ -195,32 +190,22 @@ it by running.
 
 ## Running the tests
 
-From the repository root, one command:
+The commands, the random order included, are in "Running locally" in
+[`CONTRIBUTING.md`](CONTRIBUTING.md#running-locally).
 
-```bash
-uv run pytest
-```
-
-It runs the tests that need no server, in a scratch directory, and writes nothing in the checkout (`.pytest_cache/` and
-`__pycache__/` are git-ignored). Pytest's own options work (`-q`, `-k`, `-m`):
-`test/conftest.py` trims `sys.argv` before any test module loads.
-
-- **Random order.** pytest-randomly shuffles the tests and prints its seed in the
-  header (`Using --randomly-seed=N`); the job summary of CI records it. To
-  rerun an order: `uv run pytest --randomly-seed=N`. A test that
-  passes only in a fixed order is a bug in the test: fix it, or open an issue
-  and note the number beside the module.
+`uv run pytest` runs the tests that need no server, in a scratch directory, and
+writes nothing in the checkout (`.pytest_cache/` and `__pycache__/` are
+git-ignored). Pytest's own options work (`-q`, `-k`, `-m`): `test/conftest.py`
+trims `sys.argv` before any test module loads.
 
 - **Markers.** `mysql`, `mongo`, `redis`, `memcached` and `native` come from the
   maps `MARKER_MAP` and `NATIVE_MAP` in `test/conftest.py`, not from the test
   files. A test class
   whose fixtures touch a server is marked as a whole, even for a test that does
   not use the server. A new test file that needs a server gets its entry there.
-- **Servers are opt-in.** `SPEEDUPY_TEST_SERVERS=1 uv run pytest` runs the server
-  tests too. It first probes the four servers and aborts naming the unreachable
-  ones: a missing server is an error, never a skip. These tests erase data (see
-  "Safety") and never run in parallel. Run them against the disposable
-  servers: see "Running the tests with servers" below.
+- **Servers are opt-in.** With `SPEEDUPY_TEST_SERVERS=1` a missing server is an
+  error, never a skip. These tests erase data (see "Safety"): see "Running the
+  tests with servers" below.
 - **Native tests** run against the binaries of `native/lib/` for the running
   platform. They are skipped, with the library and the platform in the reason
   (`-rs`), only where that platform has no such library (MeowHash on arm64);
@@ -331,25 +316,12 @@ needs Docker. Setup reaches a server only for the storage it is asked to
 prepare (`-s`, default `file`), so an experiment that uses `file` or `sqlite`
 needs none.
 
-From the repository root, two commands:
-
-```bash
-docker compose --profile all up -d --wait
-SPEEDUPY_TEST_SERVERS=1 uv run pytest
-```
-
+The commands to start the servers, run the tests and remove the servers are in
+"With servers" in [`CONTRIBUTING.md`](CONTRIBUTING.md#with-servers).
 `compose.yaml` starts MySQL, MongoDB, Redis and Memcached, in the versions of
-the `Dockerfile`, with nothing persisted; `--wait` returns when their health
-checks pass. `docker compose --profile all down -v` removes them and leaves
-nothing behind. Each service has a profile of its own (`mysql`, `mongo`,
-`redis`, `memcached`), so a single server starts with `docker compose --profile
-redis up -d --wait`; a plain `docker compose up` starts none.
+the `Dockerfile`, with nothing persisted; a plain `docker compose up` starts
+none.
 
-- **A server already on the machine is protected.** The ports are the default
-  ones, bound to the loopback only, and compose refuses to start when one is
-  taken. Stop the local server first; never point the tests at it.
-- **Never in parallel.** The tests share Redis database 0, the `speedupy`
-  databases and the whole Memcached: one run at a time, and no `-n`.
 - **`localhost` may be `::1`.** The code reaches MongoDB, Redis and Memcached
   as `localhost`, and pymemcache tries only the first address it resolves to,
   so those three are bound to `[::1]` too.
@@ -367,8 +339,8 @@ ruff owns the layout (`[tool.ruff]` in `pyproject.toml`), with LF line endings
 on every platform. The one commit that formatted the whole tree is listed in
 `.git-blame-ignore-revs`: GitHub skips it in blame, and locally `git config
 blame.ignoreRevsFile .git-blame-ignore-revs` does the same. The file names a
-SHA, so a pull request is integrated with a merge commit or a fast-forward,
-never a squash or a rebase.
+SHA, which constrains how a pull request is integrated: see "Branching model" in
+`CONTRIBUTING.md`.
 
 ## Retrofit
 
