@@ -70,7 +70,8 @@ uv run pytest --randomly-seed=N
 ```
 
 Compare each count, not only "0 failed": fewer tests, or a new skip, is a
-regression. Added tests shift the order, so rerun the baseline under the same
+regression. A non-strict `xfail` (an intermittent defect) may move between
+xfailed and xpassed; check its issue. Added tests shift the order, so rerun the baseline under the same
 seed before blaming a new failure on the change. Every difference must be on the
 list of step 1.
 
@@ -79,9 +80,12 @@ list of step 1.
 - **Behavior of an experiment:** `uv run pytest test/e2e`.
 - **A storage or Memcached:** "With servers" in `CONTRIBUTING.md`.
 - **Hashes, serializers or storage layout:** a cache written by the old code
-  must still hit with the new one. Build an experiment as `prove-candidate`
-  does, with `speedupy` linked to a `git worktree` of the old commit, outside
-  the checkout; run it cached, point the link at the checkout, run it with
-  `--profile` and compare calls with hits.
+  must still hit with the new one. Add the old commit as a worktree outside the
+  checkout (`git worktree add <old> <commit>`). Build an experiment as
+  `prove-candidate` does, with `speedupy` linked to `<old>`, and run it cached
+  with `-s <storage>`. Point the link at the new code
+  (`ln -sfn <checkout> speedupy`) and run it again with `--profile`: every call
+  is a hit. As the control, empty the cache and see the hits drop. Then
+  `git worktree remove <old>`.
 - **A blind spot:** run it by hand and put the command and its output in the
   pull request.

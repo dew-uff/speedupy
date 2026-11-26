@@ -290,7 +290,7 @@ Task 2 fills the "Decision" column. A task that names a decision waits for it.
 | 23 | Dependency and security checks | dev | Sonnet | medium | yes | 6, D5 | pending |
 | 24 | Python versions | dev | Sonnet | medium | yes | 14, 23, D6 | pending |
 | 25 | Native libraries, part 2: the binaries in the repository | dev | Opus | high | yes | 14, D3 | done (#115) |
-| 26 | Repository skills | dev | Sonnet | medium | yes | 19, 22 | pending |
+| 26 | Repository skills | dev | Sonnet | medium | yes | 19, 22 | done |
 | 27 | Publish on PyPI | dev | Opus | high | yes | 21, 23, 24, 25, D7 | pending |
 | 28 | Close the retrofit | dev | Sonnet | low | yes | all | pending |
 

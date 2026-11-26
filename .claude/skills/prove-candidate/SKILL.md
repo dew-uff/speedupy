@@ -38,13 +38,16 @@ In a new directory outside the checkout, with `<checkout>` its absolute path:
 ln -s <checkout> speedupy
 uv run --project <checkout> python speedupy/setup_exp/setup.py script.py
 uv run --project <checkout> python script.py --exec-mode no-cache
-uv run --project <checkout> python script.py -mt 0 --profile
+uv run --project <checkout> python script.py -mt 0 -s file --profile
 ```
 
 Mark the pure functions with `@deterministic` first. Run the last command twice:
-the second run reads the cache. Setup rewrites the script. Keep the default
-`file` setup, or `-s sqlite`: a server storage erases data ("Safety" in
-`AGENTS.md`). Read "Reproduction traps" there before building the scenario.
+the second run reads the cache. Setup rewrites the script. Pass `-s` to the
+cached runs: execution defaults to `sqlite`, setup to `file`. Before comparing
+another option, empty the cache (`rm -rf .speedupy/cache/*` with `file`) or
+start a new directory, or one variant reads what the other wrote. Use `file` or
+`sqlite`: setup with a server storage erases data ("Safety" in `AGENTS.md`).
+Read "Reproduction traps" there before building the scenario.
 
 ## A suspected defect
 

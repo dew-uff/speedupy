@@ -58,6 +58,23 @@ with the four methods and their `use_isolated_connection` argument:
   connection of its own when the driver's cannot be shared.
 - Serialize with `self._serializer`.
 
+A storage keeps its records between processes: the end-to-end oracle runs a
+script three times and fails on one that only keeps them in memory.
+
+### A storage that needs no server
+
+Add its name next to `file` and `sqlite` in:
+
+- `STORAGES` of `test/e2e/harness.py`, which runs the oracle of every corpus
+  script on it, and `STORAGES` of `test/e2e/test_matrix.py`;
+- `test_create_databases_with_a_storage_that_has_no_server`, in
+  `test/test_setup_exp/test_services/test_environment_service_local.py`;
+- `test_setup_with_the_file_and_sqlite_storages`, in
+  `test/test_entities/test_missing_drivers.py`;
+- "End-to-end oracle" in `AGENTS.md`, which names the storages.
+
+No test fails when the last three are forgotten.
+
 ### A storage that needs a server
 
 - `entities/<Name>Database.py`, following `entities/RedisDatabase.py`: a
@@ -150,14 +167,30 @@ Besides the common steps: the list of `-s` names in "Experiment Setup" of
 
 `test/e2e/test_matrix.py` runs the oracle over a literal pairwise table.
 
-- Add the name to `HASHES`, `MEM_ARCHS` or `STORAGES` there, then add rows to
-  `PAIRWISE` until `test_the_table_covers_every_valid_pair` passes; its failure
-  lists the missing pairs. No generator is versioned. Keep the default row
-  first.
-- A storage with no server also goes in `STORAGES` of `test/e2e/harness.py`,
-  which runs the oracle of every corpus script on it.
-- A combination that fails because of a defect gets an `xfail` row with its
-  issue (`AGENTS.md`, "End-to-end oracle").
+A server storage or a Memcached architecture takes no row here (see
+`test_matrix_servers.py`). For the others:
+
+Add the name to `HASHES`, `MEM_ARCHS` or `STORAGES`. Then print the missing
+rows:
+
+```bash
+(cd test/e2e && uv run python -c "
+import itertools, test_matrix as m
+covered = set().union(*map(m._pairs, m.PAIRWISE))
+rows = [r for r in itertools.product(*m.VALUES) if not m._is_known_defect_pair(r)]
+while True:
+    best = max(rows, key=lambda r: len(m._pairs(r) - covered))
+    if not m._pairs(best) - covered:
+        break
+    print(f'    {best},')
+    covered |= m._pairs(best)
+")
+```
+
+Append them to `PAIRWISE`, the default row staying first, and run
+`uv run ruff format .`. `test_the_table_covers_every_valid_pair` checks the
+result. A combination that fails because of a defect gets an `xfail` row with
+its issue (`AGENTS.md`, "End-to-end oracle").
 
 ## Finish
 
