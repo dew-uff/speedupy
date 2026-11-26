@@ -2,7 +2,7 @@ import argparse
 import os
 import sys
 
-project_folder = os.path.realpath(__file__).split("setup_exp/")[0]
+project_folder = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(project_folder)
 
 # The imports below need the project folder on sys.path, which the two lines
