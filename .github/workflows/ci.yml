@@ -108,7 +108,7 @@ jobs:
     # leg. Raise it in the pull request that adds tests; lower it only with the
     # reason written in the pull request.
     env:
-      MIN_TESTS: 585
+      MIN_TESTS: 586
     strategy:
       fail-fast: false
       matrix:
@@ -170,7 +170,7 @@ jobs:
     # run, servers included. Raise it in the pull request that adds tests; lower
     # it only with the reason written in the pull request.
     env:
-      MIN_TESTS: 780
+      MIN_TESTS: 781
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

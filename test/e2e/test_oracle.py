@@ -6,11 +6,27 @@ How to add a corpus script: see AGENTS.md, "End-to-end oracle".
 import pytest
 from harness import (
     STORAGES,
+    Run,
     assert_oracle,
     corpus_scripts,
     prepare_experiment,
     run_oracle,
+    split_profiler_block,
 )
+
+
+def test_the_profiler_block_is_found_with_windows_line_endings():
+    output = b"out\r\n"
+    block = (
+        b"----- Profiler -----\r\n"
+        b"Number of calls to @deterministic: 3\r\n"
+        b"Number of cache hits: 2\r\n"
+        b"--------------------\r\n"
+    )
+
+    stripped, calls, hits = split_profiler_block(Run((), 0, output + block, b""))
+
+    assert (stripped.stdout, calls, hits) == (output, 3, 2)
 
 
 def test_corpus_has_the_starting_scripts():
