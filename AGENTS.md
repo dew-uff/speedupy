@@ -351,6 +351,18 @@ blame.ignoreRevsFile .git-blame-ignore-revs` does the same. The file names a
 SHA, which constrains how a pull request is integrated: see "Branching model" in
 `CONTRIBUTING.md`.
 
+## Repository skills
+
+Procedures that repeat, in `.claude/skills/`. A skill is a procedure, not a
+logbook: it says what to do, and history stays in issues and pull requests. When
+a step turns out wrong, fix the skill.
+
+| Skill | Use it when |
+| :--- | :--- |
+| [`add-backend`](.claude/skills/add-backend/SKILL.md) | adding a storage, a hash or a memory architecture |
+| [`safe-refactor`](.claude/skills/safe-refactor/SKILL.md) | changing code: refactoring, fix, update or feature |
+| [`prove-candidate`](.claude/skills/prove-candidate/SKILL.md) | judging a suspected defect, or a change or dependency before adopting it |
+
 ## Retrofit
 
 A software-engineering retrofit of this repository is in progress. Its plan, its

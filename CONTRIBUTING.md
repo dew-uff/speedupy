@@ -69,6 +69,9 @@ Issue(#128): Add dependabot.yml for uv and GitHub Actions updates
 
 Coverage is a report, not a target: it rises as a consequence of these rules.
 
+Each `MIN_TESTS` floor in `.github/workflows/ci.yml` is set to the collected
+count of its job (passed, skipped, xfailed and xpassed) minus 2.
+
 ## Development environment
 
 - **Git.**
