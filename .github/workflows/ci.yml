@@ -59,12 +59,69 @@ jobs:
         if: ${{ !cancelled() }}
         run: uv run --locked --only-group dev ruff check .
 
+  # Static analysis of the code and audit of the locked dependencies. It needs no
+  # project environment and runs apart from the tests. Each check runs even when
+  # the one before it failed.
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
+        with:
+          enable-cache: true
+
+      # pip-audit evaluates the markers of the lock with its own interpreter, so
+      # it runs once on each Python the lock resolves for.
+      - name: Install Python 3.10 and 3.11
+        run: uv python install 3.10 3.11
+
+      # Medium and high severity block. Third-party sources (native/vendor) are
+      # left out; our native code is not.
+      - name: Static analysis (bandit)
+        run: |
+          uv run --locked --python 3.10 --only-group security bandit -r . \
+            -x ./.venv,./test,./native/vendor,./docs,./htmlcov,./build -ll
+
+      # The runtime and dev dependencies, as uv.lock pins them. The `security`
+      # group itself is not exported.
+      - name: Export the lock
+        id: export
+        if: ${{ !cancelled() }}
+        run: |
+          uv export --locked --format requirements-txt --no-hashes \
+            --no-emit-project --output-file "$RUNNER_TEMP/requirements-audit.txt"
+
+      # --no-deps --disable-pip: the export already pins everything, so
+      # pip-audit resolves and installs nothing.
+      #
+      # Ignored advisories, both on dnspython 2.8.0, which only Python 3.10 uses:
+      # CVE-2026-114605: fixed in dnspython 2.9.x, needs Python 3.11, deferred
+      # to Task 24 (D10).
+      # CVE-2026-128089: fixed in dnspython 2.9.x, needs Python 3.11, deferred
+      # to Task 24 (D10).
+      - name: Audit the lock, Python 3.10 (pip-audit)
+        if: ${{ !cancelled() && steps.export.outcome == 'success' }}
+        run: |
+          uv run --locked --python 3.10 --only-group security pip-audit \
+            --no-deps --disable-pip -r "$RUNNER_TEMP/requirements-audit.txt" \
+            --ignore-vuln CVE-2026-114605 \
+            --ignore-vuln CVE-2026-128089
+
+      - name: Audit the lock, Python 3.11 (pip-audit)
+        if: ${{ !cancelled() && steps.export.outcome == 'success' }}
+        run: |
+          uv run --locked --python 3.11 --only-group security pip-audit \
+            --no-deps --disable-pip -r "$RUNNER_TEMP/requirements-audit.txt"
+
   test:
     # min-tests: floor for passed + skipped + xfailed + xpassed. Raise it in the
     # pull request that adds tests; lower it only with the reason written in
     # the pull request.
     env:
-      MIN_TESTS: 581
+      MIN_TESTS: 583
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -121,7 +178,7 @@ jobs:
     # run, servers included. Raise it in the pull request that adds tests; lower
     # it only with the reason written in the pull request.
     env:
-      MIN_TESTS: 776
+      MIN_TESTS: 778
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -177,7 +234,7 @@ jobs:
     # pull request that adds hash tests; lower it only with the reason written
     # in the pull request.
     env:
-      MIN_TESTS: 133
+      MIN_TESTS: 139
     strategy:
       fail-fast: false
       matrix:
@@ -215,11 +272,11 @@ jobs:
   # to make that job blocking.
   ci-ok:
     if: always()
-    needs: [checks, test, test-servers, native-platforms]
+    needs: [checks, security, test, test-servers, native-platforms]
     runs-on: ubuntu-latest
     steps:
       - name: All required jobs passed
         if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
         run: |
-          echo "::error::checks=${{ needs.checks.result }} test=${{ needs.test.result }} test-servers=${{ needs.test-servers.result }} native-platforms=${{ needs.native-platforms.result }}"
+          echo "::error::checks=${{ needs.checks.result }} security=${{ needs.security.result }} test=${{ needs.test.result }} test-servers=${{ needs.test-servers.result }} native-platforms=${{ needs.native-platforms.result }}"
           exit 1

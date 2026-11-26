@@ -102,7 +102,7 @@ def get_experiment_functions_hashes(
     functions2hashes = {}
     for vertice in experiment_function_graph.graph:
         source_code = experiment_function_graph.get_source_code_executed(vertice)
-        hash = hashlib.md5(source_code.encode("utf")).hexdigest()
+        hash = hashlib.md5(source_code.encode("utf"), usedforsecurity=False).hexdigest()
         functions2hashes[vertice.qualname] = hash
     return functions2hashes
 

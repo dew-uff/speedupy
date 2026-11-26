@@ -30,6 +30,11 @@ dev = [
     "pytest-randomly",
     "ruff>=0.17.5",
 ]
+# The tools of the `security` job of CI.
+security = [
+    "bandit",
+    "pip-audit",
+]
 
 [tool.ruff]
 # The oldest Python the project supports (D6).
