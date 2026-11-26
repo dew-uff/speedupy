@@ -4,6 +4,8 @@ import unittest
 from typing import Dict
 from unittest.mock import Mock
 
+from remove_paths import remove_paths
+
 from constants import Constants
 from entities.SQLiteDatabase import SQLiteDatabase
 from execute_exp.entitites.CacheData import CacheData
@@ -17,9 +19,20 @@ from test_execute_exp.test_services.test_storages.AbstractStorageTest import (
 
 
 class TestSQLiteStorage(AbstractStorageTest, unittest.TestCase):
+    def setUp(self):
+        self.databases = []
+        super().setUp()
+
+    def tearDown(self):
+        # Windows refuses to remove a database file that is still open.
+        for database in self.databases:
+            database.close_connection()
+        super().tearDown()
+
     def create_instance(self, serializer: Serializer) -> Storage:
         self.create_database()
         storage = SQLiteStorage(serializer)
+        self.databases.append(storage._SQLiteStorage__local.db_connection)
         # The tests of this class read through the storage's own connection, which
         # sees uncommitted rows; TestSQLiteStorageCommits covers the commit.
         storage._SQLiteStorage__local.db_connection.commit = Mock()
@@ -73,14 +86,17 @@ class TestSQLiteStorageCommits(unittest.TestCase):
     """
 
     def setUp(self):
-        os.system(f"rm -rf {Constants().FOLDER_NAME}/")
+        remove_paths(Constants().FOLDER_NAME)
         os.makedirs(Constants().FOLDER_NAME)
-        SQLiteDatabase().create_database()
+        database = SQLiteDatabase()
+        database.create_database()
+        database.close_connection()
         self.serializer = PickleSerializer()
         self.storage = SQLiteStorage(self.serializer)
 
     def tearDown(self):
-        os.system(f"rm -rf {Constants().FOLDER_NAME}/")
+        self.storage._SQLiteStorage__local.db_connection.close_connection()
+        remove_paths(Constants().FOLDER_NAME)
 
     def read_rows_through_a_fresh_connection(self):
         conn = sqlite3.connect(Constants().DB_PATH)

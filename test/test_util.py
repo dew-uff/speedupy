@@ -6,6 +6,7 @@ import unittest.mock
 from hashlib import md5
 
 from mmh3 import hash128
+from remove_paths import remove_paths
 from xxhash import xxh128_hexdigest
 
 from util import check_python_version, save_json_file
@@ -58,7 +59,7 @@ class TestUtil(unittest.TestCase):
         with open(self.JSON_FILENAME) as f:
             data2 = json.load(f)
         self.assertDictEqual(data, data2)
-        os.system(f"rm {self.JSON_FILENAME}")
+        remove_paths(self.JSON_FILENAME)
 
 
 if __name__ == "__main__":

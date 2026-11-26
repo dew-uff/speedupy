@@ -3,6 +3,8 @@ import os
 import unittest
 import unittest.mock
 
+from remove_paths import remove_paths
+
 from setup_exp.entities.Experiment import Experiment
 from setup_exp.entities.Script import Script
 from setup_exp.services.FunctionCalledDetectorService import (
@@ -16,8 +18,7 @@ class TestFunctionCalledDetectorService(unittest.TestCase):
     def tearDown(self):
         files_and_folders = ["script_test.py", "script_test_2.py", "folder2", "folder3"]
         for f in files_and_folders:
-            if os.path.exists(f):
-                os.system(f"rm -rf {f}")
+            remove_paths(f)
 
     def getAST(self, script_name: str) -> ast.Module:
         with open(script_name, "rt") as f:

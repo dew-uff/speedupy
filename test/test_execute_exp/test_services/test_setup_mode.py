@@ -3,6 +3,8 @@ import os
 import unittest
 from unittest.mock import patch
 
+from remove_paths import remove_paths
+
 import speedupy
 from constants import Constants
 from execute_exp.parser_params import EXEC_MODES, EXPERIMENTAL_EXEC_MODES
@@ -19,7 +21,7 @@ def record_setup_mode(exec_mode):
 
 class TestSetupMode(unittest.TestCase):
     def tearDown(self):
-        os.system(f"rm -rf {Constants().FOLDER_NAME}")
+        remove_paths(Constants().FOLDER_NAME)
 
     def test_an_experimental_run_over_a_manual_setup_fails_with_a_clear_message(self):
         record_setup_mode("manual")

@@ -4,6 +4,8 @@ import unittest
 import unittest.mock
 from unittest.mock import patch
 
+from remove_paths import remove_paths
+
 from setup_exp.entities.FunctionGraph import FunctionGraph
 from setup_exp.entities.Script import Script
 from setup_exp.services.script_service import (
@@ -30,9 +32,7 @@ class TestScriptService(unittest.TestCase):
             "folder4",
         ]
         for f in files_and_folders:
-            if os.path.exists(f):
-                os.system(f"rm -rf {f}")
-                # pass
+            remove_paths(f)
 
     def getAST(self, script_name: str) -> ast.Module:
         with open(script_name, "rt") as f:

@@ -4,6 +4,8 @@ import unittest
 import unittest.mock
 from typing import Dict, List
 
+from remove_paths import remove_paths
+
 from setup_exp.services.ASTSearcherService import ASTSearcherService
 
 
@@ -30,7 +32,7 @@ class TestASTSearcherService(unittest.TestCase):
 
         fileAST = self.getAST("script_test.py")
         self.assert_resultados_astSearch_search(fileAST, [], {})
-        os.system("rm script_test.py")
+        remove_paths("script_test.py")
 
     def test_ASTSearcher_one_file_without_imports_nor_declared_functions(self):
         with open("script_test.py", "wt") as f:
@@ -38,7 +40,7 @@ class TestASTSearcherService(unittest.TestCase):
 
         fileAST = self.getAST("script_test.py")
         self.assert_resultados_astSearch_search(fileAST, [], {})
-        os.system("rm script_test.py")
+        remove_paths("script_test.py")
 
     def test_ASTSearcher_one_file_with_only_declared_functions(self):
         with open("script_test.py", "wt") as f:
@@ -54,7 +56,7 @@ class TestASTSearcherService(unittest.TestCase):
             "func3": fileAST.body[2],
         }
         self.assert_resultados_astSearch_search(fileAST, [], expected_funcs)
-        os.system("rm script_test.py")
+        remove_paths("script_test.py")
 
     def test_ASTSearcher_one_file_with_only_declared_functions_and_inner_functions(
         self,
@@ -82,7 +84,7 @@ class TestASTSearcherService(unittest.TestCase):
             "func3.<locals>.func32.<locals>.func321": fileAST.body[2].body[1].body[0],
         }
         self.assert_resultados_astSearch_search(fileAST, [], expected_funcs)
-        os.system("rm script_test.py")
+        remove_paths("script_test.py")
 
     def test_ASTSearcher_one_file_with_only_declared_functions_and_classes_with_methods(
         self,
@@ -104,7 +106,7 @@ class TestASTSearcherService(unittest.TestCase):
             "func1.<locals>.func11": fileAST.body[0].body[0],
         }
         self.assert_resultados_astSearch_search(fileAST, [], expected_funcs)
-        os.system("rm script_test.py")
+        remove_paths("script_test.py")
 
     def test_ASTSearcher_three_files_with_explicitly_imports_and_declared_functions(
         self,
@@ -149,9 +151,9 @@ class TestASTSearcherService(unittest.TestCase):
         expected_funcs = {"func31": fileAST.body[0]}
         self.assert_resultados_astSearch_search(fileAST, [], expected_funcs)
 
-        os.system("rm script_test.py")
-        os.system("rm script_test_2.py")
-        os.system("rm script_test_3.py")
+        remove_paths("script_test.py")
+        remove_paths("script_test_2.py")
+        remove_paths("script_test_3.py")
 
     def test_ASTSearcher_three_files_with_explicitly_and_implicitly_imports_and_declared_functions(
         self,
@@ -196,9 +198,9 @@ class TestASTSearcherService(unittest.TestCase):
         }
         self.assert_resultados_astSearch_search(fileAST, [], expected_funcs)
 
-        os.system("rm script_test.py")
-        os.system("rm script_test_2.py")
-        os.system("rm __init__.py")
+        remove_paths("script_test.py")
+        remove_paths("script_test_2.py")
+        remove_paths("__init__.py")
 
     def test_ASTSearcher_seven_files_on_different_folders_with_explicitly_and_implicitly_imports_and_declared_functions(
         self,
@@ -272,10 +274,9 @@ class TestASTSearcherService(unittest.TestCase):
         expected_funcs = {"funcInit32": fileAST.body[0]}
         self.assert_resultados_astSearch_search(fileAST, [], expected_funcs)
 
-        os.system("rm -rf folder2")
-        os.system("rm -rf folder3")
-        os.system("rm script_test.py")
-        os.system("rm __init__.py")
+        remove_paths("folder2", "folder3")
+        remove_paths("script_test.py")
+        remove_paths("__init__.py")
 
 
 if __name__ == "__main__":

@@ -10,6 +10,7 @@ import pymongo
 import redis
 from pymemcache.client.base import Client
 from pymemcache.serde import pickle_serde
+from remove_paths import remove_paths
 
 from entities.SQLiteDatabase import SQLiteDatabase
 from execute_exp.parser_params import STORAGE_OPTIONS
@@ -57,7 +58,7 @@ class TestEnvironmentService(unittest.TestCase):
         self.clear_servers()
 
     def clear_servers(self):
-        os.system("rm -rf {}".format(self.FOLDER_NAME))
+        remove_paths(self.FOLDER_NAME)
         self.redis.flushdb()
         self.mongo_client.drop_database("speedupy")
         self.memcached.flush_all(noreply=False)

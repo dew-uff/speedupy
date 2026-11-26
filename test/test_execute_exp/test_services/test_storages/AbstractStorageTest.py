@@ -2,6 +2,8 @@ import os
 import random
 from typing import Dict
 
+from remove_paths import remove_paths
+
 from constants import Constants
 from execute_exp.entitites.CacheData import CacheData
 from execute_exp.services.serializers.CloudpickleSerializer import CloudpickleSerializer
@@ -21,7 +23,7 @@ class AbstractStorageTest(object):
         self.drop_env()
 
     def drop_env(self):
-        os.system(f"rm -rf {Constants().FOLDER_NAME}/")
+        remove_paths(Constants().FOLDER_NAME)
 
     def create_env(self):
         os.makedirs(Constants().FOLDER_NAME)

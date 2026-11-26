@@ -4,6 +4,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from remove_paths import remove_paths
+
 from entities.SQLiteDatabase import SQLiteDatabase
 from setup_exp.services.environment_service import (
     _cache_folder_exists,
@@ -24,8 +26,8 @@ class TestEnvironmentServiceWithoutServers(unittest.TestCase):
     SQLITE_DB_FILENAME = os.path.join(FOLDER_NAME, "speedupy.db")
 
     def setUp(self):
-        os.system("rm -rf {}".format(self.FOLDER_NAME))
-        self.addCleanup(os.system, "rm -rf {}".format(self.FOLDER_NAME))
+        remove_paths(self.FOLDER_NAME)
+        self.addCleanup(remove_paths, self.FOLDER_NAME)
         # No server is reachable, and none is touched when one is running.
         patcher = patch.object(
             socket.socket,
@@ -43,6 +45,8 @@ class TestEnvironmentServiceWithoutServers(unittest.TestCase):
         resp = conexao_banco.select(
             "SELECT tbl_name FROM sqlite_master WHERE type = 'table'"
         )
+        # Windows refuses to remove a database file that is still open.
+        conexao_banco.close_connection()
         self.assertSetEqual(set(resp), expeceted_result)
 
     # Moved from test_environment_service.py, unchanged.
@@ -125,7 +129,7 @@ class TestEnvironmentServiceWithoutServers(unittest.TestCase):
     def test_create_databases_with_a_storage_that_has_no_server(self):
         for storage in ("file", "sqlite"):
             with self.subTest(storage=storage):
-                os.system("rm -rf {}".format(self.FOLDER_NAME))
+                remove_paths(self.FOLDER_NAME)
                 os.mkdir(self.FOLDER_NAME)
                 _create_databases(storage)
                 self.assert_sqlite_db_exists()

@@ -6,6 +6,8 @@ import sys
 import unittest
 from unittest.mock import patch
 
+from remove_paths import remove_paths
+
 import setup_exp.setup as setup
 from execute_exp.parser_params import (
     EXEC_MODES,
@@ -23,8 +25,7 @@ class TestSetup(unittest.TestCase):
 
     def tearDown(self):
         paths = [".speedupy/", "teste.xyz", "teste.temp", "folder1", "folder2"]
-        for p in paths:
-            os.system(f"rm -rf {p}")
+        remove_paths(*paths)
 
     def test_validate_main_script_specified_when_no_script_was_specified(self):
         sys.argv = ["setup.py"]
@@ -137,8 +138,7 @@ class TestSetupWithoutServers(unittest.TestCase):
         self.addCleanup(patcher.stop)
 
     def tearDown(self):
-        for p in [".speedupy/", self.SCRIPT]:
-            os.system(f"rm -rf {p}")
+        remove_paths(".speedupy/", self.SCRIPT)
 
     def test_setup_experiment_with_the_default_storage_reaches_no_server(self):
         setup.setup_experiment(self.SCRIPT)
@@ -172,7 +172,7 @@ class TestSetupWithoutServers(unittest.TestCase):
     def test_setup_experiment_in_the_default_mode_matches_the_manual_mode(self):
         setup.setup_experiment(self.SCRIPT)
         default_code = self.rewritten_script()
-        os.system(f"rm -rf .speedupy {self.SCRIPT}")
+        remove_paths(".speedupy", self.SCRIPT)
         self.setUp_script()
 
         setup.setup_experiment(self.SCRIPT, exec_mode="manual")
@@ -184,7 +184,7 @@ class TestSetupWithoutServers(unittest.TestCase):
     ):
         for exec_mode in EXPERIMENTAL_EXEC_MODES:
             with self.subTest(exec_mode=exec_mode):
-                os.system(f"rm -rf .speedupy {self.SCRIPT}")
+                remove_paths(".speedupy", self.SCRIPT)
                 self.setUp_script()
 
                 setup.setup_experiment(self.SCRIPT, exec_mode=exec_mode)
@@ -221,7 +221,7 @@ class TestSetupWithoutServers(unittest.TestCase):
     def test_setup_experiment_records_its_exec_mode(self):
         for exec_mode in EXEC_MODES:
             with self.subTest(exec_mode=exec_mode):
-                os.system(f"rm -rf .speedupy {self.SCRIPT}")
+                remove_paths(".speedupy", self.SCRIPT)
                 self.setUp_script()
 
                 setup.setup_experiment(self.SCRIPT, exec_mode=exec_mode)
