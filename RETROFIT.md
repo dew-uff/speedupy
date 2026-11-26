@@ -920,7 +920,7 @@ baseline is committed.
 stays pending.
 
 - **PR 1, dependencies (#133):** `.github/dependabot.yml`.
-- **PR 2, security:** `usedforsecurity=False` on the two md5 calls, `# nosec`
+- **PR 2, security (#143):** `usedforsecurity=False` on the two md5 calls, `# nosec`
   with its reason on the pickle imports and loads and on the two skipped MySQL
   rows, and a `security` job (bandit and pip-audit) that `ci-ok` requires.
 - **bandit 1.9.4 on `daf094f`, before PR 2,** all severities. The total equals
