@@ -916,6 +916,41 @@ Sonnet · medium · clear first: yes · depends on: 6, D5
 **Done when.** `checks` is green with each exception documented; the bandit
 baseline is committed.
 
+**Progress** (issue #128, which holds the plan in two pull requests). The task
+stays pending.
+
+- **PR 1, dependencies (#133):** `.github/dependabot.yml`.
+- **PR 2, security:** `usedforsecurity=False` on the two md5 calls, `# nosec`
+  with its reason on the pickle imports and loads and on the two skipped MySQL
+  rows, and a `security` job (bandit and pip-audit) that `ci-ok` requires.
+- **bandit 1.9.4 on `daf094f`, before PR 2,** all severities. The total equals
+  the 172 "security" issues that qlty.sh showed.
+
+  | Region | High | Medium | Low | Total |
+  | :--- | ---: | ---: | ---: | ---: |
+  | `execute_exp/` | 1 | 3 | 4 | 8 |
+  | `setup_exp/` | 1 | 0 | 0 | 1 |
+  | Other production code | 0 | 0 | 0 | 0 |
+  | `native/`, without `vendor/` | 0 | 0 | 3 | 3 |
+  | `native/vendor/` (the two Python files, of MuseAir) | 0 | 0 | 0 | 0 |
+  | `test/` | 21 | 1 | 138 | 160 |
+  | **Whole tree** | **23** | **4** | **145** | **172** |
+
+  After PR 2, the three low findings of `native/manifest.py` are what is left
+  outside `test/`; the job blocks at medium and above.
+- **Deferred to Task 24:** CVE-2026-114605 and CVE-2026-128089, on dnspython
+  2.8.0, which only Python 3.10 uses. The job ignores both there: the fixes are
+  in dnspython 2.9.x and need Python 3.11 (decision D10, in issue #128). The
+  `security` group also locks filelock 4.1.0 for Python 3.10, through pip-audit.
+  pip-audit reports advisories on it, fixed in 4.2.1, so Dependabot may open
+  alerts. The job does not audit that group. The maintainer kept the group, and
+  Task 24 is where the 3.10 pin leaves the lock.
+- **Not done:** the weekly scheduled run (step 3),
+  `open-pull-requests-limit: 0` (step 3), the "Dependencies" section of
+  `AGENTS.md` (step 4), `[tool.bandit]` (step 2) and the issue for the admin
+  (step 5). CodeQL default setup already runs; whether secret scanning is on was
+  not checked. pip-audit runs in `security`, not in `checks` (step 1).
+
 ### Task 24 — Python versions
 
 Sonnet · medium · clear first: yes · depends on: 14, 23, D6

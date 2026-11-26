@@ -1,4 +1,5 @@
-import pickle
+# pickle is the cache format: the threat model is in SECURITY.md.
+import pickle  # nosec B403
 import sys
 from types import FunctionType
 from typing import Any, Optional, Set

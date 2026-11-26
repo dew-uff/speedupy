@@ -23,7 +23,8 @@ class MySQLStorage(Storage):
             try:
                 output = self._serializer.loads(output_blob)
                 cache_data[function_call_hash] = CacheData(function_call_hash, output)
-            except Exception:
+            # A row that cannot be loaded is a cache miss, on purpose.
+            except Exception:  # nosec B112
                 continue  # Ignore invalid data
 
         return cache_data
@@ -42,7 +43,8 @@ class MySQLStorage(Storage):
                 cache_data[function_call_hash] = CacheData(
                     function_call_hash, output, func_name
                 )
-            except Exception:
+            # A row that cannot be loaded is a cache miss, on purpose.
+            except Exception:  # nosec B112
                 continue  # Ignore invalid data
 
         return cache_data

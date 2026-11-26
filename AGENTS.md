@@ -89,14 +89,23 @@ A change is done when all of these hold:
   pull request needs" and "Running locally" in `CONTRIBUTING.md` say. The lint
   rules are `[tool.ruff.lint]` in `pyproject.toml`, with no ignore left.
 - CI is green at the tip of the branch. `ci-ok` is the one job that says so; it
-  fails when `checks`, `test`, `test-servers` or `native-platforms` failed or
-  was cancelled. A job
-  added to the workflow joins the `needs` of `ci-ok`.
+  fails when `checks`, `security`, `test`, `test-servers` or `native-platforms`
+  failed or was cancelled. A job added to the workflow joins the `needs` of
+  `ci-ok`.
 
 The `test` job runs no server, so the server tests stay deselected there. The
 `test-servers` job starts the containers of `compose.yaml` and runs them. The
 `native-platforms` job runs the hash tests on Windows x64, macOS x86_64 and
 arm64, and Linux aarch64.
+
+**Security checks.** CodeQL default setup, configured on GitHub and not in
+`ci.yml`, analyzes `main` and the pull requests (`python`, `c-cpp`, `rust`,
+`actions`). The `security` job of CI runs bandit over the tree without `test/`,
+`docs/` and `native/vendor/`, blocking at medium severity and above, and
+pip-audit over the exported lock, on Python 3.10 and 3.11. Run them locally with
+the commands of that job; their tools are the `security` dependency group. A
+`# nosec` names its test ID and carries its reason on the line above, and an
+`--ignore-vuln` carries its reason beside the step.
 
 ## Safety
 

@@ -1,4 +1,5 @@
 import ast
+import hashlib
 import os
 import unittest
 import unittest.mock
@@ -7,6 +8,7 @@ from execute_exp.parser_params import EXPERIMENTAL_EXEC_MODES
 from setup_exp.services.experiment_service import (
     create_experiment,
     decorate_experiment_functions,
+    get_experiment_functions_hashes,
 )
 
 
@@ -107,6 +109,27 @@ class TestExperimentService(unittest.TestCase):
             self.unparse(experiment, "script_test_2.py"),
             "def helper(x):\n    return x + 1",
         )
+
+    def test_get_experiment_functions_hashes_declares_md5_as_not_used_for_security(
+        self,
+    ):
+        # A FIPS-mode OpenSSL refuses md5 unless the caller says that the digest
+        # is not a security one.
+        real_md5 = hashlib.md5
+
+        def fips_md5(data=b"", *, usedforsecurity=True):
+            if usedforsecurity:
+                raise ValueError("md5 is disabled for security use")
+            return real_md5(data, usedforsecurity=False)
+
+        function = unittest.mock.Mock(qualname="f")
+        function_graph = unittest.mock.Mock(graph={function: []})
+        function_graph.get_source_code_executed.return_value = "def f():\n    return 1"
+
+        with unittest.mock.patch("hashlib.md5", fips_md5):
+            result = get_experiment_functions_hashes(function_graph)
+
+        self.assertEqual(result, {"f": "26a04d101487fb4ca1ec5ba96baf63eb"})
 
 
 if __name__ == "__main__":

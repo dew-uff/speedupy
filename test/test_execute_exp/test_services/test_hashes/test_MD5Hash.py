@@ -1,7 +1,7 @@
 import hashlib
 import json
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from execute_exp.services.hashes.MD5Hash import MD5Hash
 
@@ -28,6 +28,21 @@ class TestMD5Hash(unittest.TestCase):
         expected_result = hashlib.md5(data).hexdigest()
 
         self.assertEqual(result, expected_result)
+
+    def test_get_id_declares_md5_as_not_used_for_security(self):
+        # A FIPS-mode OpenSSL refuses md5 unless the caller says that the digest
+        # is not a security one.
+        real_md5 = hashlib.md5
+
+        def fips_md5(data=b"", *, usedforsecurity=True):
+            if usedforsecurity:
+                raise ValueError("md5 is disabled for security use")
+            return real_md5(data, usedforsecurity=False)
+
+        with patch("hashlib.md5", fips_md5):
+            result = self.hash._hash(b"speedupy")
+
+        self.assertEqual(result, "3c8d649fb4d24bbf7638b11bf4f000ca")
 
 
 if __name__ == "__main__":
