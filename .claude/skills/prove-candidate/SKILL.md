@@ -65,8 +65,8 @@ Read "Reproduction traps" there before building the scenario.
    - the benefit, as a number (time, size, hit rate);
    - correctness: the suite and the end-to-end oracle;
    - the cache: whether keys or stored entries change;
-   - Python 3.10 and 3.11 from wheels, and the platforms of `native/lib/` when
-     native code is involved;
+   - every supported Python from wheels ("Python versions" in `AGENTS.md`), and
+     the platforms of `native/lib/` when native code is involved;
    - license, advisories (the `security` job of CI), size and upkeep.
 3. **Measure the current code and the candidate** on the same machine and
    inputs, more than once, and report the spread. A difference within the

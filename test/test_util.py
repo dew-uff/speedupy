@@ -23,12 +23,20 @@ class TestUtil(unittest.TestCase):
         self.addCleanup(patcher.stop)
 
     def test_check_python_version_with_minimum_version(self):
-        sys.version_info = (3, 9)
+        sys.version_info = (3, 11, 0)
         check_python_version()
 
-    def test_check_python_version_with_correct_version_greater_than_minimum(self):
-        sys.version_info = (3, 12)
+    def test_check_python_version_with_later_patch_of_supported_version(self):
+        sys.version_info = (3, 11, 99)
         check_python_version()
+
+    def test_check_python_version_with_last_version_below_the_range(self):
+        sys.version_info = (3, 10, 99)
+        self.assertRaises(Exception, check_python_version)
+
+    def test_check_python_version_with_first_version_above_the_range(self):
+        sys.version_info = (3, 12, 0)
+        self.assertRaises(Exception, check_python_version)
 
     def test_check_python_version_with_incorrect_version_greater_than_minimum(self):
         sys.version_info = (4, 1)

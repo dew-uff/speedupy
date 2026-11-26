@@ -33,8 +33,8 @@ retrieval mode is outside it (#113, #114). The test suite exercises only
 Setup and execution take the same `--exec-mode`:
 
 ```bash
-python3.10 speedupy/setup_exp/setup.py --exec-mode accurate your_script.py
-python3.10 your_script.py --exec-mode accurate
+python3.11 speedupy/setup_exp/setup.py --exec-mode accurate your_script.py
+python3.11 your_script.py --exec-mode accurate
 ```
 
 Without `--exec-mode`, setup uses `manual` and leaves no `@maybe_deterministic`

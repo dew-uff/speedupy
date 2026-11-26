@@ -1,4 +1,4 @@
-FROM python:3.10
+FROM python:3.11
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -24,7 +24,7 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86
     conda update -n base -c defaults conda
 
 # Create the dev environment but do not activate by default
-RUN conda create -n dev_env -c conda-forge python=3.10 redis-server=7.4.0 mongodb=6.0.16 mysql-server=9.0.1 && \
+RUN conda create -n dev_env -c conda-forge python=3.11 redis-server=7.4.0 mongodb=6.0.16 mysql-server=9.0.1 && \
     conda clean --all --yes
 
 RUN conda init
@@ -39,7 +39,7 @@ WORKDIR /app
 # Optional: copy your project files
 COPY . /app
 
-RUN pip3.10 install -r requirements.txt
+RUN pip3.11 install -r requirements.txt
 
 # Default shell remains system bash, no conda activation
 CMD ["tail", "-f", "/dev/null"]

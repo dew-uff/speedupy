@@ -7,8 +7,10 @@ from typing import Dict, List, Union
 
 
 def check_python_version():
-    if sys.version_info[0] != 3 or sys.version_info[1] < 9:
-        raise Exception("Requires python 3.9+")
+    # The range of requires-python in pyproject.toml ("Python versions" in
+    # AGENTS.md).
+    if not (3, 11) <= sys.version_info[:2] < (3, 12):
+        raise Exception("Requires Python 3.11")
 
 
 def is_an_user_defined_script(imported_script: str, experiment_base_dir: str) -> bool:

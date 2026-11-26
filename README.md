@@ -1,6 +1,6 @@
 # SpeeduPy
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 
 SpeeduPy is a performance optimization tool developed in Python. It utilizes an advanced **memoization** and **persistent caching** approach applied to pure functions, drastically accelerating the execution time of scientific and computation-intensive scripts.
 
@@ -18,6 +18,8 @@ SpeeduPy is a performance optimization tool developed in Python. It utilizes an 
 ## How to Install
 
 SpeeduPy can be installed in two primary ways: via Docker commands, or directly on your host machine.
+
+SpeeduPy runs on Python 3.11, on Linux, Windows and macOS. Other Python versions are not supported yet.
 
 ### 0. Clone or Download the Repository
 
@@ -92,10 +94,10 @@ This step analyzes your code to create the necessary metadata (like function cal
 
 ```bash
 # Replace file_name.py with the name of your main experiment file
-$ python3.10 speedupy/setup_exp/setup.py file_name.py
+$ python3.11 speedupy/setup_exp/setup.py file_name.py
 
 # To prepare a server storage, name it with -s/--storage (default: file)
-$ python3.10 speedupy/setup_exp/setup.py -s redis file_name.py
+$ python3.11 speedupy/setup_exp/setup.py -s redis file_name.py
 ```
 
 `-s/--storage` takes the same names as the execution option of the same name: `sqlite`, `redis`, `mongo`, `gridfs`, `mongo-file`, `mongo-gridfs`, `file` and `mysql`. Setup prepares only that storage and never touches the servers of the others, so it needs no server unless you choose one. On the first setup of a directory, it empties the server storage you choose (Redis, MongoDB) or recreates its database (MySQL), so do not point it at a server that holds data you need.
@@ -132,14 +134,14 @@ You can control the entire caching mechanism — from the hashing algorithm to t
 
 ```bash
 # Measures the time baseline, ignoring all cache settings
-$ python3.10 file_name.py --exec-mode no-cache
+$ python3.11 file_name.py --exec-mode no-cache
 ```
 
 **2. Running With Cache (Max Performance):**
 
 ```bash
 # Example: Use fast MD5 hashing and SQLite storage
-$ python3.10 file_name.py -H md5 -s sqlite
+$ python3.11 file_name.py -H md5 -s sqlite
 ```
 
 **3. Stopping Servers:**
