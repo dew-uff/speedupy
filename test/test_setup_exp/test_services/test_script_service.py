@@ -184,7 +184,7 @@ class TestScriptService(unittest.TestCase):
 
         add_decorator_import(script, "maybe_deterministic")
         code1 = ast.unparse(script.AST.body[:3])
-        code2 = f"import sys\nsys.path.append('{os.getcwd()}')\nfrom speedupy.speedupy import maybe_deterministic"
+        code2 = f"import sys\nsys.path.append({os.getcwd()!r})\nfrom speedupy.speedupy import maybe_deterministic"
         code1 = self.normalize_string(code1)
         code2 = self.normalize_string(code2)
         self.assertEqual(code1, code2)
@@ -232,10 +232,20 @@ class TestScriptService(unittest.TestCase):
 
         add_decorator_import(script, "initialize_speedupy")
         code1 = ast.unparse(script.AST.body[:3])
-        code2 = f"import sys\nsys.path.append('{os.getcwd()}')\nfrom speedupy.speedupy import initialize_speedupy"
+        code2 = f"import sys\nsys.path.append({os.getcwd()!r})\nfrom speedupy.speedupy import initialize_speedupy"
         code1 = self.normalize_string(code1)
         code2 = self.normalize_string(code2)
         self.assertEqual(code1, code2)
+
+    def test_add_decorator_import_keeps_a_folder_with_backslashes_and_quotes(self):
+        folder = "C:\\Users\\new\\it's here"
+        script = Script("script_test.py", ast.parse(""), [], {})
+
+        with patch("setup_exp.services.script_service.os.getcwd", return_value=folder):
+            add_decorator_import(script, "initialize_speedupy")
+
+        append_call = script.AST.body[1].value
+        self.assertEqual(append_call.args[0].value, folder)
 
     def test_add_decorator_import_initialize_speedupy_when_script_already_has_this_import(
         self,
