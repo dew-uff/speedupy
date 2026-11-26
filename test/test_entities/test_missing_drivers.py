@@ -128,6 +128,9 @@ class TestNoDriverNeededForTheDefaultInstall(unittest.TestCase):
         settings = Mock(storage=["sqlite"], serializer=["pickle"])
         with patch.object(factory, "SpeeduPySettings", return_value=settings):
             storage = factory._init_storage()
+        # Runs before the removal that setUp registered: Windows does not remove
+        # an open database file.
+        self.addCleanup(storage._SQLiteStorage__local.db_connection.close_connection)
 
         self.assertEqual(type(storage).__name__, "SQLiteStorage")
 
