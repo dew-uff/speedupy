@@ -5,5 +5,5 @@ xxhash==3.4.1
 redis==4.4.4
 pymongo==4.18.3
 pymemcache==4.0.0
-mysql-connector-python==9.4.0
+mysql-connector-python==26.10.0
 cloudpickle==3.1.3
