@@ -28,6 +28,20 @@ The feature does not run end to end today: the first call to a
 retrieval mode is outside it (#113, #114). The test suite exercises only
 `manual` and `no-cache`.
 
+## Known defects
+
+The experimental modes and the `thread` retrieval mode are beta, not supported
+in 2.0, consolidated during 2027. These are their open issues, the ones with the
+[`experimental` label](https://github.com/dew-uff/speedupy/issues?q=is%3Aissue+is%3Aopen+label%3Aexperimental):
+
+| Issue | Defect |
+| :--- | :--- |
+| [#100](https://github.com/dew-uff/speedupy/issues/100) | The experimental modes never run end to end: the first call to a `@maybe_deterministic` function raises a `KeyError`. |
+| [#101](https://github.com/dew-uff/speedupy/issues/101) | `_execute_func_collecting_metadata` raises a `TypeError`. |
+| [#113](https://github.com/dew-uff/speedupy/issues/113) | Eager retrieval in a thread misses cache hits. |
+| [#114](https://github.com/dew-uff/speedupy/issues/114) | Retrieval in a thread can crash the save at exit (`dictionary changed size during iteration`). |
+| [#123](https://github.com/dew-uff/speedupy/issues/123) | The option matrix is to mark the thread rows as non-strict `xfail` until the thread retrieval mode is fixed. |
+
 ## How to turn them on
 
 Setup and execution take the same `--exec-mode`:
