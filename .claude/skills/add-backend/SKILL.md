@@ -30,8 +30,9 @@ fail silently. Follow the common steps, then the section of the kind you add.
    `test/test_execute_exp/test_services/test_factory.py`, with the marker of
    its server or native library.
 6. **Option matrix,** `test/e2e/test_matrix.py`: see "Option matrix" below.
-7. **README.md:** the option table under "Execution Options", and "Key
-   Features" when it names the backends.
+7. **README.md:** the option table under "Execution Options", which
+   `test/test_readme.py` compares with the parser, and "Key Features" when it
+   names the backends.
 8. **Check the help** shows the name:
 
    ```bash
@@ -135,7 +136,7 @@ Besides the common steps: the list of `-s` names in "Experiment Setup" of
   `test/test_execute_exp/test_services/test_hashes/test_<Name>Hash.py`, as
   `test_XXHashHash.py`, and fix at least one literal reference value: a digest
   that changes between releases silently empties every cache.
-- Parser: the `hashes` list of `get_params()` and `hashes_msg()`.
+- Parser: the `hashes` list of `build_parser()` and `hashes_msg()`.
 - A native library is a maintainer decision (D3 in `RETROFIT.md`). Follow
   `native/README.md`; besides it: `PLATFORM_LIBRARIES` in `native.py`,
   `NATIVE_MAP` in `test/conftest.py`, `NATIVE_HASH_LIBRARIES` in
@@ -158,7 +159,7 @@ Besides the common steps: the list of `-s` names in "Experiment Setup" of
   records before the single call's. `AbstractMemArchTest` leaves
   `create_cache_entry`, `save_new_cache_entries` and
   `get_new_cache_entries_size` to the subclass: test them.
-- Parser: `memory_architectures` in `get_params()` and
+- Parser: `memory_architectures` in `build_parser()` and
   `memory_architecture_msg()`.
 - One that needs a server follows the server list under "Storage", where it
   applies.

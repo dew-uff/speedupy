@@ -231,6 +231,12 @@ trims `sys.argv` before any test module loads.
 - `uv run pytest --collect-only -q` touches no server, whatever the variable
   says. The count by what each test needs is in `RETROFIT.md`, "Baseline".
 
+**The README follows the parser.** `test/test_readme.py` compares the table
+under "Execution Options" of `README.md` with `build_parser()`, in both
+directions: option names and accepted values. The options of the parser group
+"Experimental options (beta)" stay out of the README (D8); the same test holds
+the list in `docs/experimental.md` to that group.
+
 ## End-to-end oracle
 
 `test/e2e/test_oracle.py` holds the property that defines the tool: with the
