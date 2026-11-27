@@ -285,7 +285,7 @@ Task 2 fills the "Decision" column. A task that names a decision waits for it.
 | 18 | English, part 1: comments and messages | dev | Sonnet | low | yes | 11 | done (#96) |
 | 19 | English, part 2: identifiers and file names | dev | Sonnet | medium | yes | 17, 18 | done (#98) |
 | 20 | Coverage and the blind spots of the suite | dev | Sonnet | medium | yes | 17 | done (#105) |
-| 21 | README held to the tool | dev | Sonnet | medium | yes | 15 | pending |
+| 21 | README held to the tool | dev | Sonnet | medium | yes | 15 | done (#155) |
 | 22 | Contribution documents | dev | Sonnet | low | yes | 14, D4 | done (#142) |
 | 23 | Dependency and security checks | dev | Sonnet | medium | yes | 6, D5 | pending |
 | 24 | Python versions | dev | Sonnet | medium | yes | 14, 23, D6 | pending |
@@ -870,6 +870,11 @@ README omits storages and hashes the parser accepts.
 
 **Done when.** The test passes, and fails when an option is deleted from the
 README (shown in the pull request); the floor is raised.
+
+**Done in #155** (issue #152). The pull request adds the README section of
+#109; it closes #109 only if the Redis run against `compose.yaml` passes on a
+machine with Docker, which was not verified when this was written. The
+differences left for a decision are #150, #153 and #154.
 
 ### Task 22 — Contribution documents
 
