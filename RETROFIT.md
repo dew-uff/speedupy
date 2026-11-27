@@ -872,9 +872,10 @@ README omits storages and hashes the parser accepts.
 README (shown in the pull request); the floor is raised.
 
 **Done in #155** (issue #152). The pull request adds the README section of
-#109; it closes #109 only if the Redis run against `compose.yaml` passes on a
-machine with Docker, which was not verified when this was written. The
-differences left for a decision are #150, #153 and #154.
+#109 and closes it: the dev ran setup and an experiment with `-s redis` against
+the Redis of `compose.yaml` (run 1: 42 calls, 21 hits; run 2: 4 calls, 4 hits;
+21 keys in Redis; `down -v` clean). The differences left for a decision are
+#150, #153 and #154.
 
 ### Task 22 — Contribution documents
 
