@@ -8,6 +8,8 @@ import sys
 import unittest
 from unittest.mock import Mock, patch
 
+from remove_paths import remove_paths
+
 from execute_exp.services import factory
 from execute_exp.services.storages.FileSystemStorage import FileSystemStorage
 from setup_exp.services.environment_service import init_env
@@ -95,8 +97,8 @@ class TestNoDriverNeededForTheDefaultInstall(unittest.TestCase):
     """The ``file`` and ``sqlite`` storages work with no server driver."""
 
     def setUp(self):
-        os.system("rm -rf .speedupy")
-        self.addCleanup(os.system, "rm -rf .speedupy")
+        remove_paths(".speedupy")
+        self.addCleanup(remove_paths, ".speedupy")
         # Hide the drivers, and drop the Database modules that already imported
         # them, so that importing one of them again would fail.
         hiding = drivers_hidden(ALL_DRIVER_ROOTS, forget=list(BACKENDS))
@@ -106,7 +108,7 @@ class TestNoDriverNeededForTheDefaultInstall(unittest.TestCase):
     def test_setup_with_the_file_and_sqlite_storages(self):
         for storage in ("file", "sqlite"):
             with self.subTest(storage=storage):
-                os.system("rm -rf .speedupy")
+                remove_paths(".speedupy")
                 init_env(storage)
                 self.assertTrue(os.path.isfile(".speedupy/speedupy.db"))
                 self.assertTrue(os.path.isdir(".speedupy/cache"))
@@ -126,6 +128,9 @@ class TestNoDriverNeededForTheDefaultInstall(unittest.TestCase):
         settings = Mock(storage=["sqlite"], serializer=["pickle"])
         with patch.object(factory, "SpeeduPySettings", return_value=settings):
             storage = factory._init_storage()
+        # Runs before the removal that setUp registered: Windows does not remove
+        # an open database file.
+        self.addCleanup(storage._SQLiteStorage__local.db_connection.close_connection)
 
         self.assertEqual(type(storage).__name__, "SQLiteStorage")
 

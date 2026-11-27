@@ -3,6 +3,8 @@ import os
 import unittest
 import unittest.mock
 
+from remove_paths import remove_paths
+
 from setup_exp.entities.Experiment import Experiment
 from setup_exp.entities.Script import Script
 from setup_exp.services.FunctionCalledDetectorService import (
@@ -16,8 +18,7 @@ class TestFunctionCalledDetectorService(unittest.TestCase):
     def tearDown(self):
         files_and_folders = ["script_test.py", "script_test_2.py", "folder2", "folder3"]
         for f in files_and_folders:
-            if os.path.exists(f):
-                os.system(f"rm -rf {f}")
+            remove_paths(f)
 
     def getAST(self, script_name: str) -> ast.Module:
         with open(script_name, "rt") as f:
@@ -101,7 +102,8 @@ class TestFunctionCalledDetectorService(unittest.TestCase):
             "func3": fileAST.body[0],
             "func3.<locals>.func31": fileAST.body[0].body[0],
         }
-        script3 = Script("folder3/subfolder3/script_test_3.py", fileAST, [], functions)
+        script3_name = os.path.join("folder3", "subfolder3", "script_test_3.py")
+        script3 = Script(script3_name, fileAST, [], functions)
 
         experiment = Experiment(os.getcwd())
         experiment.add_script(script1)
@@ -162,7 +164,8 @@ class TestFunctionCalledDetectorService(unittest.TestCase):
             "func3": fileAST.body[0],
             "func3.<locals>.func31": fileAST.body[0].body[0],
         }
-        script3 = Script("folder3/subfolder3/script_test_3.py", fileAST, [], functions)
+        script3_name = os.path.join("folder3", "subfolder3", "script_test_3.py")
+        script3 = Script(script3_name, fileAST, [], functions)
 
         experiment = Experiment(os.getcwd())
         experiment.add_script(script1)
@@ -221,7 +224,8 @@ class TestFunctionCalledDetectorService(unittest.TestCase):
             "func3": fileAST.body[0],
             "func3.<locals>.func31": fileAST.body[0].body[0],
         }
-        script3 = Script("folder3/subfolder3/script_test_3.py", fileAST, [], functions)
+        script3_name = os.path.join("folder3", "subfolder3", "script_test_3.py")
+        script3 = Script(script3_name, fileAST, [], functions)
 
         experiment = Experiment(os.getcwd())
         experiment.add_script(script1)
@@ -280,7 +284,8 @@ class TestFunctionCalledDetectorService(unittest.TestCase):
             "func3": fileAST.body[0],
             "func3.<locals>.func31": fileAST.body[0].body[0],
         }
-        script3 = Script("folder3/subfolder3/script_test_3.py", fileAST, [], functions)
+        script3_name = os.path.join("folder3", "subfolder3", "script_test_3.py")
+        script3 = Script(script3_name, fileAST, [], functions)
 
         experiment = Experiment(os.getcwd())
         experiment.add_script(script1)
@@ -334,34 +339,34 @@ class TestFunctionCalledDetectorService(unittest.TestCase):
 
         fileAST = self.getAST("folder2/script_test_2.py")
         functions = {"func2": fileAST.body[0]}
-        script2 = Script("folder2/script_test_2.py", fileAST, [], functions)
+        script2_name = os.path.join("folder2", "script_test_2.py")
+        script2 = Script(script2_name, fileAST, [], functions)
 
         fileAST = self.getAST("folder2/subfolder2/script_test_sub2.py")
         functions = {"funcsub2": fileAST.body[0]}
-        scriptsub2 = Script(
-            "folder2/subfolder2/script_test_sub2.py", fileAST, [], functions
-        )
+        scriptsub2_name = os.path.join("folder2", "subfolder2", "script_test_sub2.py")
+        scriptsub2 = Script(scriptsub2_name, fileAST, [], functions)
 
         fileAST = self.getAST("folder2/subfolder2/subsubfolder2/script_test_subsub2.py")
         imports = [fileAST.body[0], fileAST.body[1], fileAST.body[2]]
         functions = {"funcsubsub2": fileAST.body[3]}
-        scriptsubsub2 = Script(
-            "folder2/subfolder2/subsubfolder2/script_test_subsub2.py",
-            fileAST,
-            imports,
-            functions,
+        scriptsubsub2_name = os.path.join(
+            "folder2", "subfolder2", "subsubfolder2", "script_test_subsub2.py"
         )
+        scriptsubsub2 = Script(scriptsubsub2_name, fileAST, imports, functions)
 
         fileAST = self.getAST(
             "folder2/subfolder2/subsubfolder2/subsubsubfolder2/script_test_subsubsub2.py"
         )
         functions = {"funcsubsubsub2": fileAST.body[0]}
-        scriptsubsubsub2 = Script(
-            "folder2/subfolder2/subsubfolder2/subsubsubfolder2/script_test_subsubsub2.py",
-            fileAST,
-            [],
-            functions,
+        scriptsubsubsub2_name = os.path.join(
+            "folder2",
+            "subfolder2",
+            "subsubfolder2",
+            "subsubsubfolder2",
+            "script_test_subsubsub2.py",
         )
+        scriptsubsubsub2 = Script(scriptsubsubsub2_name, fileAST, [], functions)
 
         experiment = Experiment(os.getcwd())
         experiment.add_script(script1)

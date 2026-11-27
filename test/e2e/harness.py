@@ -40,12 +40,13 @@ TIMEOUT_SECONDS = 120
 
 CACHED_ARGS = ("--exec-mode", "manual", "-mt", "0")
 
-# The block Profiler.report() prints, anchored at the end of stdout.
+# The block Profiler.report() prints, anchored at the end of stdout. Its lines
+# end in "\r\n" on Windows.
 _PROFILER_BLOCK = re.compile(
-    rb"^-+ Profiler -+\n(?P<body>.*?)^-+\n\Z", re.DOTALL | re.MULTILINE
+    rb"^-+ Profiler -+\r?\n(?P<body>.*?)^-+\r?\n\Z", re.DOTALL | re.MULTILINE
 )
-_CALLS = re.compile(rb"^Number of calls to @deterministic: (\d+)$", re.MULTILINE)
-_HITS = re.compile(rb"^Number of cache hits: (\d+)$", re.MULTILINE)
+_CALLS = re.compile(rb"^Number of calls to @deterministic: (\d+)\r?$", re.MULTILINE)
+_HITS = re.compile(rb"^Number of cache hits: (\d+)\r?$", re.MULTILINE)
 
 
 @dataclass(frozen=True)

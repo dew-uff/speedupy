@@ -3,6 +3,8 @@ import os
 import unittest
 import unittest.mock
 
+from remove_paths import remove_paths
+
 from setup_exp.entities.Experiment import Experiment
 from setup_exp.entities.FunctionGraph import FunctionGraph
 from setup_exp.entities.Script import Script
@@ -18,8 +20,7 @@ class TestFunctionGraph(unittest.TestCase):
             "folder4",
         ]
         for f in files_and_folders:
-            if os.path.exists(f):
-                os.system(f"rm -rf {f}")
+            remove_paths(f)
 
     def normalize_string(self, string):
         return string.replace("\n\n", "\n").replace("\t", "    ").replace('"', "'")

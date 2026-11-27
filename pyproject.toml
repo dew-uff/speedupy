@@ -5,8 +5,9 @@ description = "Speeds up scripts by memoizing pure functions with a persistent c
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
-# D6: every pin installs from wheels on 3.10 and 3.11 only.
-requires-python = ">=3.10,<3.12"
+# D10: 3.11 to 3.15. The upper bound stays at what CI runs until the range is
+# widened ("Python versions" in AGENTS.md).
+requires-python = ">=3.11,<3.12"
 dependencies = [
     "mmh3==4.0.1",
     "numpy==1.26.4",
@@ -37,8 +38,8 @@ security = [
 ]
 
 [tool.ruff]
-# The oldest Python the project supports (D6).
-target-version = "py310"
+# The oldest Python the project supports (D10).
+target-version = "py311"
 # Third-party sources, as their authors wrote them (native/NOTICE).
 extend-exclude = ["native/vendor"]
 

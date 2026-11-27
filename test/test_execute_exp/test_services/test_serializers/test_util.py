@@ -23,9 +23,9 @@ class TestUtil(unittest.TestCase):
         f.__globals__.update(g)
 
         cleaned = to_canonical(f)
-        self.assertEqual(
-            cleaned, {"__function__": "f", "code": "8800640119005300", "defaults": None}
-        )
+        # The bytecode differs between Python versions: take it from f itself.
+        code = f.__code__.co_code.hex()
+        self.assertEqual(cleaned, {"__function__": "f", "code": code, "defaults": None})
 
     def test_to_canonical_for_function_without_globals_file_atribute(self):
         g = {"y": 100}
@@ -33,9 +33,8 @@ class TestUtil(unittest.TestCase):
         exec(code, g)
         f = g["f"]
         cleaned = to_canonical(f)
-        self.assertEqual(
-            cleaned, {"__function__": "f", "code": "74005300", "defaults": None}
-        )
+        code = f.__code__.co_code.hex()
+        self.assertEqual(cleaned, {"__function__": "f", "code": code, "defaults": None})
 
     def test_to_canonical_for_numpy_ndarray(self):
         arr = np.array([1, 2, 3])

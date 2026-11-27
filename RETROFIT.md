@@ -967,6 +967,20 @@ Sonnet · medium · clear first: yes · depends on: 14, 23, D6
 
 **Done when.** The matrix is green and the three places agree.
 
+**Progress.** The task stays pending.
+
+- **D10 supersedes D6** (maintainer, 2026-11-25, issue #128): SpeeduPy 2.0
+  supports Windows, Linux and macOS on Python 3.11 to 3.15. Pull request 4 of
+  Task 2 adds D10 to the decision table. It also brings Windows and macOS for
+  the whole suite into the retrofit, which "Out of the retrofit" excluded.
+- **Part 1, done (#151, issue #147):** the floor is 3.11 (`>=3.11,<3.12`), and
+  the `test` job runs on Linux, Windows and macOS. dnspython and filelock, which
+  Task 23 deferred to here, left their 3.10 versions, and the audit ignores no
+  advisory.
+- **Part 2, pending on decision D9:** once `murmurhash` is removed (`mmh3` blocks
+  3.12, #36), widen the range to 3.12 to 3.15, as "Python versions" in
+  `AGENTS.md` says.
+
 ### Task 25 — Native libraries, part 2: the binaries in the repository
 
 Opus · high · clear first: yes · depends on: 14, D3 · production change ·

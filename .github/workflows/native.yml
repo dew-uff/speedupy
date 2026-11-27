@@ -71,10 +71,10 @@ jobs:
               chown -R "$HOST_UID:$HOST_GID" native/lib native/build native/museair/target
             '
 
-      - name: Install uv and Python 3.10
+      - name: Install uv and Python 3.11
         uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - name: Check against the reference values
         run: uv run --no-project python native/check.py "${{ matrix.platform }}"
@@ -107,10 +107,10 @@ jobs:
       - name: Build
         run: native/build.sh "${{ matrix.platform }}"
 
-      - name: Install uv and Python 3.10
+      - name: Install uv and Python 3.11
         uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - name: Check against the reference values
         run: uv run --no-project python native/check.py "${{ matrix.platform }}"
@@ -141,10 +141,10 @@ jobs:
           Enter-VsDevShell -VsInstallPath $vs -SkipAutomaticLocation -DevCmdArguments "-arch=x64 -host_arch=x64"
           ./native/build.ps1
 
-      - name: Install uv and Python 3.10
+      - name: Install uv and Python 3.11
         uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - name: Check against the reference values
         shell: bash
@@ -188,10 +188,10 @@ jobs:
           done
           find native/lib -type f | sort
 
-      - name: Install uv and Python 3.10
+      - name: Install uv and Python 3.11
         uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - name: Write the manifest
         run: |

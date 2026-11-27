@@ -106,7 +106,8 @@ def add_decorator_import(script: Script, decorator_name: str) -> None:
     if _script_already_has_decorator_import(script, decorator_name):
         return
     current_folder = os.getcwd()
-    imports = f"import sys\nsys.path.append('{current_folder}')\n"
+    # !r escapes the path: a Windows path has backslashes.
+    imports = f"import sys\nsys.path.append({current_folder!r})\n"
     imports += f"from speedupy.speedupy import {decorator_name}"
     imports = ast.parse(imports)
     script.AST.body = imports.body + script.AST.body

@@ -33,10 +33,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Install uv and Python 3.10
+      - name: Install uv and Python 3.11
         uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
-          python-version: "3.10"
+          python-version: "3.11"
           enable-cache: true
 
       # pyproject.toml changed without `uv lock`: every `uv sync --locked`
@@ -75,14 +75,14 @@ jobs:
 
       # pip-audit evaluates the markers of the lock with its own interpreter, so
       # it runs once on each Python the lock resolves for.
-      - name: Install Python 3.10 and 3.11
-        run: uv python install 3.10 3.11
+      - name: Install Python 3.11
+        run: uv python install 3.11
 
       # Medium and high severity block. Third-party sources (native/vendor) are
       # left out; our native code is not.
       - name: Static analysis (bandit)
         run: |
-          uv run --locked --python 3.10 --only-group security bandit -r . \
+          uv run --locked --python 3.11 --only-group security bandit -r . \
             -x ./.venv,./test,./native/vendor,./docs,./htmlcov,./build -ll
 
       # The runtime and dev dependencies, as uv.lock pins them. The `security`
@@ -96,43 +96,36 @@ jobs:
 
       # --no-deps --disable-pip: the export already pins everything, so
       # pip-audit resolves and installs nothing.
-      #
-      # Ignored advisories, both on dnspython 2.8.0, which only Python 3.10 uses:
-      # CVE-2026-114605: fixed in dnspython 2.9.x, needs Python 3.11, deferred
-      # to Task 24 (D10).
-      # CVE-2026-128089: fixed in dnspython 2.9.x, needs Python 3.11, deferred
-      # to Task 24 (D10).
-      - name: Audit the lock, Python 3.10 (pip-audit)
-        if: ${{ !cancelled() && steps.export.outcome == 'success' }}
-        run: |
-          uv run --locked --python 3.10 --only-group security pip-audit \
-            --no-deps --disable-pip -r "$RUNNER_TEMP/requirements-audit.txt" \
-            --ignore-vuln CVE-2026-114605 \
-            --ignore-vuln CVE-2026-128089
-
       - name: Audit the lock, Python 3.11 (pip-audit)
         if: ${{ !cancelled() && steps.export.outcome == 'success' }}
         run: |
           uv run --locked --python 3.11 --only-group security pip-audit \
             --no-deps --disable-pip -r "$RUNNER_TEMP/requirements-audit.txt"
 
+  # The suite that needs no server, on the three supported operating systems.
   test:
-    # min-tests: floor for passed + skipped + xfailed + xpassed. Raise it in the
-    # pull request that adds tests; lower it only with the reason written in
-    # the pull request.
+    # min-tests: floor for passed + skipped + xfailed + xpassed, applied to each
+    # leg: the lowest count among the legs minus 2. The three collect the same
+    # number today (macOS skips the MeowHash tests, which count). Raise it in
+    # the pull request that adds tests; lower it only with the reason written
+    # in the pull request.
     env:
-      MIN_TESTS: 583
-    runs-on: ubuntu-latest
+      MIN_TESTS: 587
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # setup-uv hands python-version to uv, which downloads that CPython even
       # when the image has one (UV_MANAGED_PYTHON, at the top).
-      - name: Install uv and Python 3.10
+      - name: Install uv and Python 3.11
         uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
-          python-version: "3.10"
+          python-version: "3.11"
           enable-cache: true
 
       # --locked: install exactly what uv.lock says, and fail instead of
@@ -157,10 +150,11 @@ jobs:
         if: ${{ !cancelled() && steps.sync.outcome == 'success' }}
         run: |
           bash .github/scripts/pytest-summary.sh pytest.log "$MIN_TESTS" \
-            "ubuntu-latest, 3.10" "uv sync --locked && uv run --no-sync pytest"
+            "${{ matrix.os }}, 3.11" "uv sync --locked && uv run --no-sync pytest"
 
+      # One report, from Linux: artifact names are unique within a run.
       - name: Upload the coverage report
-        if: ${{ !cancelled() && steps.sync.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.sync.outcome == 'success' && matrix.os == 'ubuntu-latest' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: coverage
@@ -178,16 +172,16 @@ jobs:
     # run, servers included. Raise it in the pull request that adds tests; lower
     # it only with the reason written in the pull request.
     env:
-      MIN_TESTS: 778
+      MIN_TESTS: 782
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Install uv and Python 3.10
+      - name: Install uv and Python 3.11
         uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
-          python-version: "3.10"
+          python-version: "3.11"
           enable-cache: true
 
       - name: Install dependencies
@@ -210,7 +204,7 @@ jobs:
         if: ${{ !cancelled() && steps.sync.outcome == 'success' }}
         run: |
           bash .github/scripts/pytest-summary.sh pytest.log "$MIN_TESTS" \
-            "ubuntu-latest, 3.10, servers" \
+            "ubuntu-latest, 3.11, servers" \
             "docker compose --profile all up -d --wait && SPEEDUPY_TEST_SERVERS=1 uv run pytest"
 
       - name: Server logs
@@ -225,10 +219,10 @@ jobs:
           path: compose.log
           if-no-files-found: ignore
 
-  # The native hashes on the platforms the other jobs do not run: the hash
-  # tests against the binaries of native/lib/ (issue #112). The rest of the
-  # suite runs on Linux x86_64 only. On arm64, MeowHash has no binary and its
-  # tests are skipped, so the count is the same on every platform.
+  # The native hashes on each platform of native/lib/ that `test-servers` does
+  # not run on: the hash tests against the binaries (issue #112). On arm64,
+  # MeowHash has no binary and its tests are skipped, so the count is the same
+  # on every platform.
   native-platforms:
     # min-tests: floor for passed + skipped + xfailed + xpassed. Raise it in the
     # pull request that adds hash tests; lower it only with the reason written
@@ -244,10 +238,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Install uv and Python 3.10
+      - name: Install uv and Python 3.11
         uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
-          python-version: "3.10"
+          python-version: "3.11"
           enable-cache: true
 
       - name: Install dependencies
@@ -264,7 +258,7 @@ jobs:
         if: ${{ !cancelled() && steps.sync.outcome == 'success' }}
         run: |
           bash .github/scripts/pytest-summary.sh pytest.log "$MIN_TESTS" \
-            "${{ matrix.runner }}, 3.10, native hashes" \
+            "${{ matrix.runner }}, 3.11, native hashes" \
             "uv run pytest test/test_execute_exp/test_services/test_hashes test/test_execute_exp/test_services/test_native_loading.py"
 
   # The one check that the ruleset of `main` requires (Task 7). It fails when

@@ -1,8 +1,9 @@
 import ast
 import hashlib
-import os
 import unittest
 import unittest.mock
+
+from remove_paths import remove_paths
 
 from execute_exp.parser_params import EXPERIMENTAL_EXEC_MODES
 from setup_exp.services.experiment_service import (
@@ -24,9 +25,7 @@ class TestExperimentService(unittest.TestCase):
             "folder4",
         ]
         for f in files_and_folders:
-            if os.path.exists(f):
-                os.system(f"rm -rf {f}")
-                # pass
+            remove_paths(f)
 
     def getAST(self, script_name: str) -> ast.Module:
         with open(script_name, "rt") as f:
