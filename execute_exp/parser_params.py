@@ -123,7 +123,8 @@ def retrieval_exec_modes_msg():
     =>thread     : SpeeduPy will request data from the storage using a thread. It will allow the experiment to execute while the data is being loaded to RAN\n"
 
 
-def get_params():
+def build_parser() -> argparse.ArgumentParser:
+    """The parser of the execution options; test/test_readme.py reads it."""
     exec_modes = EXEC_MODES
     revalidations = ["none", "fixed", "adaptative"]
     retrieval_strategies = ["lazy", "function", "eager"]
@@ -311,7 +312,11 @@ def get_params():
         help="enables profiling of the script execution.",
     )
 
-    args = speedupy_arg_parser.parse_args()
+    return speedupy_arg_parser
+
+
+def get_params():
+    args = build_parser().parse_args()
 
     argsp_mem_arch = args.mem_arch
     argsp_retrieval_strategy = args.retrieval_strategy
