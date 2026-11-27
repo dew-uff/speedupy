@@ -105,10 +105,12 @@ jobs:
   # The suite that needs no server, on the three supported operating systems.
   test:
     # min-tests: floor for passed + skipped + xfailed + xpassed, applied to each
-    # leg. Raise it in the pull request that adds tests; lower it only with the
-    # reason written in the pull request.
+    # leg: the lowest count among the legs minus 2. The three collect the same
+    # number today (macOS skips the MeowHash tests, which count). Raise it in
+    # the pull request that adds tests; lower it only with the reason written
+    # in the pull request.
     env:
-      MIN_TESTS: 586
+      MIN_TESTS: 587
     strategy:
       fail-fast: false
       matrix:
@@ -170,7 +172,7 @@ jobs:
     # run, servers included. Raise it in the pull request that adds tests; lower
     # it only with the reason written in the pull request.
     env:
-      MIN_TESTS: 781
+      MIN_TESTS: 782
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

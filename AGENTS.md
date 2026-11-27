@@ -93,16 +93,16 @@ A change is done when all of these hold:
   failed or was cancelled. A job added to the workflow joins the `needs` of
   `ci-ok`.
 
-The `test` job runs no server, so the server tests stay deselected there. The
-`test-servers` job starts the containers of `compose.yaml` and runs them. The
-`native-platforms` job runs the hash tests on Windows x64, macOS x86_64 and
-arm64, and Linux aarch64.
+The `test` job runs on Linux, Windows and macOS with no server, so the server
+tests stay deselected there. The `test-servers` job, on Linux only, starts the
+containers of `compose.yaml` and runs them. The `native-platforms` job runs the
+hash tests on Windows x64, macOS x86_64 and arm64, and Linux aarch64.
 
 **Security checks.** CodeQL default setup, configured on GitHub and not in
 `ci.yml`, analyzes `main` and the pull requests (`python`, `c-cpp`, `rust`,
 `actions`). The `security` job of CI runs bandit over the tree without `test/`,
 `docs/` and `native/vendor/`, blocking at medium severity and above, and
-pip-audit over the exported lock, on Python 3.10 and 3.11. Run them locally with
+pip-audit over the exported lock, on Python 3.11. Run them locally with
 the commands of that job; their tools are the `security` dependency group. A
 `# nosec` names its test ID and carries its reason on the line above, and an
 `--ignore-vuln` carries its reason beside the step.
@@ -153,9 +153,15 @@ it by running.
   `importlib.reload(speedupy)` then reloads the empty `speedupy/__init__.py`
   instead of `speedupy.py`. The conftest collects the root as a plain directory.
 - **The current directory:** tests write `.speedupy/`, `script_test*.py` and
-  `__init__.py` in the current directory and remove them with `rm`. The paths
-  in `constants.py` are relative, so changing directory is enough to move them.
-  The conftest runs the session in a scratch directory.
+  `__init__.py` in the current directory and remove them with `remove_paths`
+  (`test/remove_paths.py`). The paths in `constants.py` are relative, so
+  changing directory is enough to move them. The conftest runs the session in a
+  scratch directory.
+- **Windows:** the suite runs there too. Remove files with `remove_paths`, never
+  with a shell command. Close a database connection before its file is removed:
+  Windows does not remove an open file. SpeeduPy looks scripts up by their
+  normalized path, so build such a name with `os.path.join`. A process ends its
+  output lines in `\r\n`. A path written into source code is written with `!r`.
 - **Singletons live as long as the process:** `SingletonMeta` keeps one instance
   per class. The autouse fixture `_restore_process_state` in `test/conftest.py`
   puts back, after every test, the instances and their attributes, `sys.argv`,
@@ -184,9 +190,7 @@ it by running.
   time (`-mt`) caches nothing in a small script.
 - **Server tests share state:** Redis database 0, the `speedupy` databases and
   the whole Memcached. They never run in parallel.
-- **Python:** the pinned requirements have wheels for Python 3.9 to 3.11 only.
-  `.python-version` pins 3.10, the version CI uses, because two tests in
-  `test_serializers/test_util.py` compare Python 3.10 bytecode and fail on 3.11.
+- **Python:** one version is supported, 3.11: see "Python versions".
 - **Not collected by unittest:** unittest discovery skips `test/test_entities/`,
   which has no `__init__.py`. pytest collects it.
 - **Unraisable warnings:** the server storage tests define `__del__` that reads
@@ -222,7 +226,8 @@ trims `sys.argv` before any test module loads.
   (`a5hash`, `meow`, `museair`) in `NATIVE_MAP` in `test/conftest.py`, or with
   `@pytest.mark.native("meow")`; an unknown name fails the test. The
   `native-platforms` job of CI runs the hash tests on Windows, macOS and Linux
-  arm64; the rest of the suite runs on Linux x86_64 only.
+  arm64; the `test` job runs the whole serverless suite on Linux x86_64,
+  Windows x64 and macOS arm64.
 - `uv run pytest --collect-only -q` touches no server, whatever the variable
   says. The count by what each test needs is in `RETROFIT.md`, "Baseline".
 
@@ -341,6 +346,47 @@ none.
   read through another client may overtake a write, and `flush_all` hides the
   items at once but `curr_items` drops only later. Read the keys back; do not
   count them with `stats()`.
+
+## Python versions
+
+The supported range is `requires-python` in `pyproject.toml`: today Python 3.11
+only (`>=3.11,<3.12`), on Linux, Windows and macOS. A version is supported when
+CI runs it in a blocking job, so the upper bound never goes beyond what CI
+runs. Release 2.0 is to support Python 3.11 to 3.15 on the three systems
+(decision D10, issue #128).
+
+The range, or its floor, is stated in these places. They change together:
+
+- `requires-python` and `[tool.ruff] target-version` (the floor) in
+  `pyproject.toml`, and `uv.lock` (`uv lock`);
+- `check_python_version()` in `util.py`, with its tests in `test/test_util.py`;
+- `README.md` (the badge, "How to Install" and the `python3.11` of the command
+  examples) and the examples of `docs/experimental.md`;
+- `.python-version` (the floor) and the `Dockerfile`;
+- every `python-version` of `ci.yml` and `native.yml`, and, in the `security`
+  job, `uv python install` and each `--python`.
+
+In CI, `test` runs on `ubuntu-latest`, `windows-latest` and `macos-latest`,
+`test-servers` on Linux only (it needs Docker), and `native-platforms` on the
+platforms of `native/lib/` that `test-servers` does not run on. The `-latest`
+labels move when GitHub moves them. To run the suite on a given version without
+touching `.venv`, with a version inside the range:
+`uv run --isolated --locked --python 3.11 pytest`.
+
+**Widening the range** to 3.12 to 3.15 waits for decision D9, which removes
+`murmurhash`: its pin, `mmh3==4.0.1`, has no wheel for Python 3.12 or later
+(#36). Then:
+
+1. Check that every pin installs from wheels for each new version on the three
+   systems. A version that needs a newer pin gets one issue per dependency, and
+   one dependency is changed per step.
+2. In one commit, raise the upper bound of `requires-python` and of
+   `check_python_version()`, update the places above, and add a Python
+   dimension to the matrix of `test`.
+3. Run pip-audit once per Python for which the lock resolves differently
+   (`resolution-markers` in `uv.lock`).
+4. Set the floors from the counts of the new run ("Tests" in
+   `CONTRIBUTING.md`).
 
 ## Formatting
 
