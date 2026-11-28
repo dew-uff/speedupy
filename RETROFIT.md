@@ -292,7 +292,7 @@ Task 2 fills the "Decision" column. A task that names a decision waits for it.
 | 21 | README held to the tool | dev | Sonnet | medium | yes | 15 | done (#155) |
 | 22 | Contribution documents | dev | Sonnet | low | yes | 14, D4 | done (#142) |
 | 23 | Dependency and security checks | dev | Sonnet | medium | yes | 6, D5 | done (#133, #143) |
-| 24 | Python versions | dev | Sonnet | medium | yes | 14, 23, D10 | part 1 done (#151); part 2 pending |
+| 24 | Python versions | dev | Sonnet | medium | yes | 14, 23, D10 | done (#151, #171) |
 | 25 | Native libraries, part 2: the binaries in the repository | dev | Opus | high | yes | 14, D3 | done (#115) |
 | 26 | Repository skills | dev | Sonnet | medium | yes | 19, 22 | done (#145) |
 | 27 | Publish on PyPI | dev | Opus | high | yes | 21, 23, 24, 25, D7 | pending |
@@ -987,7 +987,7 @@ Sonnet · medium · clear first: yes · depends on: 14, 23, D10
   the `test` job runs on Linux, Windows and macOS. dnspython and filelock, which
   Task 23 deferred to here, left their 3.10 versions, and the audit ignores no
   advisory.
-- **Part 2, done (issue #164):** D9 (issue #156) had removed `murmur` and with
+- **Part 2, done (#171, issue #164):** D9 (issue #156) had removed `murmur` and with
   it `mmh3`, which blocked 3.12 (#36). The range is 3.11 to 3.15
   (`>=3.11,<3.16`). numpy (#165), scipy (#166), pandas (#167) and pymongo (#168)
   moved; numpy, scipy and pandas have other versions from 3.15 on. `test` runs

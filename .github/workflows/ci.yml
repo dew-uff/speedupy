@@ -117,7 +117,7 @@ jobs:
     # number today. Raise it in the pull request that adds tests; lower it only
     # with the reason written in the pull request.
     env:
-      MIN_TESTS: 581
+      MIN_TESTS: 591
     strategy:
       fail-fast: false
       matrix:
@@ -183,10 +183,11 @@ jobs:
   # on the loopback ports, and compose refuses to start if one is taken.
   test-servers:
     # min-tests: floor for passed + skipped + xfailed + xpassed of the whole
-    # run, servers included. Raise it in the pull request that adds tests; lower
-    # it only with the reason written in the pull request.
+    # run, servers included, applied to each leg: the lowest count among the legs
+    # minus 2. Raise it in the pull request that adds tests; lower it only with
+    # the reason written in the pull request.
     env:
-      MIN_TESTS: 776
+      MIN_TESTS: 786
     # The lowest and the highest supported Python: the drivers and the pins
     # differ between them.
     strategy:
@@ -246,7 +247,7 @@ jobs:
     # pull request that adds hash tests; lower it only with the reason written
     # in the pull request.
     env:
-      MIN_TESTS: 123
+      MIN_TESTS: 124
     strategy:
       fail-fast: false
       matrix:
