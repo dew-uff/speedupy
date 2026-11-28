@@ -9,11 +9,10 @@ packaged. The procedure to rebuild the binaries is `native/README.md`.
 ## Why the binaries live here
 
 SpeeduPy offers four hashes: `xxhash` (`xxhash`, the default) and `md5`
-(standard library), which work on every platform, and two native research ones,
-`a5hash` and `museair`. Research hashes are not supported in SpeeduPy 2.0 and
-are evaluated in a separate issue. Until #112 the native ones were `.so` files
-compiled by hand on one Linux machine, not versioned, from sources in other
-repositories.
+(standard library), which work on every platform, and two research-grade native ones,
+`a5hash` and `museair`. Research-grade hashes: available and fully tested.
+Until #112 the native ones were `.so` files compiled by hand on one Linux
+machine, not versioned, from sources in other repositories.
 
 D3, as the maintainers decided it on 2026-11-19, moved them to a separate
 package, `speedupy-native` (issue #106). Issue #112 replaced that with the

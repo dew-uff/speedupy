@@ -171,8 +171,7 @@ class TestParserParams(unittest.TestCase):
             list(hash_action.choices), ["xxhash", "md5", "a5hash", "museair"]
         )
         self.assertIn(
-            "Research hashes are not supported in SpeeduPy 2.0 and are evaluated "
-            "in a separate issue.",
+            "Research-grade hashes: available and fully tested.",
             " ".join(help_output().split()),
         )
 

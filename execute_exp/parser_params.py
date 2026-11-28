@@ -74,11 +74,11 @@ def experimental_msg():
 
 def hashes_msg():
     return "\nHashes: \n\
-    => xxhash   : Extremely fast non-cryptographic hash with very high performance and good collision resistance (default).\n\
+    => xxhash   : Extremely fast non-cryptographic hash with very high performance and good collision resistance (default, recommended).\n\
     => md5      : Cryptographic hash function with strong collision resistance.\n\
-    => a5hash   : Research. High-performance non-cryptographic hash designed for speed and efficiency.\n\
-    => museair  : Research. High-performance non-cryptographic hash designed for excellent speed and distribution.\n\
-Research hashes are not supported in SpeeduPy 2.0 and are evaluated in a separate issue.\n"
+    => a5hash   : Research-grade. High-performance non-cryptographic hash designed for speed and efficiency.\n\
+    => museair  : Research-grade. High-performance non-cryptographic hash designed for excellent speed and distribution.\n\
+Research-grade hashes: available and fully tested.\n"
 
 
 def storage_msg():
