@@ -1,6 +1,6 @@
 # SpeeduPy
 
-[![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.11_to_3.15-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 
 SpeeduPy is a performance optimization tool developed in Python. It utilizes an advanced **memoization** and **persistent caching** approach applied to pure functions, drastically accelerating the execution time of scientific and computation-intensive scripts.
 
@@ -19,7 +19,7 @@ SpeeduPy is a performance optimization tool developed in Python. It utilizes an 
 
 SpeeduPy can be installed in two primary ways: via Docker commands, or directly on your host machine.
 
-SpeeduPy runs on Python 3.11, on Linux, Windows and macOS. Other Python versions are not supported yet.
+SpeeduPy runs on Python 3.11 to 3.15, on Linux, Windows and macOS. Other Python versions are not supported. The commands below use `python3.11`; replace it with the supported version you have.
 
 ### 0. Clone or Download the Repository
 

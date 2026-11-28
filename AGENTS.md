@@ -102,7 +102,7 @@ hash tests on Windows x64, macOS x86_64 and arm64, and Linux aarch64.
 `ci.yml`, analyzes `main` and the pull requests (`python`, `c-cpp`, `rust`,
 `actions`). The `security` job of CI runs bandit over the tree without `test/`,
 `docs/` and `native/vendor/`, blocking at medium severity and above, and
-pip-audit over the exported lock, on Python 3.11. Run them locally with
+pip-audit over the exported lock, on Python 3.11 and 3.15. Run them locally with
 the commands of that job; their tools are the `security` dependency group. A
 `# nosec` names its test ID and carries its reason on the line above, and an
 `--ignore-vuln` carries its reason beside the step.
@@ -189,7 +189,8 @@ it by running.
   time (`-mt`) caches nothing in a small script.
 - **Server tests share state:** Redis database 0, the `speedupy` databases and
   the whole Memcached. They never run in parallel.
-- **Python:** one version is supported, 3.11: see "Python versions".
+- **Python:** 3.11 to 3.15 are supported, and numpy, scipy and pandas have
+  other versions from 3.15 on: see "Python versions".
 - **Not collected by unittest:** unittest discovery skips `test/test_entities/`,
   which has no `__init__.py`. pytest collects it.
 - **Unraisable warnings:** the server storage tests define `__del__` that reads
@@ -354,39 +355,49 @@ none.
 
 ## Python versions
 
-The supported range is `requires-python` in `pyproject.toml`: today Python 3.11
-only (`>=3.11,<3.12`), on Linux, Windows and macOS. A version is supported when
-CI runs it in a blocking job, so the upper bound never goes beyond what CI
-runs. Release 2.0 is to support Python 3.11 to 3.15 on the three systems
-(decision D10, issue #128).
+The supported range is `requires-python` in `pyproject.toml`: Python 3.11 to
+3.15 (`>=3.11,<3.16`), on Linux, Windows and macOS (decision D10). A version is
+supported when CI runs it in a blocking job, so the upper bound never goes
+beyond what CI runs.
+
+**Two pins from 3.15 on.** No version of numpy or scipy has wheels for the whole
+range, so `[project] dependencies` and `requirements.txt` pin each twice, with a
+`python_version` marker (single quotes in `pyproject.toml`); pandas, in the dev
+group, has two ranges. `check-pins.py` compares the pins by name and marker.
+
+**Cache keys.** `test_cache_keys.py` holds literal keys that every supported
+version must give. Some nested numpy values differ from what numpy 1 gave
+(#170).
 
 The range, or its floor, is stated in these places. They change together:
 
 - `requires-python` and `[tool.ruff] target-version` (the floor) in
   `pyproject.toml`, and `uv.lock` (`uv lock`);
 - `check_python_version()` in `util.py`, with its tests in `test/test_util.py`;
-- `README.md` (the badge, "How to Install" and the `python3.11` of the command
-  examples) and the examples of `docs/experimental.md`;
+- `README.md` (the badge and "How to Install"; the command examples there and
+  in `docs/experimental.md` use the floor);
 - `.python-version` (the floor) and the `Dockerfile`;
-- every `python-version` of `ci.yml` and `native.yml`, and, in the `security`
-  job, `uv python install` and each `--python`.
+- every `python-version` of `ci.yml` and `native.yml`, the matrices of `test`
+  and `test-servers`, and, in the `security` job, `uv python install` and each
+  `--python`.
 
-In CI, `test` runs on `ubuntu-latest`, `windows-latest` and `macos-latest`,
-`test-servers` on Linux only (it needs Docker), and `native-platforms` on the
-platforms of `native/lib/` that `test-servers` does not run on. The `-latest`
-labels move when GitHub moves them. To run the suite on a given version without
-touching `.venv`, with a version inside the range:
-`uv run --isolated --locked --python 3.11 pytest`.
+In CI, `test` runs the floor and the highest version on `ubuntu-latest`,
+`windows-latest` and `macos-latest`, and the versions between them on Linux
+only. `test-servers` runs the floor and the highest version on Linux (it needs
+Docker). `native-platforms` runs the floor on the platforms of `native/lib/`
+that `test-servers` does not run on, and `native.yml` builds on the floor. The
+`-latest` labels move when GitHub moves them. To run the suite on a given
+version without touching `.venv`, with a version inside the range:
+`uv run --isolated --locked --python 3.15 pytest`.
 
-**Widening the range** to 3.12 to 3.15 is part 2 of Task 24. Decision D9
-removed what blocked it, the pin of `mmh3`. To widen:
+**Widening the range:**
 
 1. Check that every pin installs from wheels for each new version on the three
    systems. A version that needs a newer pin gets one issue per dependency, and
    one dependency is changed per step.
 2. In one commit, raise the upper bound of `requires-python` and of
-   `check_python_version()`, update the places above, and add a Python
-   dimension to the matrix of `test`.
+   `check_python_version()`, update the places above, and extend the Python
+   dimension of the matrices.
 3. Run pip-audit once per Python for which the lock resolves differently
    (`resolution-markers` in `uv.lock`).
 4. Set the floors from the counts of the new run ("Tests" in
