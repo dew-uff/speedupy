@@ -33,7 +33,6 @@ PLATFORM_TAGS = {
 # Library base name -> (hash name in SpeeduPy, submodule, wrapper)
 SOURCES = {
     "a5hash": ("a5hash", "native/vendor/a5hash", "native/src/a5hash_wrapper.c"),
-    "meow": ("meowhash", "native/vendor/meow_hash", "native/src/meow_wrapper.cpp"),
     "museair": ("museair", "native/vendor/museair", "native/museair/src/lib.rs"),
 }
 

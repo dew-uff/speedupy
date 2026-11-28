@@ -255,11 +255,12 @@ Task 2 fills the "Decision" column. A task that names a decision waits for it.
 | :--- | :--- | :--- | :--- |
 | D1 | Open work before the format commit: PR #16 (`issue_15`) and the branch `btree-impl`. Integrate, close, or accept the rebase? | Task 9 | Close both, archived first as the tags `archive/issue_15` and `archive/btree-impl`. Task 15 reimplements the setup option on `main`, taking PR #16 as prior work; the B-tree storage is issue #34, for after the retrofit. |
 | D2 | Issue #15: how should setup behave when the servers are not running? PR #16 adds `--storage` to setup. | Task 15 | Adopt issue #15 as written: setup gets `-s/--storage` with the execution's storage names, default `file`. `init_env` initializes only the chosen storage, `_env_exists` no longer requires the SQLite file, and setup never touches a server that was not selected. The disabling of `FUNCTION_CALLS_PROV` that PR #16 also did is out of scope: issue #35. |
-| D3 | Where are the sources and the build commands of the three native hash libraries? | Task 25 | Decided by the maintainers on 2026-11-19, revised by the admin's proposal in issue #112, accepted with the merge of its pull request. The six hashes (`md5`, `murmur`, `xxhash`, `a5hash`, `meowhash`, `museair`) stay, and the three native ones run on Linux x86_64 and aarch64, Windows x64, macOS x86_64 and arm64 with no compiler on the user's machine. Their sources are git submodules of the original repositories, at the commits the measurements used (`avaneev/a5hash` `10492db`, `cmuratori/meow_hash` `b080caa`, `eternal-io/museair` `29e56ad`); the wrappers of the forks the original `.so` files came from (`JoaoLopez/a5hash` `7ff7fa3`, `JoaoLopez/meow_hash` `beeb71f`, `JoaoLopez/museair` `91e7304`) moved to `native/`. The binaries are versioned in `native/lib/`, one folder per platform, built only by a workflow, with a manifest of their sources and sha256; `native.py` loads the folder of the running platform. The 2026-11-19 version put them in a separate package, `speedupy-native` (issue #106); #112 keeps one repository and one release instead, and the native hashes stay options: a platform without a binary loses only that hash. Two limits are part of the decision: MeowHash is x86_64 with AES-NI only, since its official implementation has no ARM port, so on arm64 `-H meowhash` fails with a message that says so and the other five work; and the pinned commits are never moved silently, because MuseAir changed its algorithm across versions. Publishing on PyPI, with one wheel per platform and a generic one, is Task 27. The design is `docs/native-hashes.md`. |
+| D3 | Where are the sources and the build commands of the three native hash libraries? | Task 25 | **Partly superseded by D9** (the six hashes no longer all stay, and MeowHash is gone). Decided by the maintainers on 2026-11-19, revised by the admin's proposal in issue #112, accepted with the merge of its pull request. The six hashes (`md5`, `murmur`, `xxhash`, `a5hash`, `meowhash`, `museair`) stay, and the three native ones run on Linux x86_64 and aarch64, Windows x64, macOS x86_64 and arm64 with no compiler on the user's machine. Their sources are git submodules of the original repositories, at the commits the measurements used (`avaneev/a5hash` `10492db`, `cmuratori/meow_hash` `b080caa`, `eternal-io/museair` `29e56ad`); the wrappers of the forks the original `.so` files came from (`JoaoLopez/a5hash` `7ff7fa3`, `JoaoLopez/meow_hash` `beeb71f`, `JoaoLopez/museair` `91e7304`) moved to `native/`. The binaries are versioned in `native/lib/`, one folder per platform, built only by a workflow, with a manifest of their sources and sha256; `native.py` loads the folder of the running platform. The 2026-11-19 version put them in a separate package, `speedupy-native` (issue #106); #112 keeps one repository and one release instead, and the native hashes stay options: a platform without a binary loses only that hash. Two limits are part of the decision: MeowHash is x86_64 with AES-NI only, since its official implementation has no ARM port, so on arm64 `-H meowhash` fails with a message that says so and the other five work; and the pinned commits are never moved silently, because MuseAir changed its algorithm across versions. Publishing on PyPI, with one wheel per platform and a generic one, is Task 27. The design is `docs/native-hashes.md`. |
 | D4 | Which license, and which GitHub team or users go in `CODEOWNERS`? | Task 22 | License MIT, copyright Universidade Federal Fluminense (UFF), confirmed by the admin; `LICENSE` added in issue #68. `CODEOWNERS`: `claytonchagas` and `JoaoLopez` (`JoaoFelipe` is not an owner), confirmed on the team's thread on 2026-11-16. Task 22 adds `CODEOWNERS` with these two. |
 | D5 | For this private repository: how many Actions minutes may CI spend, and are code scanning and secret scanning available on the organization's plan? | Tasks 14, 23 | Answered 2026-11-16 by the admin: the repository is public, and GitHub detects the MIT license. Tasks 14 and 23 are unblocked. |
 | D6 | Which Python versions are supported? | Task 24 | 3.10 to 3.11: every pin installs from wheels there. 3.9 is dropped, the README says 3.10+. 3.12 and 3.13 need a newer `mmh3` pin (no wheel for 4.0.1): issue #36, outside the retrofit. `check_python_version()` is aligned in Task 24. |
 | D7 | Should the server backends be optional? | Task 15 | Proposed by the maintainer and approved by the admin on 2026-11-16, as noWorkflow does. The default install (`pip install speedupy`) brings only the `file` and `sqlite` storages; each server backend is an extra (`speedupy[mysql]`, `speedupy[mongo]`, `speedupy[redis]`, `speedupy[memcached]`) plus `speedupy[all]`. Every storage imports its driver only when selected, with a clear error if it is missing. No backend discussed in a paper leaves the repository, and reproducing a paper stays one command. Task 15 implements the code part together with D2. Packaging and publishing to PyPI (extras, `CITATION.cff`, a README line `pip install speedupy[all]==X.Y.Z`) is a post-retrofit issue, to be opened later. |
+| D9 | Which hashes does SpeeduPy 2.0 offer? | Task 24 (part 2) | Decided 2026-11-26, endorsed by both advisors on 2026-11-26/27 (issue #156): the public hashes are `xxhash` (default, XXH3 128-bit) and `md5`. `murmur` and `meowhash` are removed with what existed only for them. BLAKE3 is evaluated in a separate issue; `a5hash` and `museair` are research items of another: they stay selectable, labelled research, and are not supported in 2.0. Why `murmur` (`mmh3` 4.0.1) goes: it showed no measured gain over `xxhash`, and its pin had no wheel for Python 3.12 or later (#36), which blocked Task 24 part 2. Why `meowhash` (0.5) goes: it ran on x86_64 with AES-NI only (#124), its wrapper exposed a 32-bit digest (#125), and its upstream is unmaintained since 2021 and was reclassified by its author after a published cryptanalysis. Both remain in the 1.7.x releases (tags), which the ongoing undergraduate work on MeowHash uses; 2.0 does not read 1.x caches. Supersedes D3 where it keeps the six hashes. |
 
 ## Status
 
@@ -983,9 +984,9 @@ Sonnet · medium · clear first: yes · depends on: 14, 23, D6
   the `test` job runs on Linux, Windows and macOS. dnspython and filelock, which
   Task 23 deferred to here, left their 3.10 versions, and the audit ignores no
   advisory.
-- **Part 2, pending on decision D9:** once `murmurhash` is removed (`mmh3` blocks
-  3.12, #36), widen the range to 3.12 to 3.15, as "Python versions" in
-  `AGENTS.md` says.
+- **Part 2, unblocked, pending:** D9 (issue #156) removed `murmur` and with it
+  `mmh3`, which blocked 3.12 (#36). What is left is to widen the range to 3.12
+  to 3.15, as "Python versions" in `AGENTS.md` says.
 
 ### Task 25 — Native libraries, part 2: the binaries in the repository
 
@@ -1046,7 +1047,7 @@ Opus · high · clear first: yes · depends on: 21, 23, 24, 25, D7 · production
 change
 
 **Goal.** `pip install speedupy==X.Y.Z` installs a release from PyPI, with the
-six hashes on the five platforms of `native/lib/` and the three portable ones
+four hashes on the five platforms of `native/lib/` and the two portable ones
 anywhere else.
 
 **Why.** D7 left packaging and publishing for after the retrofit; issue #112
@@ -1074,8 +1075,8 @@ installed: `package = false`, and the code imports top-level names (`util`,
 5. `AGENTS.md` gains "Releasing".
 
 **Done when.** A tag publishes to TestPyPI; on each of the five platforms,
-`pip install` of that release in a clean environment runs the six hashes, and
-on another platform the generic wheel runs the three portable ones.
+`pip install` of that release in a clean environment runs the four hashes, and
+on another platform the generic wheel runs the two portable ones.
 
 ### Task 28 — Close the retrofit
 

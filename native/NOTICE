@@ -1,4 +1,4 @@
-The binaries in native/lib/ are built from three third-party hash
+The binaries in native/lib/ are built from two third-party hash
 implementations, kept as git submodules in native/vendor/ at the commits
 below: the versions SpeeduPy's measurements used. Their licenses apply to
 their code and travel with the binaries in this file, since a clone without
@@ -39,34 +39,6 @@ a5hash (native/vendor/a5hash/a5hash.h)
   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
-
-
-MeowHash 0.5 "calico" (native/vendor/meow_hash/meow_hash_x64_aesni.h)
-  Upstream: https://github.com/cmuratori/meow_hash
-  Commit: b080caa7e51576fe3151c8976110df7966fa6a38 (2021-07-02)
-  Wrapper: native/src/meow_wrapper.cpp, from https://github.com/JoaoLopez/meow_hash
-  (commit beeb71f), altered as its header says
-  License: zlib
-
-  zlib License
-
-  (C) Copyright 2018 Molly Rocket, Inc.
-
-  This software is provided 'as-is', without any express or implied
-  warranty.  In no event will the authors be held liable for any damages
-  arising from the use of this software.
-
-  Permission is granted to anyone to use this software for any purpose,
-  including commercial applications, and to alter it and redistribute it
-  freely, subject to the following restrictions:
-
-  1. The origin of this software must not be misrepresented; you must not
-     claim that you wrote the original software. If you use this software
-     in a product, an acknowledgment in the product documentation would be
-     appreciated but is not required.
-  2. Altered source versions must be plainly marked as such, and must not be
-     misrepresented as being the original software.
-  3. This notice may not be removed or altered from any source distribution.
 
 
 MuseAir 0.4.0, BFast variant (native/vendor/museair/src/lib.rs)

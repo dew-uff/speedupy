@@ -106,11 +106,10 @@ jobs:
   test:
     # min-tests: floor for passed + skipped + xfailed + xpassed, applied to each
     # leg: the lowest count among the legs minus 2. The three collect the same
-    # number today (macOS skips the MeowHash tests, which count). Raise it in
-    # the pull request that adds tests; lower it only with the reason written
-    # in the pull request.
+    # number today. Raise it in the pull request that adds tests; lower it only
+    # with the reason written in the pull request.
     env:
-      MIN_TESTS: 604
+      MIN_TESTS: 581
     strategy:
       fail-fast: false
       matrix:
@@ -172,7 +171,7 @@ jobs:
     # run, servers included. Raise it in the pull request that adds tests; lower
     # it only with the reason written in the pull request.
     env:
-      MIN_TESTS: 799
+      MIN_TESTS: 776
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -220,15 +219,13 @@ jobs:
           if-no-files-found: ignore
 
   # The native hashes on each platform of native/lib/ that `test-servers` does
-  # not run on: the hash tests against the binaries (issue #112). On arm64,
-  # MeowHash has no binary and its tests are skipped, so the count is the same
-  # on every platform.
+  # not run on: the hash tests against the binaries (issue #112).
   native-platforms:
     # min-tests: floor for passed + skipped + xfailed + xpassed. Raise it in the
     # pull request that adds hash tests; lower it only with the reason written
     # in the pull request.
     env:
-      MIN_TESTS: 139
+      MIN_TESTS: 123
     strategy:
       fail-fast: false
       matrix:

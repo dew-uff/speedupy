@@ -1,7 +1,7 @@
-"""Reference values of the three native hashes.
+"""Reference values of the two native hashes.
 
-Produced by the original liba5hash.so, libmeow.so and libmuseair.so, built on
-Linux x86_64 from the commits pinned in native/NOTICE, and published as the
+Produced by the original liba5hash.so and libmuseair.so, built on Linux x86_64
+from the commits pinned in native/NOTICE, and published as the
 test vectors of the speedupy-native 0.1.0 package (tests/test_vectors.py).
 Every binary of native/lib/ must reproduce them on its own platform: the hash
 tests check them through the hash classes, and native/check.py checks them
@@ -110,17 +110,4 @@ MUSEAIR = {  # (input, seed): museair_bfast_64
     ("mib_1", 1): 0xB9B5ECF57CE783B6,
     ("mib_1", 3735928559): 0xB00CF347BABA92EB,
     ("mib_1", 18446744073709551615): 0xC395C7E855426CB3,
-}
-
-MEOWHASH = {  # input: meowhash_32 with the default seed
-    "empty": 0x5859C045,
-    "one_byte": 0x340E50E3,
-    "abc": 0x430ACC3B,
-    "ascii_sentence": 0xC72FB576,
-    "utf8": 0x71ED3CB2,
-    "nul_bytes": 0xE9D32FE0,
-    "all_bytes": 0x411FE318,
-    "kib_1": 0x68BB2FC8,
-    "kib_64": 0xBC6FAA9C,
-    "mib_1": 0x4F6B172F,
 }

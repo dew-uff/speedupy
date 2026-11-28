@@ -9,13 +9,6 @@
       "wrapper": "native/src/a5hash_wrapper.c",
       "wrapper_blob": "96304ad99c351244da33da79d24ff5b94589a290"
     },
-    "meowhash": {
-      "repository": "https://github.com/cmuratori/meow_hash.git",
-      "commit": "b080caa7e51576fe3151c8976110df7966fa6a38",
-      "submodule": "native/vendor/meow_hash",
-      "wrapper": "native/src/meow_wrapper.cpp",
-      "wrapper_blob": "a24334d841a1c6828041c5a05c16b09e71b409c9"
-    },
     "museair": {
       "repository": "https://github.com/eternal-io/museair.git",
       "commit": "29e56adbc737412d7b6cecfaec73e68e5566a107",
@@ -62,11 +55,6 @@
           "bytes": 15464,
           "sha256": "d05a361afb205152f94be82e3c1bf2913778879637bf22d35c3764dff8b09a68"
         },
-        "libmeow.so": {
-          "hash": "meowhash",
-          "bytes": 15888,
-          "sha256": "59bcbc8982b379f2911d8f6cb64a3eb5b28ac3236a6e96bb1184359baddf735e"
-        },
         "libmuseair.so": {
           "hash": "museair",
           "bytes": 392784,
@@ -109,11 +97,6 @@
           "bytes": 4232,
           "sha256": "f7c90f8f468f487c9c6ed65ab4801a8374b4d1f5e7685ffc48865746481eae32"
         },
-        "libmeow.dylib": {
-          "hash": "meowhash",
-          "bytes": 8472,
-          "sha256": "8b5bf33c4190476634c031276ac803e6af9d19d78436c5a9af9b04bc58f340de"
-        },
         "libmuseair.dylib": {
           "hash": "museair",
           "bytes": 342184,
@@ -133,11 +116,6 @@
           "hash": "a5hash",
           "bytes": 105472,
           "sha256": "20f26a081947813e36e65eaa442e05a1e22661b27c7f7b22135bd1be5edbed9f"
-        },
-        "meow.dll": {
-          "hash": "meowhash",
-          "bytes": 106496,
-          "sha256": "f1ac58ade680f3df033febf6bb8fbcb49b2307967931d476311735948fcc172c"
         },
         "museair.dll": {
           "hash": "museair",

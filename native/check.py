@@ -29,13 +29,13 @@ REFERENCE = (
     / "native_reference_values.py"
 )
 
-# platform -> (prefix, extension, has MeowHash)
+# platform -> (prefix, extension)
 PLATFORMS = {
-    "linux-x86_64": ("lib", "so", True),
-    "linux-aarch64": ("lib", "so", False),
-    "windows-amd64": ("", "dll", True),
-    "macos-x86_64": ("lib", "dylib", True),
-    "macos-arm64": ("lib", "dylib", False),
+    "linux-x86_64": ("lib", "so"),
+    "linux-aarch64": ("lib", "so"),
+    "windows-amd64": ("", "dll"),
+    "macos-x86_64": ("lib", "dylib"),
+    "macos-arm64": ("lib", "dylib"),
 }
 
 
@@ -76,25 +76,12 @@ def check_museair(lib, ref):
         yield ("museair", name, seed, out.value, expected)
 
 
-def check_meowhash(lib, ref):
-    lib.MeowHash_32.argtypes = [ctypes.c_void_p, ctypes.c_uint64, ctypes.c_void_p]
-    lib.MeowHash_32.restype = ctypes.c_uint32
-    lib.GetMeowDefaultSeed.restype = ctypes.c_void_p
-    seed = lib.GetMeowDefaultSeed()
-    for name, expected in ref.MEOWHASH.items():
-        data = ref.INPUTS[name]
-        _, ptr = _buffer(data)
-        yield ("meowhash", name, None, lib.MeowHash_32(seed, len(data), ptr), expected)
-
-
 def main(platform):
     if platform not in PLATFORMS:
         sys.exit(f"unknown platform {platform!r}; one of {', '.join(PLATFORMS)}")
-    prefix, ext, has_meow = PLATFORMS[platform]
+    prefix, ext = PLATFORMS[platform]
     folder = HERE / "lib" / platform
     checks = {"a5hash": check_a5hash, "museair": check_museair}
-    if has_meow:
-        checks["meow"] = check_meowhash
 
     expected_files = {f"{prefix}{base}.{ext}" for base in checks}
     found_files = {p.name for p in folder.iterdir()} if folder.is_dir() else set()
@@ -110,8 +97,7 @@ def main(platform):
         lib = ctypes.CDLL(str(folder / f"{prefix}{base}.{ext}"))
         for hash_name, name, seed, got, expected in check(lib, ref):
             total += 1
-            key = name if seed is None else (name, seed)
-            computed.setdefault(hash_name, {})[key] = got
+            computed.setdefault(hash_name, {})[(name, seed)] = got
             if got != expected:
                 failures += 1
                 print(
@@ -126,13 +112,11 @@ def main(platform):
 
 def _print_tables(platform, computed):
     print(f"\nValues computed on {platform}, as in native_reference_values.py:")
-    widths = {"a5hash": 16, "museair": 16, "meowhash": 8}
     for hash_name, values in computed.items():
         print(f"\n{hash_name.upper()} = {{")
-        for key, value in values.items():
+        for (name, seed), value in values.items():
             # The layout ruff gives the file: double quotes, upper-case digits.
-            name = f'("{key[0]}", {key[1]})' if isinstance(key, tuple) else f'"{key}"'
-            print(f"    {name}: 0x{value:0{widths[hash_name]}X},")
+            print(f'    ("{name}", {seed}): 0x{value:016X},')
         print("}")
 
 

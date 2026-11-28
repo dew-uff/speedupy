@@ -1,9 +1,8 @@
 # Native hashes: how to rebuild the binaries
 
-The binaries of `a5hash`, `meowhash` and `museair` are versioned in
-`native/lib/`, one folder per platform, so a plain clone of SpeeduPy runs all
-six hashes. This page is for the rare change that needs new binaries. The
-design (why the binaries are here, the platforms, the validation, the
+The binaries of `a5hash` and `museair` are versioned in `native/lib/`, one
+folder per platform, so a plain clone of SpeeduPy runs all four hashes. This
+page is for the rare change that needs new binaries. The design (why the binaries are here, the platforms, the validation, the
 packaging) is `docs/native-hashes.md`. Every path and command below is from
 the root of the repository.
 
@@ -34,17 +33,16 @@ tests or the documents does not.
 ## The submodules, in two minutes
 
 A submodule is a folder of this repository that is another git repository,
-pinned at one commit. `native/vendor/a5hash`, `native/vendor/meow_hash` and
-`native/vendor/museair` are the original repositories of the three hashes.
-This repository stores only which commit each one is at (`.gitmodules` holds
-their addresses).
+pinned at one commit. `native/vendor/a5hash` and `native/vendor/museair` are
+the original repositories of the two hashes. This repository stores only which
+commit each one is at (`.gitmodules` holds their addresses).
 
-A plain `git clone` leaves the three folders empty. That is enough to run and
+A plain `git clone` leaves the two folders empty. That is enough to run and
 change SpeeduPy, because the binaries are in `native/lib/`. Only a rebuild
 needs the sources:
 
 ```bash
-git submodule update --init        # in an existing clone: fetch the three, at the pinned commits
+git submodule update --init        # in an existing clone: fetch the two, at the pinned commits
 git clone --recurse-submodules ... # or clone with them from the start
 git submodule status               # the pinned commit of each one
 ```
@@ -106,8 +104,7 @@ comes with one, as any production change does (`AGENTS.md`).
 ## Moving a submodule
 
 The new commit changes the values, so the workflow's check fails on every
-platform that builds that hash (MeowHash only on the three x86_64 ones) and
-the run uploads no binary. That failure is how the new values are obtained:
+platform and the run uploads no binary. That failure is how the new values are obtained:
 
 1. Move the submodule and record the new commit:
 
@@ -147,7 +144,7 @@ submodule. They are never edited to make a failing build pass.
 ## Building locally, to try a change
 
 To see whether a change compiles before pushing, on Linux or macOS with a C
-and a C++ compiler and rustup:
+compiler and rustup:
 
 ```bash
 native/build.sh macos-arm64      # or linux-x86_64, linux-aarch64, macos-x86_64

@@ -1,9 +1,6 @@
 [submodule "native/vendor/a5hash"]
 	path = native/vendor/a5hash
 	url = https://github.com/avaneev/a5hash.git
-[submodule "native/vendor/meow_hash"]
-	path = native/vendor/meow_hash
-	url = https://github.com/cmuratori/meow_hash.git
 [submodule "native/vendor/museair"]
 	path = native/vendor/museair
 	url = https://github.com/eternal-io/museair.git

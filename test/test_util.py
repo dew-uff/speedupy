@@ -5,9 +5,8 @@ import unittest
 import unittest.mock
 from hashlib import md5
 
-from mmh3 import hash128
 from remove_paths import remove_paths
-from xxhash import xxh128_hexdigest
+from xxhash import xxh64_intdigest, xxh128_hexdigest
 
 from util import check_python_version, save_json_file
 
@@ -51,7 +50,9 @@ class TestUtil(unittest.TestCase):
         self.assertFalse(os.path.exists(self.JSON_FILENAME))
         data = {
             "f1": md5("def f1():\n\treturn 'f1'".encode("utf")).hexdigest(),
-            "f2": hash128("def f2(a, b, c=3):\n\treturn a ** b + c".encode("utf")),
+            "f2": xxh64_intdigest(
+                "def f2(a, b, c=3):\n\treturn a ** b + c".encode("utf")
+            ),
             "f3": xxh128_hexdigest("def f3(x, y):\n\treturn x/y".encode("utf")),
         }
         save_json_file(data, self.JSON_FILENAME)

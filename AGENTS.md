@@ -14,7 +14,7 @@ results up in a storage.
 | `execute_exp/` | Execution: parameters, settings, hashes, memory architectures, retrieval, serializers. |
 | `entities/` | The storage backends (`*Database.py`): SQLite, MySQL, MongoDB, Redis, Memcached, GridFS. |
 | `speedupy.py` | The decorators and the entry point that the injected script imports. |
-| `native/` | The native hashes (a5hash, MeowHash, MuseAir): the versioned binaries of five platforms, their sources as submodules, the wrappers and the build (`native/README.md`). |
+| `native/` | The native hashes (a5hash, MuseAir): the versioned binaries of five platforms, their sources as submodules, the wrappers and the build (`native/README.md`). |
 | `test/` | The tests (unittest classes, run by pytest from Task 5 on). |
 | `logger/`, `util.py`, `constants.py`, `SingletonMeta.py` | Shared helpers. |
 
@@ -169,12 +169,11 @@ it by running.
   so an object mutated in place (a list inside a singleton) is not undone. A test
   that builds a singleton under a mock starts from no instance and says so, as
   `test_RedisDatabase.py` does.
-- **Native libraries:** `MeowHash.py`, `A5Hash.py` and `MuseairBFastHash.py`
-  load their library on first use from `native/lib/<platform>/`, through
-  `load_native_library` in `execute_exp/services/hashes/native.py`. The
+- **Native libraries:** `A5Hash.py` and `MuseairBFastHash.py` (research
+  hashes, D9) load their library on first use from `native/lib/<platform>/`,
+  through `load_native_library` in `execute_exp/services/hashes/native.py`. The
   binaries are versioned for Linux x86_64 and aarch64, Windows x64 and macOS
-  x86_64 and arm64; MeowHash has none on arm64. A platform without the library
-  raises an `ImportError` that names the hash and the platform, and only that
+  x86_64 and arm64. A platform without the library raises an `ImportError` that names the hash and the platform, and only that
   hash fails. Never compile a binary on your machine and commit it: only the
   workflow `native.yml` builds them, and `native/README.md` is the procedure,
   with a section for agents. A request to "update the native libraries" is
@@ -221,10 +220,10 @@ trims `sys.argv` before any test module loads.
   tests with servers" below.
 - **Native tests** run against the binaries of `native/lib/` for the running
   platform. They are skipped, with the library and the platform in the reason
-  (`-rs`), only where that platform has no such library (MeowHash on arm64);
-  anywhere else a missing or wrong binary fails. A test names its libraries
-  (`a5hash`, `meow`, `museair`) in `NATIVE_MAP` in `test/conftest.py`, or with
-  `@pytest.mark.native("meow")`; an unknown name fails the test. The
+  (`-rs`), only where that platform has no such library (a platform outside
+  the five); anywhere else a missing or wrong binary fails. A test names its
+  libraries (`a5hash`, `museair`) in `NATIVE_MAP` in `test/conftest.py`, or
+  with `@pytest.mark.native("museair")`; an unknown name fails the test. The
   `native-platforms` job of CI runs the hash tests on Windows, macOS and Linux
   arm64; the `test` job runs the whole serverless suite on Linux x86_64,
   Windows x64 and macOS arm64.
@@ -379,9 +378,8 @@ labels move when GitHub moves them. To run the suite on a given version without
 touching `.venv`, with a version inside the range:
 `uv run --isolated --locked --python 3.11 pytest`.
 
-**Widening the range** to 3.12 to 3.15 waits for decision D9, which removes
-`murmurhash`: its pin, `mmh3==4.0.1`, has no wheel for Python 3.12 or later
-(#36). Then:
+**Widening the range** to 3.12 to 3.15 is part 2 of Task 24. Decision D9
+removed what blocked it, the pin of `mmh3`. To widen:
 
 1. Check that every pin installs from wheels for each new version on the three
    systems. A version that needs a newer pin gets one issue per dependency, and

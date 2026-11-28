@@ -3,7 +3,6 @@ import random
 import unittest
 from unittest.mock import Mock
 
-import mmh3
 import xxhash
 
 from execute_exp.entitites.Metadata import Metadata
@@ -26,7 +25,7 @@ class TestDataAccess(unittest.TestCase):
             [["pickle", PickleSerializer()], ["cloudpickle", CloudpickleSerializer()]]
         )
         SpeeduPySettings().serializer = [serializer[0]]
-        SpeeduPySettings().hash = [random.choice(["md5", "murmur", "xxhash"])]
+        SpeeduPySettings().hash = [random.choice(["md5", "xxhash"])]
         self.serializer = serializer[1]
         self.dataAccess = DataAccess()
         self.dataAccess._FUNCTIONS_2_HASHES = {
@@ -56,8 +55,6 @@ class TestDataAccess(unittest.TestCase):
         f_call_hash = str(f_call_hash) + f_source
         if hash_algorithm == ["md5"]:
             f_call_hash = hashlib.md5(f_call_hash.encode("utf")).hexdigest()
-        elif hash_algorithm == ["murmur"]:
-            f_call_hash = hex(mmh3.hash128(f_call_hash.encode("utf")))[2:]
         elif hash_algorithm == ["xxhash"]:
             f_call_hash = xxhash.xxh128_hexdigest(f_call_hash.encode("utf"))
         return f_call_hash

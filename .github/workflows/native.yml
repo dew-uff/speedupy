@@ -1,6 +1,6 @@
 name: Native hashes
 
-# Builds the native hash libraries (a5hash, MeowHash, MuseAir) of the five
+# Builds the native hash libraries (a5hash, MuseAir) of the five
 # platforms, checks each one against the reference values on its own system,
 # and uploads them with their manifest as the `native-binaries` artifact.
 # Nothing is committed here: whoever rebuilds the binaries downloads the
