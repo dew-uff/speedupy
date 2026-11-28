@@ -21,7 +21,7 @@ SERVER_MATRIX = (
         "redis",
         "recursive.py",
     ),
-    ("murmur", "1-dict", "lazy", "sequential", "pickle", "mongo", "kwargs_nested.py"),
+    ("md5", "1-dict", "lazy", "sequential", "pickle", "mongo", "kwargs_nested.py"),
     (
         "md5",
         "2-dict",
@@ -41,7 +41,7 @@ SERVER_MATRIX = (
         "recursive.py",
     ),
     (
-        "murmur",
+        "xxhash",
         "2-dict",
         "eager",
         "sequential",

@@ -8,12 +8,10 @@ tests (see ``native`` in test/conftest.py); anywhere else a wrong value fails.
 import pytest
 
 from execute_exp.services.hashes.A5Hash import A5Hash
-from execute_exp.services.hashes.MeowHash import MeowHash
 from execute_exp.services.hashes.MuseairBFastHash import MuseairBFastHash
 from test_execute_exp.test_services.test_hashes.native_reference_values import (
     A5HASH,
     INPUTS,
-    MEOWHASH,
     MUSEAIR,
 )
 
@@ -30,10 +28,3 @@ def test_a5hash(name, seed):
 def test_museair(name, seed):
     expected = f"{MUSEAIR[(name, seed)]:016x}"
     assert MuseairBFastHash(serializer=None, seed=seed)._hash(INPUTS[name]) == expected
-
-
-@pytest.mark.native("meow")
-@pytest.mark.parametrize("name", sorted(MEOWHASH))
-def test_meowhash(name):
-    expected = f"{MEOWHASH[name]:08x}"
-    assert MeowHash(serializer=None)._hash(INPUTS[name]) == expected

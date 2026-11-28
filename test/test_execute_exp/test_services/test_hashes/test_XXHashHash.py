@@ -30,6 +30,13 @@ class TestXXHashHash(unittest.TestCase):
 
         self.assertEqual(result, expected_result)
 
+    def test_the_digest_is_xxh3_128(self):
+        # A literal value: a digest that changes between releases silently
+        # empties every cache.
+        result = self.hash._hash(b"speedupy")
+
+        self.assertEqual(result, "6efc8be7919cabbd9e2ca3dc7a53b0d1")
+
 
 if __name__ == "__main__":
     unittest.main()

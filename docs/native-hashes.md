@@ -1,17 +1,19 @@
 # Native hashes: the binaries in the repository
 
-Decision D3 of `RETROFIT.md`, as revised by issue #112. This document is the
-design of the three native hashes: where their sources are, how their binaries
+Decision D3 of `RETROFIT.md`, as revised by issue #112 and, for the list of
+hashes, by decision D9 (issue #156). This document is the design of the two
+native hashes: where their sources are, how their binaries
 are built, versioned and loaded, how they are validated, and how they will be
 packaged. The procedure to rebuild the binaries is `native/README.md`.
 
 ## Why the binaries live here
 
-SpeeduPy offers six hashes: `md5` (standard library), `murmur` (`mmh3`) and
-`xxhash` (`xxhash`), which install from wheels on every platform, and three
-native ones, `a5hash`, `meowhash` and `museair`. Until #112 the native ones
-were `.so` files compiled by hand on one Linux machine, not versioned, from
-sources in three other repositories.
+SpeeduPy offers four hashes: `xxhash` (`xxhash`, the default) and `md5`
+(standard library), which work on every platform, and two native research ones,
+`a5hash` and `museair`. Research hashes are not supported in SpeeduPy 2.0 and
+are evaluated in a separate issue. Until #112 the native ones were `.so` files
+compiled by hand on one Linux machine, not versioned, from sources in other
+repositories.
 
 D3, as the maintainers decided it on 2026-11-19, moved them to a separate
 package, `speedupy-native` (issue #106). Issue #112 replaced that with the
@@ -21,7 +23,7 @@ binaries inside this repository:
   `speedupy` and has everything: no second repository, no second PyPI project,
   no version pin between the two.
 - **The native hashes are options, not requirements.** SpeeduPy runs with
-  `md5`, `murmur` and `xxhash` on any platform. A platform with no native
+  `xxhash` and `md5` on any platform. A platform with no native
   binary loses only those hashes, as the lazy loading of Task 12 already
   allowed.
 - **Reproducibility comes from the version of `speedupy`.** A release carries
@@ -30,7 +32,7 @@ binaries inside this repository:
 
 ## The sources
 
-The three algorithms are git submodules of the original repositories, at the
+The two algorithms are git submodules of the original repositories, at the
 commits the measurements used. These commits are never moved silently: a new
 commit changes the hash values, and MuseAir's later versions are a different
 algorithm.
@@ -38,21 +40,18 @@ algorithm.
 | Hash | Submodule | Original | Commit | Language | License |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | a5hash | `native/vendor/a5hash` | `avaneev/a5hash` | `10492dbe8c34ae043ccbab3fe4b16a2a26eebbc6` (2025-12-19, version 5.25) | C, single header `a5hash.h` | MIT |
-| MeowHash 0.5 | `native/vendor/meow_hash` | `cmuratori/meow_hash` | `b080caa7e51576fe3151c8976110df7966fa6a38` (2021-07-02) | C++, `meow_hash_x64_aesni.h` | zlib |
 | MuseAir BFast | `native/vendor/museair` | `eternal-io/museair` | `29e56adbc737412d7b6cecfaec73e68e5566a107` (2025-12-21, crate 0.4.0) | Rust crate | MIT or Apache-2.0 |
 
 The original `.so` files were built from personal forks of these repositories
-(`JoaoLopez/a5hash` at `7ff7fa3`, `JoaoLopez/meow_hash` at `beeb71f`,
-`JoaoLopez/museair` at `91e7304`). Each fork is its original at the commit
+(`JoaoLopez/a5hash` at `7ff7fa3`, `JoaoLopez/museair` at `91e7304`). Each fork is its original at the commit
 above plus a wrapper; none changes an algorithm. The wrappers moved here:
 
 | Wrapper | Exports | Changes from the fork |
 | :--- | :--- | :--- |
 | `native/src/a5hash_wrapper.c` | `a5hash_128_64(data, len, seed) -> uint64` | an export macro, so that Windows exports the symbol |
-| `native/src/meow_wrapper.cpp` | `MeowHash_32(seed, len, data) -> uint32`, `GetMeowDefaultSeed()` | the export macro, English comments, and `MeowHash_C` (never called) left out |
 | `native/museair/src/lib.rs` | `museair_bfast_64(data, len, seed, out)` | the function the fork added to the crate, now in a small crate of ours that depends on the original crate by path |
 
-`native/NOTICE` carries the three licenses, since a clone without the
+`native/NOTICE` carries the two licenses, since a clone without the
 submodules has the binaries but not the sources.
 
 ## Layout
@@ -60,12 +59,12 @@ submodules has the binaries but not the sources.
 ```
 native/
 ├── README.md               # the procedure to rebuild the binaries
-├── NOTICE                  # the licenses of the three sources
+├── NOTICE                  # the licenses of the two sources
 ├── manifest.json           # where each binary came from (written by the workflow)
 ├── lib/<platform>/         # the binaries, versioned
-├── src/                    # the C and C++ wrappers
+├── src/                    # the C wrapper
 ├── museair/                # the MuseAir wrapper crate (Cargo.lock, pinned Rust)
-├── vendor/                 # the three submodules
+├── vendor/                 # the two submodules
 ├── build.sh                # build of one Linux or macOS platform
 ├── build.ps1               # build of Windows x64
 ├── check.py                # the binaries of one platform against the reference values
@@ -74,19 +73,17 @@ native/
 
 ## Platforms
 
-| Folder | Wheel platform tag | a5hash | MuseAir | MeowHash | Built on |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| `linux-x86_64` | `manylinux_2_28_x86_64` | `liba5hash.so` | `libmuseair.so` | `libmeow.so` | `ubuntu-24.04`, in the `manylinux_2_28_x86_64` image |
-| `linux-aarch64` | `manylinux_2_28_aarch64` | `liba5hash.so` | `libmuseair.so` | no | `ubuntu-24.04-arm`, in the `manylinux_2_28_aarch64` image |
-| `windows-amd64` | `win_amd64` | `a5hash.dll` | `museair.dll` | `meow.dll` | `windows-2025`, MSVC |
-| `macos-x86_64` | `macosx_10_12_x86_64` | `liba5hash.dylib` | `libmuseair.dylib` | `libmeow.dylib` | `macos-15-intel` |
-| `macos-arm64` | `macosx_11_0_arm64` | `liba5hash.dylib` | `libmuseair.dylib` | no | `macos-15` |
+| Folder | Wheel platform tag | a5hash | MuseAir | Built on |
+| :--- | :--- | :--- | :--- | :--- |
+| `linux-x86_64` | `manylinux_2_28_x86_64` | `liba5hash.so` | `libmuseair.so` | `ubuntu-24.04`, in the `manylinux_2_28_x86_64` image |
+| `linux-aarch64` | `manylinux_2_28_aarch64` | `liba5hash.so` | `libmuseair.so` | `ubuntu-24.04-arm`, in the `manylinux_2_28_aarch64` image |
+| `windows-amd64` | `win_amd64` | `a5hash.dll` | `museair.dll` | `windows-2025`, MSVC |
+| `macos-x86_64` | `macosx_10_12_x86_64` | `liba5hash.dylib` | `libmuseair.dylib` | `macos-15-intel` |
+| `macos-arm64` | `macosx_11_0_arm64` | `liba5hash.dylib` | `libmuseair.dylib` | `macos-15` |
 
 The Linux libraries need glibc 2.28 or newer (Debian 10, Ubuntu 18.10, RHEL 8
-and later). MeowHash's official implementation exists for x86_64 with AES-NI
-only; the project maintains no ARM port, and SpeeduPy does not adopt a
-third-party one. Any other platform (32-bit Python, Windows on ARM, a BSD) has
-no native binary and keeps the other three hashes.
+and later). Any other platform (32-bit Python, Windows on ARM, a BSD) has no
+native binary and keeps `xxhash` and `md5`.
 
 ## Build
 
@@ -101,8 +98,8 @@ the `native-binaries` artifact, which the person rebuilding them commits
 (`native/README.md`).
 
 The compiler flags are the ones the original `.so` files were built with:
-a5hash with `-O3 -fno-inline`, MeowHash with `-O3 -maes -msse4.1`, MuseAir with
-`cargo build --release`; on Windows, MSVC's equivalents (`/O2 /Ob0`, `/O2`).
+a5hash with `-O3 -fno-inline`, MuseAir with `cargo build --release`; on
+Windows, MSVC's equivalent for a5hash (`/O2 /Ob0`).
 Flags change speed, never the hash values, but the measurements were taken
 with these. The Rust release is pinned in `native/museair/rust-toolchain.toml`
 (1.83.0, the minimum the MuseAir crate declares).
@@ -114,14 +111,18 @@ git blob id); and the workflow run and the commit the binaries were built
 from. A test checks that the files in `native/lib/` are exactly the ones the
 manifest lists, with the same sha256.
 
+When MeowHash was removed (#156), its binaries and its entries in the manifest
+were deleted by hand, with no rebuild. The other binaries are the ones of the
+run the manifest names, and the toolchain lines are what that run printed.
+
 ## Loading
 
 `execute_exp/services/hashes/native.py` picks the folder of `native/lib/` for
 the running interpreter, from `sys.platform` and `platform.machine()` (a
 32-bit interpreter has none), and loads the library through `ctypes` the
 first time its hash is used. A platform without the library raises an
-`ImportError` that names the hash and the platform and says that `md5`,
-`murmur` and `xxhash` work everywhere; only that hash fails. The submodules
+`ImportError` that names the hash and the platform and says that `md5` and
+`xxhash` work everywhere; only that hash fails. The submodules
 are needed only to rebuild the binaries: a plain clone runs every hash and can
 change any Python code.
 
@@ -130,7 +131,7 @@ change any Python code.
 - **Reference values.** The values of the original `.so` files, for ten
   inputs (empty to 1 MiB) and four seeds, are
   `test/test_execute_exp/test_services/test_hashes/native_reference_values.py`:
-  40 for a5hash, 40 for MuseAir, 10 for MeowHash. They come from the
+  40 for a5hash and 40 for MuseAir. They come from the
   `speedupy-native` 0.1.0 package (`tests/test_vectors.py`), produced there
   with the original libraries on Linux x86_64. `native/check.py` checks them
   right after each build, and `test_native_reference_values.py` checks them
@@ -153,24 +154,27 @@ PyPI is the last task of the retrofit plan. When it is published:
   tagged with the platform tag of the table above (and of the manifest);
 - one generic wheel (`py3-none-any`) with no binary, for any other platform;
 - pip picks the most specific wheel that fits the machine, so a user of a
-  platform outside the five gets the generic wheel and the three portable
+  platform outside the five gets the generic wheel and the two portable
   hashes.
 
 ## Limits
 
-- MeowHash is unavailable on arm64 (see "Platforms"); the other five hashes
-  work there. A paper that reports MeowHash numbers says they were measured on
-  x86_64.
-- MeowHash also needs AES-NI on x86_64, which most x86_64 processors since
-  about 2010 have but not all (some Atom and Pentium parts, some virtual
-  machines); SpeeduPy does not check the CPU yet, as the original `.so` did
-  not, and a runtime check is a follow-up issue.
-- MeowHash 0.5 was reclassified by its author after a published cryptanalysis:
-  it is not for message authentication nor for hash tables exposed to
-  collision attacks. A memoization cache in a non-adversarial setting is
-  within its intended use.
 - The pinned commits are frozen for the measurements. Upgrading MuseAir to the
   current crate (0.6, a different algorithm) is a new hash name, not a bump.
 - The reference values come from the original `.so` files on Linux x86_64,
   through the `speedupy-native` package; the original files are not versioned
   anywhere.
+
+## Removed hashes
+
+Decision D9 of `RETROFIT.md` (issue #156) removed two hashes:
+
+- `murmur` (`mmh3` 4.0.1) showed no measured gain over `xxhash`, and its pin had
+  no wheel for Python 3.12 or later (#36), which blocked part 2 of Task 24.
+- `meowhash` (MeowHash 0.5) ran on x86_64 with AES-NI only (#124), its wrapper
+  exposed a 32-bit digest (#125), and its upstream is unmaintained since 2021 and
+  was reclassified by its author after a published cryptanalysis.
+
+Both remain in the 1.7.x releases (tags), which the ongoing undergraduate work on
+MeowHash uses; 2.0 does not read 1.x caches. Those tags hold the hash classes
+and not the native library, so MeowHash there needs a `libmeow.so` of its own.

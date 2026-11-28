@@ -162,6 +162,20 @@ class TestParserParams(unittest.TestCase):
         self.assertEqual(params[4], ["mongo-gridfs"])
         self.assertEqual(params[6], [0.0])
 
+    def test_the_hashes_are_the_public_ones_and_the_research_ones(self):
+        hash_action = next(
+            action for action in build_parser()._actions if action.dest == "hash"
+        )
+
+        self.assertListEqual(
+            list(hash_action.choices), ["xxhash", "md5", "a5hash", "museair"]
+        )
+        self.assertIn(
+            "Research hashes are not supported in SpeeduPy 2.0 and are evaluated "
+            "in a separate issue.",
+            " ".join(help_output().split()),
+        )
+
     def test_a_value_outside_the_choices_exits_with_status_2(self):
         for option in ("-H", "-s", "--mem-arch", "--serializer", "--exec-mode"):
             err = io.StringIO()

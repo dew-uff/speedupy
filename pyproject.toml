@@ -9,7 +9,6 @@ license-files = ["LICENSE"]
 # widened ("Python versions" in AGENTS.md).
 requires-python = ">=3.11,<3.12"
 dependencies = [
-    "mmh3==4.0.1",
     "numpy==1.26.4",
     "scipy==1.15.3",
     "xxhash==4.1.0",
@@ -60,7 +59,7 @@ markers = [
     "mongo: needs the MongoDB server on localhost:27017 (opt-in, SPEEDUPY_TEST_SERVERS=1)",
     "redis: needs the Redis server on localhost:6379 (opt-in, SPEEDUPY_TEST_SERVERS=1)",
     "memcached: needs the Memcached server on localhost:11211 (opt-in, SPEEDUPY_TEST_SERVERS=1)",
-    "native: needs a native hash library of native/lib/ (a5hash, meow or museair)",
+    "native: needs a native hash library of native/lib/ (a5hash or museair)",
 ]
 
 [tool.coverage.run]

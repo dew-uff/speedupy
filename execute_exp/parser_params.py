@@ -74,12 +74,11 @@ def experimental_msg():
 
 def hashes_msg():
     return "\nHashes: \n\
+    => xxhash   : Extremely fast non-cryptographic hash with very high performance and good collision resistance (default).\n\
     => md5      : Cryptographic hash function with strong collision resistance.\n\
-    => murmur   : Fast, non-cryptographic hash function with low collision rates and high performance.\n\
-    => xxhash   : Extremely fast non-cryptographic hash with very high performance and good collision resistance.\n\
-    => meowhash : High-performance non-cryptographic hash optimized for modern CPUs (uses AES instructions).\n\
-    => museair  : High-performance non-cryptographic hash designed for excellent speed and distribution.\n\
-    => a5hash   : High-performance non-cryptographic hash designed for speed and efficiency.\n"
+    => a5hash   : Research. High-performance non-cryptographic hash designed for speed and efficiency.\n\
+    => museair  : Research. High-performance non-cryptographic hash designed for excellent speed and distribution.\n\
+Research hashes are not supported in SpeeduPy 2.0 and are evaluated in a separate issue.\n"
 
 
 def storage_msg():
@@ -137,7 +136,7 @@ def build_parser() -> argparse.ArgumentParser:
         "memcached-wt",
         "memcached-wb",
     ]
-    hashes = ["md5", "murmur", "xxhash", "meowhash", "museair", "a5hash"]
+    hashes = ["xxhash", "md5", "a5hash", "museair"]
     storage_options = STORAGE_OPTIONS
     serializer_options = ["pickle", "cloudpickle"]
 

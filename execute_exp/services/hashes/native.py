@@ -1,9 +1,9 @@
-"""Loading of the native hash libraries (a5hash, MeowHash, MuseAir).
+"""Loading of the native hash libraries (a5hash, MuseAir).
 
 The binaries are versioned in native/lib/, one folder per platform, and built
 by the workflow .github/workflows/native.yml (native/README.md). A library is
 loaded the first time its hash is used, so a platform without it loses only
-that hash: md5, murmur and xxhash work everywhere.
+that hash: md5 and xxhash work everywhere.
 """
 
 import ctypes
@@ -26,13 +26,12 @@ PLATFORM_FOLDERS = {
     ("darwin", "arm64"): "macos-arm64",
 }
 
-# Folder -> the libraries built for it. MeowHash 0.5 exists for x86_64 with
-# AES-NI only, so the arm64 folders have no "meow".
+# Folder -> the libraries built for it.
 PLATFORM_LIBRARIES = {
-    "linux-x86_64": ("a5hash", "meow", "museair"),
+    "linux-x86_64": ("a5hash", "museair"),
     "linux-aarch64": ("a5hash", "museair"),
-    "windows-amd64": ("a5hash", "meow", "museair"),
-    "macos-x86_64": ("a5hash", "meow", "museair"),
+    "windows-amd64": ("a5hash", "museair"),
+    "macos-x86_64": ("a5hash", "museair"),
     "macos-arm64": ("a5hash", "museair"),
 }
 
@@ -57,7 +56,7 @@ def platform_name():
 
 
 def library_filename(library, system=None):
-    """File name of ``library`` ("a5hash", "meow" or "museair") on ``system``."""
+    """File name of ``library`` ("a5hash" or "museair") on ``system``."""
     system = system or sys.platform
     if system == "win32":
         return f"{library}.dll"
@@ -81,13 +80,10 @@ def load_native_library(library: str, hash_name: str) -> ctypes.CDLL:
     """
     folder = platform_folder()
     if not is_available(library):
-        if folder is None:
-            reason = "SpeeduPy has no native binaries for this platform"
-        else:
-            reason = "this hash exists for x86_64 only"
         raise ImportError(
             f"The hash {hash_name} is not available on {platform_name()}: "
-            f"{reason}. The hashes md5, murmur and xxhash work on every platform."
+            "SpeeduPy has no native binaries for this platform. The hashes md5 "
+            "and xxhash work on every platform."
         )
     path = LIBRARY_ROOT / folder / library_filename(library)
     try:

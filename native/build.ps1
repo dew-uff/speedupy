@@ -9,8 +9,7 @@
 # Rust release is pinned in native/museair/rust-toolchain.toml).
 #
 # The flags are MSVC's equivalents of the ones the original .so files were
-# built with: /O2 /Ob0 for -O3 -fno-inline (a5hash), /O2 for -O3 (MeowHash;
-# MSVC needs no flag for the AES-NI intrinsics), `cargo build --release`
+# built with: /O2 /Ob0 for -O3 -fno-inline (a5hash), `cargo build --release`
 # (MuseAir).
 $ErrorActionPreference = "Stop"
 $PSNativeCommandUseErrorActionPreference = $true
@@ -19,7 +18,7 @@ $here = $PSScriptRoot
 $out = Join-Path $here "lib\windows-amd64"
 $obj = Join-Path ([System.IO.Path]::GetTempPath()) "speedupy-native-obj"
 
-foreach ($submodule in "a5hash", "meow_hash", "museair") {
+foreach ($submodule in "a5hash", "museair") {
     $dir = Join-Path $here "vendor\$submodule"
     if (-not (Get-ChildItem -Force $dir -ErrorAction SilentlyContinue)) {
         throw "native/vendor/$submodule is empty: run git submodule update --init"
@@ -50,10 +49,6 @@ try {
     Write-Host "== a5hash"
     cl /nologo /O2 /Ob0 /LD /I (Join-Path $here "vendor\a5hash") `
         (Join-Path $here "src\a5hash_wrapper.c") "/Fe$(Join-Path $out 'a5hash.dll')"
-
-    Write-Host "== MeowHash"
-    cl /nologo /O2 /EHsc /LD /I (Join-Path $here "vendor\meow_hash") `
-        (Join-Path $here "src\meow_wrapper.cpp") "/Fe$(Join-Path $out 'meow.dll')"
 }
 finally {
     Pop-Location

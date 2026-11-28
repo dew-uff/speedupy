@@ -18,7 +18,7 @@ import itertools
 import pytest
 from harness import assert_oracle, corpus_scripts, run_oracle
 
-HASHES = ("md5", "murmur", "xxhash", "meowhash", "museair", "a5hash")
+HASHES = ("md5", "xxhash", "museair", "a5hash")
 MEM_ARCHS = ("0-dict", "1-dict", "2-dict", "2-dict-fast")
 STRATEGIES = ("lazy", "function", "eager")
 EXEC_MODES = ("sequential", "thread")
@@ -29,7 +29,6 @@ VALUES = (HASHES, MEM_ARCHS, STRATEGIES, EXEC_MODES, SERIALIZERS, STORAGES, SCRI
 
 # Hash -> its library in native/lib/ (the ``native`` marker of test/conftest.py).
 NATIVE_HASH_LIBRARIES = {
-    "meowhash": "meow",
     "museair": "museair",
     "a5hash": "a5hash",
 }
@@ -90,8 +89,8 @@ def _is_known_defect_pair(row):
     )
 
 
-# Row 1 is the default of every option. Rows 2-27 complete the pairs, over the
-# six hashes and the four corpus scripts (pandas_args.py, #110, included).
+# Row 1 is the default of every option. Rows 2-21 complete the pairs, over the
+# four hashes and the four corpus scripts (pandas_args.py, #110, included).
 PAIRWISE = (
     (
         "xxhash",
@@ -103,9 +102,17 @@ PAIRWISE = (
         "recursive.py",
     ),
     ("md5", "0-dict", "lazy", "sequential", "pickle", "file", "kwargs_nested.py"),
-    ("murmur", "1-dict", "function", "thread", "cloudpickle", "file", "pandas_args.py"),
     (
-        "meowhash",
+        "museair",
+        "1-dict",
+        "function",
+        "thread",
+        "cloudpickle",
+        "file",
+        "pandas_args.py",
+    ),
+    (
+        "a5hash",
         "2-dict",
         "function",
         "sequential",
@@ -113,10 +120,9 @@ PAIRWISE = (
         "sqlite",
         "std_streams.py",
     ),
-    ("museair", "2-dict", "lazy", "thread", "pickle", "file", "recursive.py"),
-    ("a5hash", "1-dict", "lazy", "sequential", "pickle", "sqlite", "pandas_args.py"),
+    ("xxhash", "2-dict", "lazy", "thread", "pickle", "file", "recursive.py"),
     (
-        "meowhash",
+        "a5hash",
         "2-dict-fast",
         "lazy",
         "thread",
@@ -124,16 +130,17 @@ PAIRWISE = (
         "file",
         "std_streams.py",
     ),
+    ("md5", "1-dict", "eager", "sequential", "pickle", "sqlite", "pandas_args.py"),
     (
         "museair",
-        "0-dict",
-        "function",
+        "2-dict",
+        "eager",
         "sequential",
         "cloudpickle",
         "sqlite",
         "kwargs_nested.py",
     ),
-    ("murmur", "2-dict", "eager", "sequential", "pickle", "sqlite", "kwargs_nested.py"),
+    ("md5", "0-dict", "function", "thread", "cloudpickle", "file", "recursive.py"),
     (
         "xxhash",
         "2-dict-fast",
@@ -143,55 +150,25 @@ PAIRWISE = (
         "file",
         "kwargs_nested.py",
     ),
-    ("a5hash", "0-dict", "function", "thread", "cloudpickle", "file", "recursive.py"),
-    ("md5", "1-dict", "eager", "sequential", "cloudpickle", "sqlite", "std_streams.py"),
-    ("md5", "2-dict", "function", "thread", "cloudpickle", "file", "pandas_args.py"),
+    ("museair", "0-dict", "lazy", "sequential", "pickle", "sqlite", "pandas_args.py"),
+    ("xxhash", "1-dict", "eager", "sequential", "pickle", "file", "std_streams.py"),
+    ("a5hash", "1-dict", "lazy", "sequential", "pickle", "sqlite", "kwargs_nested.py"),
+    ("a5hash", "1-dict", "eager", "sequential", "pickle", "sqlite", "recursive.py"),
+    ("md5", "0-dict", "lazy", "sequential", "pickle", "sqlite", "std_streams.py"),
+    ("md5", "2-dict", "lazy", "sequential", "pickle", "sqlite", "pandas_args.py"),
+    ("md5", "2-dict-fast", "lazy", "sequential", "pickle", "sqlite", "pandas_args.py"),
+    ("xxhash", "0-dict", "lazy", "sequential", "pickle", "sqlite", "pandas_args.py"),
     (
         "museair",
         "2-dict-fast",
-        "eager",
-        "sequential",
-        "pickle",
-        "file",
-        "pandas_args.py",
-    ),
-    ("murmur", "0-dict", "lazy", "sequential", "pickle", "sqlite", "std_streams.py"),
-    ("xxhash", "0-dict", "lazy", "sequential", "pickle", "sqlite", "pandas_args.py"),
-    (
-        "meowhash",
-        "1-dict",
-        "eager",
-        "sequential",
-        "pickle",
-        "sqlite",
-        "kwargs_nested.py",
-    ),
-    ("a5hash", "2-dict", "eager", "sequential", "pickle", "sqlite", "kwargs_nested.py"),
-    ("md5", "1-dict", "lazy", "sequential", "pickle", "sqlite", "recursive.py"),
-    ("murmur", "2-dict-fast", "lazy", "sequential", "pickle", "sqlite", "recursive.py"),
-    ("xxhash", "1-dict", "lazy", "sequential", "pickle", "sqlite", "std_streams.py"),
-    ("meowhash", "0-dict", "lazy", "sequential", "pickle", "sqlite", "pandas_args.py"),
-    ("museair", "1-dict", "lazy", "sequential", "pickle", "sqlite", "std_streams.py"),
-    (
-        "a5hash",
-        "2-dict-fast",
         "lazy",
         "sequential",
         "pickle",
         "sqlite",
-        "std_streams.py",
+        "recursive.py",
     ),
-    (
-        "md5",
-        "2-dict-fast",
-        "lazy",
-        "sequential",
-        "pickle",
-        "sqlite",
-        "kwargs_nested.py",
-    ),
-    ("xxhash", "2-dict", "lazy", "sequential", "pickle", "sqlite", "kwargs_nested.py"),
-    ("meowhash", "0-dict", "lazy", "sequential", "pickle", "sqlite", "recursive.py"),
+    ("a5hash", "0-dict", "lazy", "sequential", "pickle", "sqlite", "pandas_args.py"),
+    ("museair", "0-dict", "lazy", "sequential", "pickle", "sqlite", "std_streams.py"),
 )
 
 

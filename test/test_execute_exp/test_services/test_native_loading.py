@@ -13,7 +13,6 @@ from execute_exp.services.hashes.MD5Hash import MD5Hash
 from execute_exp.services.hashes.XXHashHash import XXHashHash
 
 NATIVE_HASHES = [
-    ("execute_exp.services.hashes.MeowHash", "MeowHash", "meowhash"),
     ("execute_exp.services.hashes.A5Hash", "A5Hash", "a5hash"),
     (
         "execute_exp.services.hashes.MuseairBFastHash",
@@ -150,16 +149,6 @@ def test_the_library_is_loaded_from_the_platform_folder(system, machine, path):
     with a, b, c, patch.object(ctypes, "CDLL") as cdll:
         native.load_native_library("museair", "museair")
     cdll.assert_called_once_with(str(native.LIBRARY_ROOT / path))
-
-
-@pytest.mark.parametrize("machine", ["arm64", "aarch64"])
-def test_meowhash_on_arm64_names_the_hash_and_the_platform(machine):
-    system = "darwin" if machine == "arm64" else "linux"
-    a, b, c = _on(system, machine)
-    with a, b, c, patch.object(ctypes, "CDLL") as cdll:
-        with pytest.raises(ImportError, match="meowhash.*-a(rm|arch)64.*x86_64 only"):
-            native.load_native_library("meow", "meowhash")
-    cdll.assert_not_called()
 
 
 def test_a_platform_outside_the_five_names_the_hash_and_the_platform():

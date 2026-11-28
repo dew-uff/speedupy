@@ -19,12 +19,11 @@ What it does, and why:
    naming the unreachable ones: a missing server is an error, never a skip.
    The probe is skipped under ``--collect-only``, which touches no server.
 5. A test marked ``native`` needs the native libraries it names (``NATIVE_MAP``
-   below, or ``@pytest.mark.native("meow")`` on the test): "a5hash", "meow" or
+   below, or ``@pytest.mark.native("museair")`` on the test): "a5hash" or
    "museair", the libraries of ``native/lib/``. It is skipped, with the library
    and the platform in the reason, only where ``native/lib/`` has no such
-   library for the running platform (MeowHash on arm64, any of them outside
-   the five platforms). Where it has one, the test runs: a missing or broken
-   file is a failure.
+   library for the running platform (any platform outside the five). Where it
+   has one, the test runs: a missing or broken file is a failure.
 6. The process state a test may leave behind is restored after every test, so
    that no test depends on another and the order can be random (Task 8): the
    instances of the ``SingletonMeta`` classes and their attributes,
@@ -97,7 +96,6 @@ MARKER_MAP = {
 # tests below it need. Same keys as ``MARKER_MAP``.
 NATIVE_MAP = {
     "test_execute_exp/test_services/test_hashes/test_A5Hash.py": ("a5hash",),
-    "test_execute_exp/test_services/test_hashes/test_MeowHash.py": ("meow",),
     "test_execute_exp/test_services/test_hashes/test_MuseairBFastHash.py": ("museair",),
 }
 

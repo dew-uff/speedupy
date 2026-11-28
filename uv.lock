@@ -240,30 +240,6 @@ wheels = [
 ]
 
 [[package]]
-name = "mmh3"
-version = "4.0.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/34/a0/403fa487930124e8b52e68857d773b9524592c65c8c37e7074b009c67d77/mmh3-4.0.1.tar.gz", hash = "sha256:ad8be695dc4e44a79631748ba5562d803f0ac42d36a6b97a53aca84a70809385", size = 28128, upload-time = "2023-07-14T16:07:29.368Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/37/95/e7102c57fac99d5ffed13d75e43a90f536ae047cdcc941f777027fd62928/mmh3-4.0.1-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:91f81d6dd4d0c3b4235b4a58a545493c946669c751a2e0f15084171dc2d81fee", size = 45599, upload-time = "2023-07-14T16:06:32.407Z" },
-    { url = "https://files.pythonhosted.org/packages/10/cb/6d2ded51a171d52a42e3ed49202e5e7f4eb46db7e8943c434b5f35490abc/mmh3-4.0.1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:bbfddaf55207798f5b29341e5b3a24dbff91711c51b1665eabc9d910255a78f0", size = 34728, upload-time = "2023-07-14T16:06:33.824Z" },
-    { url = "https://files.pythonhosted.org/packages/fd/94/73fe9325fa8a712e461330630ac8f1296efb1893e8c901d53d60b0d5f4c1/mmh3-4.0.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:0deb8e19121c0896fdc709209aceda30a367cda47f4a884fcbe56223dbf9e867", size = 35658, upload-time = "2023-07-14T16:06:35.039Z" },
-    { url = "https://files.pythonhosted.org/packages/2b/60/3aef12203f598186ddc2949e0267fb265fd017a6f1d4560ef1c04a9fa241/mmh3-4.0.1-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:df468ac7b61ec7251d7499e27102899ca39d87686f659baf47f84323f8f4541f", size = 73984, upload-time = "2023-07-14T16:06:36.67Z" },
-    { url = "https://files.pythonhosted.org/packages/8b/d5/1fe96e1f58e9cf3b7e287b14a0961ce3f789d5f9a324b1da90d903693875/mmh3-4.0.1-cp311-cp311-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:84936c113814c6ef3bc4bd3d54f538d7ba312d1d0c2441ac35fdd7d5221c60f6", size = 77370, upload-time = "2023-07-14T16:06:37.956Z" },
-    { url = "https://files.pythonhosted.org/packages/92/b0/d45f05dacd0320897b90f611eb471b7c2e1a2e823a256c8a650a82cc174f/mmh3-4.0.1-cp311-cp311-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:8b1df3cf5ce5786aa093f45462118d87ff485f0d69699cdc34f6289b1e833632", size = 76172, upload-time = "2023-07-14T16:06:39.24Z" },
-    { url = "https://files.pythonhosted.org/packages/fe/ec/a77af6e875ed18922a5992a19dff9d2b4661fc072590717d2b8c38bd27b5/mmh3-4.0.1-cp311-cp311-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:da281aa740aa9e7f9bebb879c1de0ea9366687ece5930f9f5027e7c87d018153", size = 71063, upload-time = "2023-07-14T16:06:40.547Z" },
-    { url = "https://files.pythonhosted.org/packages/09/20/5b3ae859892ea96b983aa8ef77cf44d39b17760ebea6ce1d0c211721994f/mmh3-4.0.1-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:0ec380933a56eb9fea16d7fcd49f1b5a5c92d7d2b86f25e9a845b72758ee8c42", size = 72730, upload-time = "2023-07-14T16:06:41.579Z" },
-    { url = "https://files.pythonhosted.org/packages/71/f8/be0225499be60bac2d8f4313255f235afb1b00841bf41d280aa5ae869d3a/mmh3-4.0.1-cp311-cp311-musllinux_1_1_aarch64.whl", hash = "sha256:2fa905fcec8a30e1c0ef522afae1d6170c4f08e6a88010a582f67c59209fb7c7", size = 81475, upload-time = "2023-07-14T16:06:42.948Z" },
-    { url = "https://files.pythonhosted.org/packages/1d/d5/6fedb40cacf6e4b13a8539b3474ae17e2126c62ebb242970fd3e5e9fbedf/mmh3-4.0.1-cp311-cp311-musllinux_1_1_i686.whl", hash = "sha256:9b23a06315a65ef0b78da0be32409cfce0d6d83e51d70dcebd3302a61e4d34ce", size = 79686, upload-time = "2023-07-14T16:06:44.224Z" },
-    { url = "https://files.pythonhosted.org/packages/5b/52/9b50a44f3f092cc13b21a0702a68ddf9e6b3200f0a6f7b7dc3a2f07cc34a/mmh3-4.0.1-cp311-cp311-musllinux_1_1_ppc64le.whl", hash = "sha256:36c27089b12026db14be594d750f7ea6d5d785713b40a971b063f033f5354a74", size = 86992, upload-time = "2023-07-14T16:06:45.376Z" },
-    { url = "https://files.pythonhosted.org/packages/91/f7/f8c8cc8e7ccdbd7dab794867a9cdd77cd3c0472d7d2d0be6e7d61f73f8a5/mmh3-4.0.1-cp311-cp311-musllinux_1_1_s390x.whl", hash = "sha256:6338341ae6fa5eaa46f69ed9ac3e34e8eecad187b211a6e552e0d8128c568eb1", size = 83471, upload-time = "2023-07-14T16:06:46.529Z" },
-    { url = "https://files.pythonhosted.org/packages/b0/e8/69370f09a6702c5002e9a44df777b42197db6629c215725b5947902955e2/mmh3-4.0.1-cp311-cp311-musllinux_1_1_x86_64.whl", hash = "sha256:1aece29e27d0c8fb489d00bb712fba18b4dd10e39c9aec2e216c779ae6400b8f", size = 82102, upload-time = "2023-07-14T16:06:47.722Z" },
-    { url = "https://files.pythonhosted.org/packages/13/ce/d82c4216577bdfce2e656aa74110d744e63b19961dee8a8af9aee9208287/mmh3-4.0.1-cp311-cp311-win32.whl", hash = "sha256:2733e2160c142eed359e25e5529915964a693f0d043165b53933f904a731c1b3", size = 36162, upload-time = "2023-07-14T16:06:49.013Z" },
-    { url = "https://files.pythonhosted.org/packages/3f/2f/f2a4f4ae2f8eaeb0e3eb0582d8b95f2c1a7cff3250373d41ea8d28b4b14e/mmh3-4.0.1-cp311-cp311-win_amd64.whl", hash = "sha256:09f9f643e0b7f8d98473efdfcdb155105824a38a1ada374625b84c1208197a9b", size = 36186, upload-time = "2023-07-14T16:06:50.023Z" },
-    { url = "https://files.pythonhosted.org/packages/b6/ac/d2c071f631d4d83c4b2c8bd8e9bc0c4d1cea87b4f429e0a0207800012de5/mmh3-4.0.1-cp311-cp311-win_arm64.whl", hash = "sha256:d93422f38bc9c4d808c5438a011b769935a87df92ce277e9e22b6ec0ae8ed2e2", size = 35073, upload-time = "2023-07-14T16:06:51.062Z" },
-]
-
-[[package]]
 name = "msgpack"
 version = "1.2.4"
 source = { registry = "https://pypi.org/simple" }
@@ -663,7 +639,6 @@ version = "1.7.0"
 source = { virtual = "." }
 dependencies = [
     { name = "cloudpickle" },
-    { name = "mmh3" },
     { name = "mysql-connector-python" },
     { name = "numpy" },
     { name = "pymemcache" },
@@ -689,7 +664,6 @@ security = [
 [package.metadata]
 requires-dist = [
     { name = "cloudpickle", specifier = "==3.1.3" },
-    { name = "mmh3", specifier = "==4.0.1" },
     { name = "mysql-connector-python", specifier = "==26.10.0" },
     { name = "numpy", specifier = "==1.26.4" },
     { name = "pymemcache", specifier = "==4.0.0" },

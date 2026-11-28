@@ -18,8 +18,6 @@ from execute_exp.services.factory import (
 )
 from execute_exp.services.hashes.A5Hash import A5Hash
 from execute_exp.services.hashes.MD5Hash import MD5Hash
-from execute_exp.services.hashes.MeowHash import MeowHash
-from execute_exp.services.hashes.MurmurHash import MurmurHash
 from execute_exp.services.hashes.MuseairBFastHash import MuseairBFastHash
 from execute_exp.services.hashes.XXHashHash import XXHashHash
 from execute_exp.services.memory_architecures.MemcachedWriteBackMemArch import (
@@ -87,9 +85,7 @@ STORAGES = [
 SERIALIZERS = [("pickle", PickleSerializer), ("cloudpickle", CloudpickleSerializer)]
 HASHES = [
     ("md5", MD5Hash),
-    ("murmur", MurmurHash),
     ("xxhash", XXHashHash),
-    pytest.param("meowhash", MeowHash, marks=pytest.mark.native("meow")),
     pytest.param("museair", MuseairBFastHash, marks=pytest.mark.native("museair")),
     pytest.param("a5hash", A5Hash, marks=pytest.mark.native("a5hash")),
 ]

@@ -71,14 +71,14 @@ The server storages and the Memcached memory architectures also need their serve
 
 | Hash | Kind |
 | :--- | :--- |
-| `xxhash` | Non-cryptographic. The default. |
+| `xxhash` | Non-cryptographic (XXH3, 128 bits). The default. |
 | `md5` | From the Python standard library. |
-| `murmur` | MurmurHash, non-cryptographic. |
-| `meowhash` | Native library, x86_64 only. |
-| `a5hash` | Native library. A research hash: see [`docs/native-hashes.md`](docs/native-hashes.md). |
-| `museair` | Native library. A research hash: see [`docs/native-hashes.md`](docs/native-hashes.md). |
+| `a5hash` | Research. Native library. |
+| `museair` | Research. Native library. |
 
-The native hashes (`a5hash`, `meowhash`, `museair`) come prebuilt in `native/lib/` for Linux x86_64 and aarch64, Windows x64, and macOS x86_64 and arm64, so a plain clone runs them with no compiler. MeowHash exists for x86_64 only; on any other platform the other hashes still work. To rebuild the binaries (a changed wrapper, source commit or platform), follow [`native/README.md`](native/README.md); the design is [`docs/native-hashes.md`](docs/native-hashes.md).
+Research hashes are not supported in SpeeduPy 2.0 and are evaluated in a separate issue.
+
+The native hashes (`a5hash`, `museair`) come prebuilt in `native/lib/` for Linux x86_64 and aarch64, Windows x64, and macOS x86_64 and arm64, so a plain clone runs them with no compiler. On any other platform `xxhash` and `md5` still work. To rebuild the binaries (a changed wrapper, source commit or platform), follow [`native/README.md`](native/README.md); the design is [`docs/native-hashes.md`](docs/native-hashes.md).
 
 ---
 
@@ -158,7 +158,7 @@ You can control the entire caching mechanism, from the hashing algorithm to the 
 | Short Arg | Long Arg | Description | Accepted Values |
 | :---: | :--- | :--- | :--- |
 | `-h` | `--help` | Displays all available options. | |
-| `-H` | `--hash` | Hash that identifies a function call (see [Hashes](#hashes)). Default: `xxhash`. | `xxhash`, `md5`, `murmur`, `meowhash`, `a5hash`, `museair` |
+| `-H` | `--hash` | Hash that identifies a function call (see [Hashes](#hashes)). Default: `xxhash`. | `xxhash`, `md5`, `a5hash`, `museair` |
 | `-s` | `--storage` | Persistence backend: files, SQLite, MySQL, Redis, or MongoDB (documents; GridFS; documents with large data in files or in GridFS). Default: `sqlite`. | `file`, `sqlite`, `mysql`, `redis`, `mongo`, `gridfs`, `mongo-file`, `mongo-gridfs` |
 | | `--exec-mode` | Execution mode: `manual` (default) caches the `@deterministic` functions, `no-cache` caches nothing. The other three modes are experimental (beta): see [docs/experimental.md](docs/experimental.md). | `manual`, `no-cache`, `accurate`, `probabilistic-counting`, `probabilistic-error` |
 | | `--retrieval-strategy` | How data is loaded to main memory: each call when needed, all of a function, or everything at the start. Default: `eager`. | `lazy`, `function`, `eager` |
