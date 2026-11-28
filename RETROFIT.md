@@ -19,7 +19,7 @@ For an agent (Claude Code) working with a dev on this repository.
    behind: `git fetch origin`, then `git show origin/main:RETROFIT.md`. Without
    network, use the local file and say it may be out of date.
 2. The next task is the first row whose state is `pending`, whose task
-   dependencies are all `done`, and whose decisions (`D1`…`D7`) are answered in
+   dependencies are all `done`, and whose decisions (`D1`…`D11`) are answered in
    "Maintainer decisions". Name the blocked rows you passed over and what
    blocks each. A row is never passed over because of its "Who": see "Who does
    a task".
@@ -258,16 +258,19 @@ Task 2 fills the "Decision" column. A task that names a decision waits for it.
 | D3 | Where are the sources and the build commands of the three native hash libraries? | Task 25 | **Partly superseded by D9** (the six hashes no longer all stay, and MeowHash is gone). Decided by the maintainers on 2026-11-19, revised by the admin's proposal in issue #112, accepted with the merge of its pull request. The six hashes (`md5`, `murmur`, `xxhash`, `a5hash`, `meowhash`, `museair`) stay, and the three native ones run on Linux x86_64 and aarch64, Windows x64, macOS x86_64 and arm64 with no compiler on the user's machine. Their sources are git submodules of the original repositories, at the commits the measurements used (`avaneev/a5hash` `10492db`, `cmuratori/meow_hash` `b080caa`, `eternal-io/museair` `29e56ad`); the wrappers of the forks the original `.so` files came from (`JoaoLopez/a5hash` `7ff7fa3`, `JoaoLopez/meow_hash` `beeb71f`, `JoaoLopez/museair` `91e7304`) moved to `native/`. The binaries are versioned in `native/lib/`, one folder per platform, built only by a workflow, with a manifest of their sources and sha256; `native.py` loads the folder of the running platform. The 2026-11-19 version put them in a separate package, `speedupy-native` (issue #106); #112 keeps one repository and one release instead, and the native hashes stay options: a platform without a binary loses only that hash. Two limits are part of the decision: MeowHash is x86_64 with AES-NI only, since its official implementation has no ARM port, so on arm64 `-H meowhash` fails with a message that says so and the other five work; and the pinned commits are never moved silently, because MuseAir changed its algorithm across versions. Publishing on PyPI, with one wheel per platform and a generic one, is Task 27. The design is `docs/native-hashes.md`. |
 | D4 | Which license, and which GitHub team or users go in `CODEOWNERS`? | Task 22 | License MIT, copyright Universidade Federal Fluminense (UFF), confirmed by the admin; `LICENSE` added in issue #68. `CODEOWNERS`: `claytonchagas` and `JoaoLopez` (`JoaoFelipe` is not an owner), confirmed on the team's thread on 2026-11-16. Task 22 adds `CODEOWNERS` with these two. |
 | D5 | For this private repository: how many Actions minutes may CI spend, and are code scanning and secret scanning available on the organization's plan? | Tasks 14, 23 | Answered 2026-11-16 by the admin: the repository is public, and GitHub detects the MIT license. Tasks 14 and 23 are unblocked. |
-| D6 | Which Python versions are supported? | Task 24 | 3.10 to 3.11: every pin installs from wheels there. 3.9 is dropped, the README says 3.10+. 3.12 and 3.13 need a newer `mmh3` pin (no wheel for 4.0.1): issue #36, outside the retrofit. `check_python_version()` is aligned in Task 24. |
+| D6 | Which Python versions are supported? | Task 24 | **Superseded by D10.** 3.10 to 3.11: every pin installs from wheels there. 3.9 is dropped, the README says 3.10+. 3.12 and 3.13 need a newer `mmh3` pin (no wheel for 4.0.1): issue #36, outside the retrofit. `check_python_version()` is aligned in Task 24. |
 | D7 | Should the server backends be optional? | Task 15 | Proposed by the maintainer and approved by the admin on 2026-11-16, as noWorkflow does. The default install (`pip install speedupy`) brings only the `file` and `sqlite` storages; each server backend is an extra (`speedupy[mysql]`, `speedupy[mongo]`, `speedupy[redis]`, `speedupy[memcached]`) plus `speedupy[all]`. Every storage imports its driver only when selected, with a clear error if it is missing. No backend discussed in a paper leaves the repository, and reproducing a paper stays one command. Task 15 implements the code part together with D2. Packaging and publishing to PyPI (extras, `CITATION.cff`, a README line `pip install speedupy[all]==X.Y.Z`) is a post-retrofit issue, to be opened later. |
-| D9 | Which hashes does SpeeduPy 2.0 offer? | Task 24 (part 2) | Decided 2026-11-26, endorsed by both advisors on 2026-11-26/27 (issue #156): the public hashes are `xxhash` (default, XXH3 128-bit) and `md5`. `murmur` and `meowhash` are removed with what existed only for them. BLAKE3 is evaluated in a separate issue; `a5hash` and `museair` are research items of another: they stay selectable, labelled research, and are not supported in 2.0. Why `murmur` (`mmh3` 4.0.1) goes: it showed no measured gain over `xxhash`, and its pin had no wheel for Python 3.12 or later (#36), which blocked Task 24 part 2. Why `meowhash` (0.5) goes: it ran on x86_64 with AES-NI only (#124), its wrapper exposed a 32-bit digest (#125), and its upstream is unmaintained since 2021 and was reclassified by its author after a published cryptanalysis. Both remain in the 1.7.x releases (tags), which the ongoing undergraduate work on MeowHash uses; 2.0 does not read 1.x caches. Supersedes D3 where it keeps the six hashes. |
+| D8 | What happens to the probabilistic features (`@maybe_deterministic` and the execution modes `accurate`, `probabilistic-counting` and `probabilistic-error`), which are research in progress? | Task 15, issue #118 | Decided at the 2026-11-19 meeting, confirmed 2026-11-22. They stay in the product, off by default: no branch, no environment variable, no toggle framework. The switch is `--exec-mode`, at setup and at execution (default `manual`). Setup injects `@maybe_deterministic` only in `accurate` and `probabilistic-*` and records the mode in `.speedupy/setup_mode.json`; an experimental execution over a `manual` setup fails with a clear message. In `manual` and `no-cache`, `@maybe_deterministic` is the identity and warns once. `--help` groups the seven experimental options as "Experimental options (beta)"; the README and `docs/experimental.md` say what is experimental. The feature goes to the milestone "Experimental (thesis)", with the label `experimental`, and is promoted only in a release of its own (2.1 or 3.0). Implemented in issue #118 (PR #119). |
+| D9 | Which hashes does SpeeduPy 2.0 offer? | Task 24 (part 2) | Decided 2026-11-26, endorsed by both advisors on 2026-11-26/27 (issue #156): the public hashes are `xxhash` (default, XXH3 128-bit) and `md5`. `murmur` and `meowhash` are removed with what existed only for them. BLAKE3 is evaluated in a separate issue; `a5hash` and `museair` are research items of another: they stay selectable, labelled research-grade: available and fully tested (#160). Why `murmur` (`mmh3` 4.0.1) goes: it showed no measured gain over `xxhash`, and its pin had no wheel for Python 3.12 or later (#36), which blocked Task 24 part 2. Why `meowhash` (0.5) goes: it ran on x86_64 with AES-NI only (#124), its wrapper exposed a 32-bit digest (#125), and its upstream is unmaintained since 2021 and was reclassified by its author after a published cryptanalysis. Both remain in the 1.7.x releases (tags), which the ongoing undergraduate work on MeowHash uses; 2.0 does not read 1.x caches. Supersedes D3 where it keeps the six hashes. |
+| D10 | Which operating systems and Python versions does SpeeduPy 2.0 support? | Task 24 | Decided 2026-11-25. Windows, Linux and macOS, with Python 3.11 to 3.15 (`requires-python` `>=3.11,<3.16`). Supersedes D6. Part 1 (the 3.11 floor and the `test` job on the three systems) is issue #147 (PR #151); part 2 widens the range after D9. |
+| D11 | What happens to the multi-thread line (cache loading in a background thread)? | Tasks 2, 21 | Decided 2026-11-26, amended by the advisors on 2026-11-26/27. The line is frozen: as measured, it does not pay off under the GIL, and its open defects (#88, #113, #114, #123, #127) are data races. The code stays in the experimental group, as beta, with no evolution; those issues carry the labels `experimental` and `frozen` in the milestone "Experimental (thesis)". The maintainers' papers do not mention it, and it is out of the text and of the replication package of the related research paper. Reopen trigger: free-threaded CPython as the default build, with numpy and pandas supporting it; it then becomes a research line of its own (parallel execution of experiments). |
 
 ## Status
 
 | # | Task | Who | Model | Effort | Clear first | Depends on | State |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | 1 | Instructions for agents | dev | Sonnet | medium | yes | none | done (#32) |
-| 2 | Maintainer decisions | maintainer | Sonnet | medium | yes | none | pending |
+| 2 | Maintainer decisions | maintainer | Sonnet | medium | yes | none | done (#162) |
 | 3 | uv project and lock | dev | Sonnet | low | yes | none | done (#39) |
 | 4 | Fix the two flaky tests | dev | Sonnet | low | yes | 3 | done (#42) |
 | 5 | pytest harness, safe by default | dev | Sonnet | high | yes | 3, 4 | done (#47) |
@@ -288,8 +291,8 @@ Task 2 fills the "Decision" column. A task that names a decision waits for it.
 | 20 | Coverage and the blind spots of the suite | dev | Sonnet | medium | yes | 17 | done (#105) |
 | 21 | README held to the tool | dev | Sonnet | medium | yes | 15 | done (#155) |
 | 22 | Contribution documents | dev | Sonnet | low | yes | 14, D4 | done (#142) |
-| 23 | Dependency and security checks | dev | Sonnet | medium | yes | 6, D5 | pending |
-| 24 | Python versions | dev | Sonnet | medium | yes | 14, 23, D6 | pending |
+| 23 | Dependency and security checks | dev | Sonnet | medium | yes | 6, D5 | done (#133, #143) |
+| 24 | Python versions | dev | Sonnet | medium | yes | 14, 23, D10 | part 1 done (#151); part 2 pending |
 | 25 | Native libraries, part 2: the binaries in the repository | dev | Opus | high | yes | 14, D3 | done (#115) |
 | 26 | Repository skills | dev | Sonnet | medium | yes | 19, 22 | done (#145) |
 | 27 | Publish on PyPI | dev | Opus | high | yes | 21, 23, 24, 25, D7 | pending |
@@ -960,7 +963,7 @@ stays pending.
 
 ### Task 24 — Python versions
 
-Sonnet · medium · clear first: yes · depends on: 14, 23, D6
+Sonnet · medium · clear first: yes · depends on: 14, 23, D10
 
 **Goal.** The supported versions are the ones CI runs.
 
@@ -977,9 +980,9 @@ Sonnet · medium · clear first: yes · depends on: 14, 23, D6
 **Progress.** The task stays pending.
 
 - **D10 supersedes D6** (maintainer, 2026-11-25, issue #128): SpeeduPy 2.0
-  supports Windows, Linux and macOS on Python 3.11 to 3.15. Pull request 4 of
-  Task 2 adds D10 to the decision table. It also brings Windows and macOS for
-  the whole suite into the retrofit, which "Out of the retrofit" excluded.
+  supports Windows, Linux and macOS on Python 3.11 to 3.15. D10 also brings
+  Windows and macOS for the whole suite into the retrofit, which "Out of the
+  retrofit" excluded.
 - **Part 1, done (#151, issue #147):** the floor is 3.11 (`>=3.11,<3.12`), and
   the `test` job runs on Linux, Windows and macOS. dnspython and filelock, which
   Task 23 deferred to here, left their 3.10 versions, and the audit ignores no
