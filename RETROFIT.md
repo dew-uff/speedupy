@@ -969,7 +969,7 @@ Sonnet · medium · clear first: yes · depends on: 14, 23, D10
 
 **Steps.**
 1. Make `requires-python`, `README.md` and `check_python_version()` in
-   `util.py` state the same range, from D6.
+   `util.py` state the same range, from D10.
 2. Add to the `test` job each version of the range that the pins install on.
 3. A version that needs a newer pin gets one issue per dependency; those bumps
    are outside the retrofit.
@@ -977,7 +977,7 @@ Sonnet · medium · clear first: yes · depends on: 14, 23, D10
 
 **Done when.** The matrix is green and the three places agree.
 
-**Progress.** The task stays pending.
+**Progress.** Both parts are done.
 
 - **D10 supersedes D6** (maintainer, 2026-11-25, issue #128): SpeeduPy 2.0
   supports Windows, Linux and macOS on Python 3.11 to 3.15. D10 also brings
@@ -987,9 +987,12 @@ Sonnet · medium · clear first: yes · depends on: 14, 23, D10
   the `test` job runs on Linux, Windows and macOS. dnspython and filelock, which
   Task 23 deferred to here, left their 3.10 versions, and the audit ignores no
   advisory.
-- **Part 2, unblocked, pending:** D9 (issue #156) removed `murmur` and with it
-  `mmh3`, which blocked 3.12 (#36). What is left is to widen the range to 3.12
-  to 3.15, as "Python versions" in `AGENTS.md` says.
+- **Part 2, done (issue #164):** D9 (issue #156) had removed `murmur` and with
+  it `mmh3`, which blocked 3.12 (#36). The range is 3.11 to 3.15
+  (`>=3.11,<3.16`). numpy (#165), scipy (#166), pandas (#167) and pymongo (#168)
+  moved; numpy, scipy and pandas have other versions from 3.15 on. `test` runs
+  3.11 and 3.15 on the three systems and 3.12 to 3.14 on Linux; `test-servers`
+  runs 3.11 and 3.15.
 
 ### Task 25 — Native libraries, part 2: the binaries in the repository
 

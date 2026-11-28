@@ -34,9 +34,15 @@ class TestUtil(unittest.TestCase):
         sys.version_info = (3, 10, 99)
         self.assertRaises(Exception, check_python_version)
 
+    def test_check_python_version_with_highest_supported_version(self):
+        sys.version_info = (3, 15, 99)
+        check_python_version()
+
     def test_check_python_version_with_first_version_above_the_range(self):
-        sys.version_info = (3, 12, 0)
-        self.assertRaises(Exception, check_python_version)
+        sys.version_info = (3, 16, 0)
+        self.assertRaisesRegex(
+            Exception, r"Requires Python 3\.11 to 3\.15", check_python_version
+        )
 
     def test_check_python_version_with_incorrect_version_greater_than_minimum(self):
         sys.version_info = (4, 1)

@@ -73,10 +73,11 @@ jobs:
         with:
           enable-cache: true
 
-      # pip-audit evaluates the markers of the lock with its own interpreter, so
-      # it runs once on each Python the lock resolves for.
-      - name: Install Python 3.11
-        run: uv python install 3.11
+      # pip-audit evaluates the markers of the lock with its own interpreter. The
+      # pins of numpy, scipy and pandas change at 3.15, so it runs on 3.11 and on
+      # 3.15: together they cover those pins on both sides.
+      - name: Install Python 3.11 and 3.15
+        run: uv python install 3.11 3.15
 
       # Medium and high severity block. Third-party sources (native/vendor) are
       # left out; our native code is not.
@@ -102,10 +103,17 @@ jobs:
           uv run --locked --python 3.11 --only-group security pip-audit \
             --no-deps --disable-pip -r "$RUNNER_TEMP/requirements-audit.txt"
 
-  # The suite that needs no server, on the three supported operating systems.
+      - name: Audit the lock, Python 3.15 (pip-audit)
+        if: ${{ !cancelled() && steps.export.outcome == 'success' }}
+        run: |
+          uv run --locked --python 3.15 --only-group security pip-audit \
+            --no-deps --disable-pip -r "$RUNNER_TEMP/requirements-audit.txt"
+
+  # The suite that needs no server: the lowest and the highest supported Python
+  # on the three operating systems, and every version between them on Linux.
   test:
     # min-tests: floor for passed + skipped + xfailed + xpassed, applied to each
-    # leg: the lowest count among the legs minus 2. The three collect the same
+    # leg: the lowest count among the legs minus 2. The legs collect the same
     # number today. Raise it in the pull request that adds tests; lower it only
     # with the reason written in the pull request.
     env:
@@ -114,17 +122,23 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ["3.11", "3.15"]
+        include:
+          - { os: ubuntu-latest, python: "3.12" }
+          - { os: ubuntu-latest, python: "3.13" }
+          - { os: ubuntu-latest, python: "3.14" }
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # setup-uv hands python-version to uv, which downloads that CPython even
-      # when the image has one (UV_MANAGED_PYTHON, at the top).
-      - name: Install uv and Python 3.11
+      # when the image has one (UV_MANAGED_PYTHON, at the top), and prefers it
+      # to the one .python-version names.
+      - name: Install uv and Python ${{ matrix.python }}
         uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python }}
           enable-cache: true
 
       # --locked: install exactly what uv.lock says, and fail instead of
@@ -149,11 +163,12 @@ jobs:
         if: ${{ !cancelled() && steps.sync.outcome == 'success' }}
         run: |
           bash .github/scripts/pytest-summary.sh pytest.log "$MIN_TESTS" \
-            "${{ matrix.os }}, 3.11" "uv sync --locked && uv run --no-sync pytest"
+            "${{ matrix.os }}, ${{ matrix.python }}" \
+            "uv run --isolated --locked --python ${{ matrix.python }} pytest"
 
-      # One report, from Linux: artifact names are unique within a run.
+      # One report, from Linux on 3.11: artifact names are unique within a run.
       - name: Upload the coverage report
-        if: ${{ !cancelled() && steps.sync.outcome == 'success' && matrix.os == 'ubuntu-latest' }}
+        if: ${{ !cancelled() && steps.sync.outcome == 'success' && matrix.os == 'ubuntu-latest' && matrix.python == '3.11' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: coverage
@@ -172,15 +187,21 @@ jobs:
     # it only with the reason written in the pull request.
     env:
       MIN_TESTS: 776
+    # The lowest and the highest supported Python: the drivers and the pins
+    # differ between them.
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.15"]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Install uv and Python 3.11
+      - name: Install uv and Python ${{ matrix.python }}
         uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python }}
           enable-cache: true
 
       - name: Install dependencies
@@ -203,8 +224,8 @@ jobs:
         if: ${{ !cancelled() && steps.sync.outcome == 'success' }}
         run: |
           bash .github/scripts/pytest-summary.sh pytest.log "$MIN_TESTS" \
-            "ubuntu-latest, 3.11, servers" \
-            "docker compose --profile all up -d --wait && SPEEDUPY_TEST_SERVERS=1 uv run pytest"
+            "ubuntu-latest, ${{ matrix.python }}, servers" \
+            "docker compose --profile all up -d --wait && SPEEDUPY_TEST_SERVERS=1 uv run --isolated --locked --python ${{ matrix.python }} pytest"
 
       - name: Server logs
         if: ${{ failure() && steps.servers.outcome != 'skipped' }}
@@ -214,7 +235,7 @@ jobs:
         if: ${{ failure() && steps.servers.outcome != 'skipped' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: compose-logs
+          name: compose-logs-${{ matrix.python }}
           path: compose.log
           if-no-files-found: ignore
 

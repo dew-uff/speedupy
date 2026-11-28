@@ -1,5 +1,7 @@
-numpy==2.4.6
-scipy==1.17.1
+numpy==2.4.6; python_version < '3.15'
+numpy==2.5.5; python_version >= '3.15'
+scipy==1.17.1; python_version < '3.15'
+scipy==1.18.1; python_version >= '3.15'
 xxhash==4.1.0
 redis==8.1.0
 pymongo==4.19.0
