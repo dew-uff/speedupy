@@ -270,7 +270,7 @@ Task 2 fills the "Decision" column. A task that names a decision waits for it.
 | # | Task | Who | Model | Effort | Clear first | Depends on | State |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | 1 | Instructions for agents | dev | Sonnet | medium | yes | none | done (#32) |
-| 2 | Maintainer decisions | maintainer | Sonnet | medium | yes | none | done (#<PR>) |
+| 2 | Maintainer decisions | maintainer | Sonnet | medium | yes | none | done (#162) |
 | 3 | uv project and lock | dev | Sonnet | low | yes | none | done (#39) |
 | 4 | Fix the two flaky tests | dev | Sonnet | low | yes | 3 | done (#42) |
 | 5 | pytest harness, safe by default | dev | Sonnet | high | yes | 3, 4 | done (#47) |
