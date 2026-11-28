@@ -9,8 +9,12 @@ import sys
 
 
 def normalize(line):
-    name, _, version = line.partition("==")
-    return name.strip().lower().replace("_", "-"), version.strip()
+    """((name, marker), version): a package may have one pin per marker."""
+    pin, _, marker = line.partition(";")
+    name, _, version = pin.partition("==")
+    # Spacing and the kind of quotes do not change what a marker means here.
+    marker = "".join(marker.split()).replace('"', "'")
+    return (name.strip().lower().replace("_", "-"), marker), version.strip()
 
 
 def read_requirements(path):
@@ -33,13 +37,14 @@ def main():
     pyp_path = sys.argv[2] if len(sys.argv) > 2 else "pyproject.toml"
     req, pyp = read_requirements(req_path), read_pyproject(pyp_path)
     problems = []
-    for name in sorted(req.keys() | pyp.keys()):
-        if name not in pyp:
-            problems.append(f"{name}: only in {req_path}")
-        elif name not in req:
-            problems.append(f"{name}: only in {pyp_path}")
-        elif req[name] != pyp[name]:
-            problems.append(f"{name}: {req_path} {req[name]} != {pyp_path} {pyp[name]}")
+    for key in sorted(req.keys() | pyp.keys()):
+        label = "; ".join(part for part in key if part)
+        if key not in pyp:
+            problems.append(f"{label}: only in {req_path}")
+        elif key not in req:
+            problems.append(f"{label}: only in {pyp_path}")
+        elif req[key] != pyp[key]:
+            problems.append(f"{label}: {req_path} {req[key]} != {pyp_path} {pyp[key]}")
     if problems:
         sys.exit("pins differ:\n  " + "\n  ".join(problems))
     print(f"ok: {len(req)} pins agree")
