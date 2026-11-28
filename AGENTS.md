@@ -169,7 +169,7 @@ it by running.
   so an object mutated in place (a list inside a singleton) is not undone. A test
   that builds a singleton under a mock starts from no instance and says so, as
   `test_RedisDatabase.py` does.
-- **Native libraries:** `A5Hash.py` and `MuseairBFastHash.py` (research
+- **Native libraries:** `A5Hash.py` and `MuseairBFastHash.py` (research-grade
   hashes, D9) load their library on first use from `native/lib/<platform>/`,
   through `load_native_library` in `execute_exp/services/hashes/native.py`. The
   binaries are versioned for Linux x86_64 and aarch64, Windows x64 and macOS

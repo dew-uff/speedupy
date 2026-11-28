@@ -71,12 +71,12 @@ The server storages and the Memcached memory architectures also need their serve
 
 | Hash | Kind |
 | :--- | :--- |
-| `xxhash` | Non-cryptographic (XXH3, 128 bits). The default. |
+| `xxhash` | Non-cryptographic (XXH3, 128 bits). The default, recommended. |
 | `md5` | From the Python standard library. |
-| `a5hash` | Research. Native library. |
-| `museair` | Research. Native library. |
+| `a5hash` | Research-grade. Native library. |
+| `museair` | Research-grade. Native library. |
 
-Research hashes are not supported in SpeeduPy 2.0 and are evaluated in a separate issue.
+Research-grade hashes: available and fully tested.
 
 The native hashes (`a5hash`, `museair`) come prebuilt in `native/lib/` for Linux x86_64 and aarch64, Windows x64, and macOS x86_64 and arm64, so a plain clone runs them with no compiler. On any other platform `xxhash` and `md5` still work. To rebuild the binaries (a changed wrapper, source commit or platform), follow [`native/README.md`](native/README.md); the design is [`docs/native-hashes.md`](docs/native-hashes.md).
 
